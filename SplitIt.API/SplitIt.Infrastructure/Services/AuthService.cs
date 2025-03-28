@@ -41,6 +41,11 @@ namespace SplitIt.Infrastructure.Services
             return VerifyPassword(password, user.PasswordHash);
         }
 
+        public async Task<User?> GetUserByEmail(string email)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        }
+
         private string HashPassword(string password)
         {
             using var sha256 = SHA256.Create();

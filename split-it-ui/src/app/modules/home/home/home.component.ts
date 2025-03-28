@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
+import { HeaderBarComponent } from '../components/header-bar/header-bar.component';
 
 @Component({
   selector: 'app-home',
-  imports: [],
+  imports: [HeaderBarComponent],
   templateUrl: './home.component.html',
-  styleUrl: './home.component.scss'
+  styleUrls: ['./home.component.scss']
 })
 export class HomeComponent {
-
+  userName: string | null = localStorage.getItem('userName');
 }
