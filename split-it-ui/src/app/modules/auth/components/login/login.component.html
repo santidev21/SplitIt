@@ -1,0 +1,24 @@
+<div class="auth-container">
+    <mat-card class="auth-card" appearance="outlined">
+      <mat-card-title class="auth-text">Login to your account</mat-card-title>
+      <mat-card-content>
+        <form>
+          <mat-label>Email:</mat-label>
+          <mat-form-field appearance="outline" class="full-width">
+            <input matInput type="email" placeholder="example@example.com" required />
+          </mat-form-field>
+  
+          <mat-label>Password:</mat-label>
+          <mat-form-field appearance="outline" class="full-width">
+            <input matInput type="password" placeholder="Enter your password" required />
+          </mat-form-field>
+  
+          <button mat-raised-button color="primary" class="full-width">Login now</button>
+        </form>
+      </mat-card-content>
+      <mat-card-actions align="end">
+        <mat-label>Don't have an account?</mat-label><a routerLink="/auth/register" class="auth-link">Create account</a>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+  
