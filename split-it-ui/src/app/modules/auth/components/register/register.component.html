@@ -2,23 +2,23 @@
     <mat-card class="auth-card" appearance="outlined">
         <mat-card-title class="auth-text">Create an account</mat-card-title>
         <mat-card-content>
-            <form>
+            <form [formGroup]="registerForm" (ngSubmit)="register($event)">
                 <mat-label>Name:</mat-label>
                 <mat-form-field appearance="outline" class="full-width">
-                    <input matInput type="text" placeholder="Enter your name" required />
+                    <input matInput type="text" formControlName="userName" placeholder="Enter your name" required />
                 </mat-form-field>
 
                 <mat-label>Email:</mat-label>
                 <mat-form-field appearance="outline" class="full-width">
-                    <input matInput type="email" placeholder="example@example.com" required />
+                    <input matInput type="email" formControlName="email" placeholder="example@example.com" required />
                 </mat-form-field>
 
                 <mat-label>Password:</mat-label>
                 <mat-form-field appearance="outline" class="full-width">
-                    <input matInput type="password" placeholder="Enter your password" required />
+                    <input matInput type="password" formControlName="password" placeholder="Enter your password" required />
                 </mat-form-field>
 
-                <button mat-raised-button color="primary" class="full-width">Register</button>
+                <button mat-raised-button color="primary" class="full-width"  type="submit">Register</button>
             </form>
         </mat-card-content>
         <mat-card-actions align="end">

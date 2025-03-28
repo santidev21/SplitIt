@@ -20,9 +20,9 @@ namespace SplitIt.API.Controllers
         {
             bool success = await _authService.RegisterUser(request.Name, request.Email, request.Password);
             if (!success)
-                return BadRequest("The user already exists!");
+                return BadRequest(new { message = "The user already exists!" });
 
-            return Ok("Successfully registered.");
+            return Ok(new { message = "Successfully registered." });
         }
 
         [HttpPost("login")]
@@ -30,9 +30,9 @@ namespace SplitIt.API.Controllers
         {
             bool success = await _authService.ValidateUser(request.Email, request.Password);
             if (!success)
-                return BadRequest("Incorrect credentials.");
+                return Unauthorized(new { error = "Invalid credentials" });
 
-            return Ok("Login successful.");
+            return Ok(new {message = "Login successful."});
         }
     }
 }

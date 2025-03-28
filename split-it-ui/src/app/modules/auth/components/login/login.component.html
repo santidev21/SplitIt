@@ -2,18 +2,18 @@
     <mat-card class="auth-card" appearance="outlined">
       <mat-card-title class="auth-text">Login to your account</mat-card-title>
       <mat-card-content>
-        <form>
+        <form [formGroup]="loginForm" (ngSubmit)="login($event)">
           <mat-label>Email:</mat-label>
           <mat-form-field appearance="outline" class="full-width">
-            <input matInput type="email" placeholder="example@example.com" required />
+            <input matInput type="email" formControlName="email" placeholder="example@example.com" required />
           </mat-form-field>
   
           <mat-label>Password:</mat-label>
           <mat-form-field appearance="outline" class="full-width">
-            <input matInput type="password" placeholder="Enter your password" required />
+            <input matInput type="password" formControlName="password" placeholder="Enter your password" required />
           </mat-form-field>
   
-          <button mat-raised-button color="primary" class="full-width">Login now</button>
+          <button mat-raised-button color="primary" class="full-width" type="submit">Login now</button>
         </form>
       </mat-card-content>
       <mat-card-actions align="end">
