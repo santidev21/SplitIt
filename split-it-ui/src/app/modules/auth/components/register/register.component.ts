@@ -37,7 +37,7 @@ export class RegisterComponent {
     this.authService.register(userName, email, password).subscribe({
       next: (response) => {
         this.isLoading = false;
-        this.router.navigate(['/home']);
+        this.router.navigate(['/dashboard']);
       },
       error: (err) => {
         this.isLoading = false;
