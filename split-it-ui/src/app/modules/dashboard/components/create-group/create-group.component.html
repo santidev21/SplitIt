@@ -1,0 +1,44 @@
+<div class="create-group-form">
+    <div class="form-container">
+      <form [formGroup]="createGroupForm" class="form-group-container" (ngSubmit)="onSubmit()">
+        
+        <mat-label>Group Name</mat-label>
+        <mat-form-field appearance="fill">
+          <input matInput formControlName="name" required />
+        </mat-form-field>
+  
+        <mat-label>Description</mat-label>
+        <mat-form-field appearance="fill">
+          <textarea matInput formControlName="description" required></textarea>
+        </mat-form-field>
+  
+        <!-- Group Members -->
+      <mat-label>Group Members</mat-label>
+      <mat-form-field appearance="fill">
+        <mat-select formControlName="members" multiple>
+          <mat-option *ngFor="let user of users" [value]="user.id">{{ user.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Checkbox for deleting expenses -->
+       <div class="allow-delete-expenses">
+        <mat-checkbox formControlName="allowAllToDeleteExpenses" [checked]="false"></mat-checkbox>    
+        <mat-label>Allow All to Delete Expenses</mat-label>    
+       </div>
+
+        <mat-label>Currency</mat-label>
+        <mat-form-field appearance="fill">
+          <mat-select formControlName="currency" required>
+            <mat-option *ngFor="let currency of currencies" [value]="currency">{{ currency }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+  
+        <div class="action-buttons">
+          <mat-icon class="button-icon-color" (click)="close()">cancel</mat-icon>
+          <mat-icon class="button-icon-color">save</mat-icon>
+        </div>
+        
+    </form>
+    </div>
+  </div>
+  

@@ -1,4 +1,21 @@
 <app-header-bar></app-header-bar>
 <div class="dashboard-container">
-    <h1>Hola, {{ userName }}!</h1>
+    <span class="user-title">Hi, {{ userName }}!</span>
+    <div class="dashboard-container">
+        <span class="my-groups-title">My Groups</span>
+        <div class="groups-card-container mt-2">
+                <mat-card appearance="outlined">
+                    <mat-card-content class="groups-card">
+                        <div *ngIf="userHasGroups; else elseBlock">
+                            <!-- For each group... -->
+                            <app-group-card></app-group-card>
+                        </div>
+                        <ng-template #elseBlock>
+                            <span class="warning-text">Your user does not have any associated groups. Please request to be added to one or create your own group.</span>
+                        </ng-template>
+                        <mat-icon class="button-icon-color" (click)="openCreateGroupDialog()">add_circle_outline</mat-icon>
+                    </mat-card-content>
+                </mat-card>
+        </div>
+      </div>
 </div>

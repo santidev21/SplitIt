@@ -1,7 +1,24 @@
+@import '../../../../styles/variables';
+
 .dashboard-container{
     width: 100%;
+    display: flex;
     text-align: center;
-    
-
-    margin-top: 200px;
+    justify-content: center;
+    flex-direction: column;
+    margin-top: 50px;
 }
+
+.groups-card-container{
+    margin-top: 20px auto;
+    align-self: center;
+    width: 70%;
+}
+
+.groups-card{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+

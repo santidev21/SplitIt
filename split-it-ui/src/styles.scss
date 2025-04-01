@@ -3,3 +3,29 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+    
+// Frecuent classes
+.user-title{
+    font-weight: bold;
+    font-size: 26px;
+}
+
+.my-groups-title{
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.warning-text{
+    color: red;
+    font-weight: bold;
+}
+
+
+.button-icon-color{
+    color: $primary-color;
+    transform: scale(1.4);
+
+    &:hover{
+        cursor: pointer;
+    }
+}

@@ -1,0 +1,26 @@
+.create-group-form {
+    overflow: hidden;
+    padding: 20px;
+  }
+
+.form-group-container{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  mat-label{
+    font-size: 16px; 
+  }
+
+  mat-form-field {
+  width: 80%;
+}
+}
+
+.action-buttons{
+  display: flex;
+  flex-direction: row;
+  gap: 50px;
+}
