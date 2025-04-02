@@ -14,6 +14,10 @@ namespace SplitIt.Infrastructure.Persistence
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<Currency> Currencies { get; set; }
+        public DbSet<Group> Groups { get; set; }
+        public DbSet<GroupMember> GroupMembers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -26,7 +30,64 @@ namespace SplitIt.Infrastructure.Persistence
                 entity.Property(u => u.Name).IsRequired().HasMaxLength(100);
                 entity.Property(u => u.Email).IsRequired().HasMaxLength(100);
                 entity.Property(u => u.PasswordHash).IsRequired();
+                entity.Property(u => u.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             });
+
+            // Role table configuration
+            modelBuilder.Entity<Role>(entity =>
+            {
+                entity.HasKey(r => r.Id);
+                entity.Property(r => r.Name).IsRequired().HasMaxLength(50);
+            });
+
+            // Currency table configuration
+            modelBuilder.Entity<Currency>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+                entity.Property(c => c.Name).IsRequired().HasMaxLength(100); 
+                entity.Property(c => c.Symbol).IsRequired().HasMaxLength(10);
+            });
+
+            // Group table configuration
+            modelBuilder.Entity<Group>(entity =>
+            {
+                entity.HasKey(g => g.Id);
+                entity.Property(g => g.Name).IsRequired().HasMaxLength(200);
+                entity.Property(g => g.Description).IsRequired().HasMaxLength(500);
+                entity.Property(g => g.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.HasOne(g => g.Currency).WithMany().HasForeignKey(g => g.CurrencyId);
+                entity.Property(g => g.AllowToDeleteExpenses).HasDefaultValue(false);
+            });
+
+            // GroupMember table configuration
+            modelBuilder.Entity<GroupMember>(entity =>
+            {
+                entity.HasKey(gm => gm.Id);
+                entity.HasOne(gm => gm.Group).WithMany(g => g.GroupMembers).HasForeignKey(gm => gm.GroupId);
+                entity.HasOne(gm => gm.User).WithMany().HasForeignKey(gm => gm.UserId);
+                entity.Property(gm => gm.Role).IsRequired().HasMaxLength(50);
+            });
+
+
+            SeedRoles(modelBuilder);
+            SeedCurrency(modelBuilder);
+        }
+
+        private static void SeedRoles(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Role>().HasData(
+                new Role { Id = 1, Name = "super" },
+                new Role { Id = 2, Name = "admin" },
+                new Role { Id = 3, Name = "user" }
+            );
+        }
+
+        private static void SeedCurrency(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Currency>().HasData(
+                new Currency { Id = 1, Name = "Dólar", Symbol = "USD" },
+                new Currency { Id = 2, Name = "Peso Colombiano", Symbol = "COP" }
+            );
         }
     }
 }

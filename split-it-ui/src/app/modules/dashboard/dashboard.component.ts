@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
-import { HeaderBarComponent } from '../components/header-bar/header-bar.component';
-import { GroupCardComponent } from '../components/group-card/group-card.component';
 import { RouterModule } from '@angular/router';
-import { MATERIAL_IMPORTS } from '../../../../shared/material.imports';
 import { MatDialog } from '@angular/material/dialog';
-import { CreateGroupComponent } from '../components/create-group/create-group.component';
+import { HeaderBarComponent } from './components/header-bar/header-bar.component';
+import { GroupCardComponent } from './components/group-card/group-card.component';
+import { MATERIAL_IMPORTS } from '../../../shared/material.imports';
+import { CreateGroupComponent } from './components/create-group/create-group.component';
 
 @Component({
   selector: 'app-dashboard',

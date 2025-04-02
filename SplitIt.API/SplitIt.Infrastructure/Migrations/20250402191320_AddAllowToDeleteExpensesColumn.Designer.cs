@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SplitIt.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using SplitIt.Infrastructure.Persistence;
 namespace SplitIt.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250402191320_AddAllowToDeleteExpensesColumn")]
+    partial class AddAllowToDeleteExpensesColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,20 +46,6 @@ namespace SplitIt.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Currencies");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Dólar",
-                            Symbol = "USD"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Peso Colombiano",
-                            Symbol = "COP"
-                        });
                 });
 
             modelBuilder.Entity("SplitIt.Domain.Entities.Group", b =>

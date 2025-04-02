@@ -30,7 +30,11 @@ namespace SplitIt.API.Controllers
             if (!success)
                 return BadRequest(new { message = "The user already exists!" });
 
-            var token = GenerateJwtToken(request.Email);
+            var user = await _authService.GetUserByEmail(request.Email);
+            if (user == null)
+                return StatusCode(500, new { message = "An error occurred while retrieving the user." });
+
+            var token = GenerateJwtToken(user);
 
             return Ok(new
             {
@@ -47,11 +51,11 @@ namespace SplitIt.API.Controllers
             if (user == null || !await _authService.ValidateUser(request.Email, request.Password))
                 return Unauthorized(new { error = "Invalid credentials" });
 
-            var token = GenerateJwtToken(request.Email);
+            var token = GenerateJwtToken(user);
             return Ok(new {message = "Login successful.", token, userName = user.Name});
         }
 
-        private string GenerateJwtToken(string email)
+        private string GenerateJwtToken(User user)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var key = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);
@@ -59,7 +63,9 @@ namespace SplitIt.API.Controllers
 
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, email),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 

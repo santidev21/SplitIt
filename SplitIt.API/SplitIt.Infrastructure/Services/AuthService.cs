@@ -26,7 +26,7 @@ namespace SplitIt.Infrastructure.Services
 
             string passwordHash = HashPassword(password);
 
-            User user = new User() { Name = name, Email = email, PasswordHash = passwordHash };
+            User user = new User() { Name = name, Email = email, PasswordHash = passwordHash , RoleId = 3};
 
             _context.Add(user);
             await _context.SaveChangesAsync();
