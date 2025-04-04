@@ -18,6 +18,5 @@ export class GroupDetailComponent implements OnInit{
 
   ngOnInit(): void {
     this.groupId = Number(this.route.snapshot.paramMap.get('id'));
-    console.log('Group ID:', this.groupId);
   }
 }
