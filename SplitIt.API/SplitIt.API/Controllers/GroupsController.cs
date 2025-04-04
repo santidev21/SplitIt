@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SplitIt.API.DTOs;
+using SplitIt.Application.DTOs;
 using SplitIt.Infrastructure.Services;
 using System.Security.Claims;
 

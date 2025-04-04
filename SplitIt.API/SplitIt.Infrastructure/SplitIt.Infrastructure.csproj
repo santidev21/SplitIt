@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SplitIt.Application\SplitIt.Application.csproj" />
     <ProjectReference Include="..\SplitIt.Domain\SplitIt.Domain.csproj" />
   </ItemGroup>
 

@@ -29,13 +29,15 @@
         <mat-label>Currency</mat-label>
         <mat-form-field appearance="fill">
           <mat-select formControlName="currency" required>
-            <mat-option *ngFor="let currency of currencies" [value]="currency">{{ currency }}</mat-option>
+            <mat-option *ngFor="let currency of currencies" [value]="currency.id">
+              {{ currency.name }} ({{ currency.symbol }})
+            </mat-option>
           </mat-select>
         </mat-form-field>
   
         <div class="action-buttons">
           <mat-icon class="button-icon-color" (click)="close()">cancel</mat-icon>
-          <mat-icon class="button-icon-color">save</mat-icon>
+          <mat-icon class="button-icon-color" type="submit">save</mat-icon>
         </div>
         
     </form>

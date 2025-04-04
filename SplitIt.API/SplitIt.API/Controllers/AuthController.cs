@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using SplitIt.API.DTOs;
+using SplitIt.Application.DTOs;
 using SplitIt.Domain.Entities;
 using SplitIt.Infrastructure.Services;
 using System.IdentityModel.Tokens.Jwt;

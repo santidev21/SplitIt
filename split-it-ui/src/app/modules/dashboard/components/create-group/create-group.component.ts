@@ -1,8 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
+import { CurrencyService } from '../../services/currency.service';
+import { UsersService } from '../../services/users.service';
+import { User } from '../../../../models/user.model';
+import { Currency } from '../../../../models/currency.model';
 
 @Component({
   selector: 'app-create-group',
@@ -10,29 +14,34 @@ import { MatDialogRef } from '@angular/material/dialog';
   templateUrl: './create-group.component.html',
   styleUrls: ['./create-group.component.scss']
 })
-export class CreateGroupComponent {
+export class CreateGroupComponent implements OnInit{
   createGroupForm: FormGroup;
-  
-  //TODO: Add endpoint for those selects.
-  currencies = ['USD', 'EUR', 'COP', 'MXN'];
-  users = [
-    { id: 1, name: 'Alice Johnson' },
-    { id: 2, name: 'Bob Smith' },
-    { id: 3, name: 'Charlie Brown' },
-    { id: 4, name: 'Diana White' },
-    { id: 5, name: 'Ethan Green' },
-  ];
+  users: User[] = [];
+  currencies: Currency[] = [];
+  selectedCurrency!: number;
+  selectedUsers: number[] = [];
 
   constructor(
     private fb: FormBuilder,
-    private dialogRef: MatDialogRef<CreateGroupComponent>
+    private dialogRef: MatDialogRef<CreateGroupComponent>,
+    private currencyService: CurrencyService,
+    private usersService: UsersService
   ) {
     this.createGroupForm = this.fb.group({
       name: ['', Validators.required],
       description: ['', Validators.required],
-      currency: ['', Validators.required],
-      members: [[]],
+      currency: [null, Validators.required],
+      members: [[], Validators.required],
       allowAllToDeleteExpenses: [false]
+    });
+  }
+
+  ngOnInit(): void {
+    this.currencyService.getCurrencies().subscribe(currencies =>{
+      this.currencies = currencies;
+    });
+    this.usersService.getUsers().subscribe(users =>{
+      this.users = users;
     });
   }
 

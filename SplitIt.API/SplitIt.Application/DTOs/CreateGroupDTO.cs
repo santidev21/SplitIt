@@ -1,4 +1,4 @@
-﻿namespace SplitIt.API.DTOs
+﻿namespace SplitIt.Application.DTOs
 {
     public class CreateGroupDto
     {

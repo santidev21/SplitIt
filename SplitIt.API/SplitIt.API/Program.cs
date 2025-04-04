@@ -18,8 +18,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// App services
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<GroupService>();
+builder.Services.AddScoped<CurrenciesService>();
+builder.Services.AddScoped<UsersService>();
 
 // JWT
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
