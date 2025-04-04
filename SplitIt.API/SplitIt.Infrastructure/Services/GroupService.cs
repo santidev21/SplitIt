@@ -60,6 +60,7 @@ namespace SplitIt.Infrastructure.Services
             .Where(gm => gm.UserId == userId)
             .Select(gm => new UserGroupDto
             {
+                Id = gm.Id,
                 Name = gm.Group.Name,
                 Description = gm.Group.Description,
                 Role = gm.Role

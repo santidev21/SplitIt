@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import { CurrencyService } from '../../services/currency.service';
@@ -28,6 +28,7 @@ export class CreateGroupComponent implements OnInit{
     private currencyService: CurrencyService,
     private usersService: UsersService,
     private groupService: GroupService,
+    private router: Router
   ) {
     this.createGroupForm = this.fb.group({
       name: ['', Validators.required],
@@ -52,6 +53,7 @@ export class CreateGroupComponent implements OnInit{
       const groupData = this.createGroupForm.value;      
       this.groupService.createGroup(groupData).subscribe(resp =>{
         this.dialogRef.close();
+        this.router.navigate(['/dashboard/group', resp.groupId]);
       });
     }
   }

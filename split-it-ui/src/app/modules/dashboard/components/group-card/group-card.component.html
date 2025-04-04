@@ -1,4 +1,4 @@
-<mat-card class="group-card" appearance="outlined">
+<mat-card class="group-card" [routerLink]="['/dashboard/group', group.id]" style="cursor: pointer;" appearance="outlined">
     <mat-card-header>
       <mat-card-title>{{group.name}}</mat-card-title>
     </mat-card-header>
