@@ -27,7 +27,7 @@ export class CreateGroupComponent implements OnInit{
     private dialogRef: MatDialogRef<CreateGroupComponent>,
     private currencyService: CurrencyService,
     private usersService: UsersService,
-    private groupService: GroupService
+    private groupService: GroupService,
   ) {
     this.createGroupForm = this.fb.group({
       name: ['', Validators.required],
@@ -51,8 +51,7 @@ export class CreateGroupComponent implements OnInit{
     if (this.createGroupForm.valid) {
       const groupData = this.createGroupForm.value;      
       this.groupService.createGroup(groupData).subscribe(resp =>{
-        console.log(resp);
-        
+        this.dialogRef.close();
       });
     }
   }

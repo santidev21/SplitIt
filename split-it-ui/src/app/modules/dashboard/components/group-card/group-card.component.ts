@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
+import { UserGroup } from '../../../../models/user.model';
 
 @Component({
   selector: 'app-group-card',
@@ -8,5 +9,6 @@ import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
   styleUrls: ['./group-card.component.scss']
 })
 export class GroupCardComponent {
-
+  @Input() group!: UserGroup;
 }
+ 

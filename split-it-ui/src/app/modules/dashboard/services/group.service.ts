@@ -22,4 +22,8 @@ export class GroupService {
     const body = groupData;
     return this.http.post(`${this.API_URL}/create`, body);
   }
+
+  getUserGroups(userId: number): Observable<any> {
+    return this.http.get(`${this.API_URL}/user/${userId}`);
+  }
 }

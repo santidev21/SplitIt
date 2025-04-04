@@ -40,7 +40,8 @@ namespace SplitIt.API.Controllers
             {
                 message = "Registration successful.",
                 token,
-                user = new { request.Name, request.Email }
+                userName = user.Name,
+                userId = user.Id
             });
         }
 
@@ -52,7 +53,7 @@ namespace SplitIt.API.Controllers
                 return Unauthorized(new { error = "Invalid credentials" });
 
             var token = GenerateJwtToken(user);
-            return Ok(new {message = "Login successful.", token, userName = user.Name});
+            return Ok(new {message = "Login successful.", token, userName = user.Name, userId = user.Id});
         }
 
         private string GenerateJwtToken(User user)
@@ -66,7 +67,8 @@ namespace SplitIt.API.Controllers
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.Role, user.RoleId.ToString())
             };
 
             var token = new JwtSecurityToken(

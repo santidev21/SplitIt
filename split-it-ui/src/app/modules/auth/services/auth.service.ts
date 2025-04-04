@@ -18,11 +18,12 @@ export class AuthService {
   login(email: string, password: string) : Observable<any>
   {
     const body = { email, password };
-    return this.http.post<{ token: string; userName: string }>(`${this.API_URL}/login`, body)
+    return this.http.post<{ token: string, userName: string, userId: number }>(`${this.API_URL}/login`, body)
     .pipe(
       tap(response => {
         localStorage.setItem('token', response.token);
         localStorage.setItem('userName', response.userName);
+        localStorage.setItem('userId', response.userId.toString());
         this.router.navigate(['/home']);
       })
     );
@@ -31,11 +32,12 @@ export class AuthService {
   register(userName: string, email: string, password: string) : Observable<any>
   {
     const body = { name: userName, email, password };
-    return this.http.post<{ token: string, user: { name: string, email: string } }>(`${this.API_URL}/register`, body)
+    return this.http.post<{ token: string, userName: string, userId: number }>(`${this.API_URL}/register`, body)
       .pipe(
       tap(response => {
         localStorage.setItem('token', response.token);
-        localStorage.setItem('userName', response.user.name);
+        localStorage.setItem('userName', response.userName);
+        localStorage.setItem('userId', response.userId.toString());
         this.router.navigate(['/home']);
       })
     );

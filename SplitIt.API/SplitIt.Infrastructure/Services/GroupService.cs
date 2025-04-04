@@ -1,4 +1,6 @@
-﻿using SplitIt.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using SplitIt.Application.DTOs;
+using SplitIt.Domain.Entities;
 using SplitIt.Infrastructure.Persistence;
 using System;
 using System.Collections.Generic;
@@ -51,5 +53,21 @@ namespace SplitIt.Infrastructure.Services
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<List<UserGroupDto>> GetGroupsForUserAsync(int userId)
+        {
+            var groups = await _context.GroupMembers
+            .Where(gm => gm.UserId == userId)
+            .Select(gm => new UserGroupDto
+            {
+                Name = gm.Group.Name,
+                Description = gm.Group.Description,
+                Role = gm.Role
+            })
+            .ToListAsync();
+
+            return groups;
+        }
+        
     }
 }

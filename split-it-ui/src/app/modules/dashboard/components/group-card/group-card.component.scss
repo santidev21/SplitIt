@@ -1,0 +1,11 @@
+.group-card{
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    mat-card-title{
+        font-weight: bold;
+        font-size: 20px;
+    }
+}

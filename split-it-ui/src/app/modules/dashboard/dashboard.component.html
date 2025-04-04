@@ -7,8 +7,11 @@
                 <mat-card appearance="outlined">
                     <mat-card-content class="groups-card">
                         <div *ngIf="userHasGroups; else elseBlock">
-                            <!-- For each group... -->
-                            <app-group-card></app-group-card>
+                            <div class="user-groups-container">
+                                <div *ngFor="let group of userGroups">
+                                    <app-group-card [group]="group"></app-group-card>
+                                </div>
+                            </div>
                         </div>
                         <ng-template #elseBlock>
                             <span class="warning-text">Your user does not have any associated groups. Please request to be added to one or create your own group.</span>

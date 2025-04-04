@@ -44,5 +44,22 @@ namespace SplitIt.API.Controllers
             bool result = await _groupService.AddGroupMembers(groupId, members, userId);
             return Ok(new { Message = "Group created correctly.", GroupId = groupId });
         }
+
+        [HttpGet("user/{userId}")]
+        [Authorize]
+        public async Task<IActionResult> GetGroupsForUser(int userId)
+        {
+            var loggedUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var loggedUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            // If it's not the same user and not a "super" role, access is not allowed
+            if (loggedUserId != userId.ToString() && loggedUserRole != "1")
+            {
+                return Forbid();
+            }
+
+            var groups = await _groupService.GetGroupsForUserAsync(userId);
+            return Ok(groups);
+        }
     }
 }
