@@ -7,6 +7,7 @@ import { CurrencyService } from '../../services/currency.service';
 import { UsersService } from '../../services/users.service';
 import { User } from '../../../../models/user.model';
 import { Currency } from '../../../../models/currency.model';
+import { GroupService } from '../../services/group.service';
 
 @Component({
   selector: 'app-create-group',
@@ -25,14 +26,15 @@ export class CreateGroupComponent implements OnInit{
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<CreateGroupComponent>,
     private currencyService: CurrencyService,
-    private usersService: UsersService
+    private usersService: UsersService,
+    private groupService: GroupService
   ) {
     this.createGroupForm = this.fb.group({
       name: ['', Validators.required],
       description: ['', Validators.required],
-      currency: [null, Validators.required],
+      currencyId: [null, Validators.required],
       members: [[], Validators.required],
-      allowAllToDeleteExpenses: [false]
+      allowToDeleteExpenses: [false]
     });
   }
 
@@ -47,7 +49,11 @@ export class CreateGroupComponent implements OnInit{
 
   onSubmit(): void {
     if (this.createGroupForm.valid) {
-      console.log(this.createGroupForm.value);
+      const groupData = this.createGroupForm.value;      
+      this.groupService.createGroup(groupData).subscribe(resp =>{
+        console.log(resp);
+        
+      });
     }
   }
 

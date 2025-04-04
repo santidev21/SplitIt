@@ -22,13 +22,13 @@
 
       <!-- Checkbox for deleting expenses -->
        <div class="allow-delete-expenses">
-        <mat-checkbox formControlName="allowAllToDeleteExpenses" [checked]="false"></mat-checkbox>    
+        <mat-checkbox formControlName="allowToDeleteExpenses" [checked]="false"></mat-checkbox>    
         <mat-label>Allow All to Delete Expenses</mat-label>    
        </div>
 
         <mat-label>Currency</mat-label>
         <mat-form-field appearance="fill">
-          <mat-select formControlName="currency" required>
+          <mat-select formControlName="currencyId" required>
             <mat-option *ngFor="let currency of currencies" [value]="currency.id">
               {{ currency.name }} ({{ currency.symbol }})
             </mat-option>
@@ -36,8 +36,12 @@
         </mat-form-field>
   
         <div class="action-buttons">
-          <mat-icon class="button-icon-color" (click)="close()">cancel</mat-icon>
-          <mat-icon class="button-icon-color" type="submit">save</mat-icon>
+          <button mat-icon-button (click)="close()">
+            <mat-icon  class="button-icon-color">cancel</mat-icon>
+          </button>
+          <button mat-icon-button type="submit">
+            <mat-icon  class="button-icon-color">save</mat-icon>
+          </button>
         </div>
         
     </form>

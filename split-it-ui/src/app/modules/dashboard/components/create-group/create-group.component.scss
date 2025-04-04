@@ -23,4 +23,10 @@
   display: flex;
   flex-direction: row;
   gap: 50px;
+
+  button{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 }

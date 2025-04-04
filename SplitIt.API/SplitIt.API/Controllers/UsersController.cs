@@ -20,7 +20,7 @@ namespace SplitIt.API.Controllers
             _configuration = configuration;
         }
 
-            [HttpGet("getUsers")]
+            [HttpGet]
             [Authorize]
             public async Task<IActionResult> GetUsers()
             {

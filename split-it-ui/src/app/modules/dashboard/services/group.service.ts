@@ -12,14 +12,14 @@ export class GroupService {
   
   constructor(private http: HttpClient) { }
 
-  createGroup(
-    name: string,
-    description: string,
-    members: number[],
-    allowToDeleteExpenses: boolean,
-    currencyId: number
-  ): Observable<any> {
-    const body = { name, description, members, allowToDeleteExpenses, currencyId };
+  createGroup(groupData: {
+    name: string;
+    description: string;
+    members: number[];
+    allowToDeleteExpenses: boolean;
+    currencyId: number;
+  }): Observable<any> {
+    const body = groupData;
     return this.http.post(`${this.API_URL}/create`, body);
   }
 }
