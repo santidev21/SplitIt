@@ -61,5 +61,7 @@ namespace SplitIt.API.Controllers
             var groups = await _groupService.GetGroupsForUserAsync(userId);
             return Ok(groups);
         }
+
+        // TODO: OpenAPI documentation.
     }
 }

@@ -1,0 +1,68 @@
+.group-detail-container{
+    
+    height: calc(100vh - 70px);
+    overflow-y: auto;
+    padding: 1rem;
+
+}
+
+.group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; // for responsive behavior
+    gap: 1rem;
+  }
+  
+  .group-title {
+    flex: 1;
+  }
+  
+  .group-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  
+.expense-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  
+    .expense-row {
+      display: grid;
+      grid-template-columns: 1fr 2fr 2fr auto;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      background-color: #f9fafb;
+  
+      &.alt {
+        background-color: #f1f5f9;
+      }
+  
+      &.header-row {
+        font-weight: bold;
+        background-color: #e2e8f0; 
+        color: #1f2937;
+      }
+  
+      .date,
+      .title-amount,
+      .participants,
+      .actions {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+  
+      .actions {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 0.5rem;
+      }
+    }
+  }
+  

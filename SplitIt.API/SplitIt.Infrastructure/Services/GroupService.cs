@@ -66,7 +66,7 @@ namespace SplitIt.Infrastructure.Services
                 Role = gm.Role
             })
             .ToListAsync();
-
+            // TODO: Try using Automapper
             return groups;
         }
         

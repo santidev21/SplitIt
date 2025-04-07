@@ -9,6 +9,9 @@ import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {MatChipsModule} from '@angular/material/chips';
 import { MatSelectModule } from '@angular/material/select';
 import {MatCheckboxModule} from '@angular/material/checkbox';
+import { MatListModule } from '@angular/material/list';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 
 export const MATERIAL_IMPORTS = [
@@ -23,5 +26,8 @@ export const MATERIAL_IMPORTS = [
   MatChipsModule, 
   MatProgressBarModule,
   MatSelectModule,
-  MatCheckboxModule
+  MatCheckboxModule,
+  MatListModule,
+  MatTooltipModule,
+  MatSlideToggleModule
 ];

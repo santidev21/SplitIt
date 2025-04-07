@@ -1,1 +1,97 @@
 <app-header-bar></app-header-bar>
+<div class="group-detail-container space-y-4">
+
+  <!-- Group title and description -->
+  <mat-card class="p-4">
+    <!-- Group header with title on the left and actions on the right -->
+  <div class="group-header">
+    <div class="group-title">
+      <p class="heading-xl m-0">{{ group.name }}</p>
+    </div>
+
+    <div class="group-actions">
+      <button mat-icon-button color="primary" (click)="onAddExpense()" matTooltip="Add expense">
+        <mat-icon>add</mat-icon>
+      </button>
+      <button mat-icon-button color="accent" (click)="onEditGroup()" matTooltip="Edit group">
+        <mat-icon>settings</mat-icon>
+      </button>
+      <button mat-icon-button color="warn" (click)="onDeleteGroup()" matTooltip="Delete group">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Group description -->
+  <p class="text-gray-600 mt-1">{{ group.description }}</p>
+
+    <!-- Debt summary card -->
+    <mat-card class="p-2 mb-2">
+      <p class="heading-lg">{{ balance.total >= 0 ? 'You are owed' : 'You owe' }} : $ {{balance.total}}</p>
+
+      <!-- List of debts per participant (excluding 0 balances) -->
+      <div>
+        <p class="heading-md mb-1">Summary per participant:</p>
+        <ul>
+          <ng-container *ngFor="let item of balance.details">
+            <li *ngIf="item.amount !== 0">
+              {{ item.name }}:
+              <span [ngClass]="{ 'text-green-600': item.amount > 0, 'text-red-600': item.amount < 0 }">
+                {{ item.amount > 0 ? '+' : '-' }}{{ item.amount | currency:'ARS' }}
+              </span>
+            </li>
+          </ng-container>
+        </ul>
+      </div>
+    </mat-card>
+
+    <!-- Expenses list card -->
+    <mat-card class="p-4">
+        <!-- Table header -->
+        <div class="flex justify-between items-center mb-4">
+          <p class="heading-md">Expenses</p>
+          <mat-slide-toggle [(ngModel)]="showAllExpenses" *ngIf="isAdminOrCreator">
+            Show all
+          </mat-slide-toggle>
+        </div>
+      
+        <div class="expense-list">
+          <!-- Header row (in English) -->
+          <div class="expense-row header-row">
+            <div class="date">Date</div>
+            <div class="title-amount">Title / Amount</div>
+            <div class="participants">Participants</div>
+            <div class="actions text-right">Actions</div>
+          </div>
+      
+          <!-- Data rows -->
+          <div *ngFor="let exp of filteredExpenses; let i = index" class="expense-row" [class.alt]="i % 2 !== 0">
+            <div class="date">{{ exp.date | date: 'dd/MM/yyyy' }}</div>
+      
+            <div class="title-amount">
+              <div class="title" matTooltip="{{ exp.notes }}">{{ exp.title }}</div>
+              <div class="amount">{{ exp.amount | currency: 'ARS' }}</div>
+            </div>
+      
+            <div class="participants">
+              <div *ngFor="let p of exp.participants">
+                {{ p.name }} ({{ p.amount | currency: 'ARS' }})
+              </div>
+            </div>
+      
+            <div class="actions">
+              <button mat-icon-button color="primary" (click)="onEdit(exp)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="onDelete(exp)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </mat-card>
+      
+      
+
+  </mat-card>
+</div>
