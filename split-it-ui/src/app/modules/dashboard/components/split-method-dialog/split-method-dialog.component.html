@@ -1,0 +1,44 @@
+<h2 mat-dialog-title class="text-center">Split Expense</h2>
+
+<mat-dialog-content>
+  <mat-tab-group [(selectedIndex)]="selectedTabIndex">
+    <!-- Equal Split Tab -->
+    <mat-tab label="Equally">
+      <div class="tab-content">
+        <mat-checkbox *ngFor="let member of members" [(ngModel)]="equalSplitSelection[member.id]">
+          {{ member.name }}
+        </mat-checkbox>
+      </div>
+    </mat-tab>
+
+    <!-- Custom Amount Tab -->
+    <mat-tab label="By Amount">
+      <div class="tab-content">
+        <div *ngFor="let member of members" class="split-input-row">
+            <span class="member-name">{{ member.name }}</span>
+            <mat-form-field class="member-input" appearance="fill">
+              <input matInput type="number" [(ngModel)]="member.amount" />
+            </mat-form-field>
+          </div>
+          
+      </div>
+    </mat-tab>
+
+    <!-- Custom Percentage Tab -->
+    <mat-tab label="By Percentage">
+      <div class="tab-content">
+        <div *ngFor="let member of members" class="split-input-row">
+            <span class="member-name">{{ member.name }}</span>
+            <mat-form-field class="member-input" appearance="fill">
+              <input matInput type="number" [(ngModel)]="member.amount" />
+            </mat-form-field>
+          </div>          
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-flat-button color="primary" (click)="confirmSplit()">Done</button>
+</mat-dialog-actions>

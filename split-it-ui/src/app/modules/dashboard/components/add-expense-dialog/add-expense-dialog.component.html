@@ -1,0 +1,75 @@
+<h2 mat-dialog-title class="text-center">Add Expense</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="expenseForm" class="mt-3">
+
+    <div class="row">
+        <mat-form-field class="w-100">
+            <mat-label>Title</mat-label>
+            <input matInput formControlName="title" />
+        </mat-form-field>
+    </div>
+
+    <div class="row">
+        <mat-form-field class="w-100">
+            <mat-label>Notes</mat-label>
+            <textarea matInput formControlName="notes" rows="1"></textarea>
+        </mat-form-field>
+        </div>
+
+    <div class="row">
+        <mat-form-field class="w-100">
+          <mat-label>Amount</mat-label>
+          <input matInput type="number" formControlName="amount" />
+        </mat-form-field>
+    </div>
+
+    <div class="row">
+        <button #dateButton mat-button (click)="openDatepicker()" class="datepicker-btn">
+            <mat-icon>calendar_month</mat-icon>
+            {{ selectedDate | date: 'mediumDate' }}
+          </button>
+        
+          <input
+            #hiddenDateInput
+            matInput
+            [matDatepicker]="picker"
+            [value]="selectedDate"
+            (dateChange)="onDateChange($event)"
+            readonly
+            class="hidden-datepicker-input"
+          />
+        
+          <mat-datepicker #picker></mat-datepicker>
+    </div>
+
+    <div class="row">
+      <div class="split-expense-info">
+        <span>Paid by</span>
+        <mat-select formControlName="paidBy" panelClass="wide-select-panel">
+            <mat-option *ngFor="let member of members" [value]="member.id">
+                {{ member.name }}
+            </mat-option>
+        </mat-select>
+
+        <span>and split</span>
+        <span class="m-1 split-method-button" (click)="openSplitMethod()">
+          {{ splitMethodLabel }}
+        </span>
+      </div>
+    </div>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button
+    mat-flat-button
+    color="primary"
+    [disabled]="expenseForm.invalid"
+    (click)="saveExpense()"
+  >
+    Save
+  </button>
+</mat-dialog-actions>

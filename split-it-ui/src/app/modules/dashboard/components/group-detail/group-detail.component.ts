@@ -3,6 +3,8 @@ import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { HeaderBarComponent } from '../header-bar/header-bar.component';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { AddExpenseDialogComponent } from '../add-expense-dialog/add-expense-dialog.component';
 
 @Component({
   selector: 'app-group-detail',
@@ -14,7 +16,8 @@ export class GroupDetailComponent implements OnInit{
   groupId!: number;
 
   constructor(
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -30,7 +33,9 @@ export class GroupDetailComponent implements OnInit{
   }
 
   onAddExpense(){
-    
+    this.dialog.open(AddExpenseDialogComponent, {
+          width: '600px'
+        });
   }
 
   onEditGroup(){

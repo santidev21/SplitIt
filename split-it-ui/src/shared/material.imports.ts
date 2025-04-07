@@ -12,7 +12,8 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
 import { MatListModule } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-
+import { MatTabsModule } from '@angular/material/tabs';
+import {MatDatepickerModule} from '@angular/material/datepicker';
 
 export const MATERIAL_IMPORTS = [
   CommonModule,
@@ -29,5 +30,7 @@ export const MATERIAL_IMPORTS = [
   MatCheckboxModule,
   MatListModule,
   MatTooltipModule,
-  MatSlideToggleModule
+  MatSlideToggleModule,
+  MatTabsModule,
+  MatDatepickerModule,
 ];

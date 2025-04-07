@@ -1,0 +1,54 @@
+@import '../../../../../styles/variables';
+
+mat-dialog-content{
+    overflow: hidden;
+}
+
+textarea {
+    resize: none;
+}
+
+.datepicker-wrapper {
+    position: relative;
+}
+  
+.hidden-datepicker-input {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-150px); 
+    width: 300px;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+  
+
+.split-expense-info{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    color: black;
+
+    mat-select{
+        text-align: center;
+        width: 50px;
+        color: $primary-color;
+        font-weight: bold;
+    }
+      
+    .split-method-button{
+        color: $primary-color;
+        font-weight: bold;
+
+        &:hover{
+            cursor: pointer;
+        }
+    }
+}
+
+::ng-deep .wide-select-panel {
+    min-width: 200px;
+}
