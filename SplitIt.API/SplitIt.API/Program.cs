@@ -25,6 +25,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<GroupService>();
 builder.Services.AddScoped<CurrenciesService>();
 builder.Services.AddScoped<UsersService>();
+builder.Services.AddScoped<ExpensesService>();
 
 builder.Services
     .AddControllers()

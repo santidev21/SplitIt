@@ -2,6 +2,7 @@
 using SplitIt.Domain.Entities;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
@@ -18,8 +19,10 @@ namespace SplitIt.Infrastructure.Persistence
         public DbSet<Currency> Currencies { get; set; }
         public DbSet<Group> Groups { get; set; }
         public DbSet<GroupMember> GroupMembers { get; set; }
+        public DbSet<Expense> Expense{get; set;}
+        public DbSet<ExpenseShare> ExpenseShare{get; set;}
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
@@ -68,6 +71,25 @@ namespace SplitIt.Infrastructure.Persistence
                 entity.Property(gm => gm.Role).IsRequired().HasMaxLength(50);
             });
 
+            // Expense table configuration
+            modelBuilder.Entity<Expense>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Title).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Note).HasMaxLength(500);
+                entity.Property(e => e.Amount).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.Date).HasColumnType("date");
+                entity.HasOne(e => e.Group).WithMany(g => g.Expenses).HasForeignKey(e => e.GroupId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.CreatedBy).WithMany().HasForeignKey(e => e.CreatedById).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Expense Share table configuration
+            modelBuilder.Entity<ExpenseShare>(entity =>
+            {
+                entity.HasKey(es => es.Id);entity.Property(es => es.AmountOwed).HasColumnType("decimal(18,2)");
+                entity.HasOne(es => es.Expense).WithMany(e => e.Shares).HasForeignKey(es => es.ExpenseId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(es => es.User).WithMany().HasForeignKey(es => es.UserId).OnDelete(DeleteBehavior.Restrict);
+            });
 
             SeedRoles(modelBuilder);
             SeedCurrency(modelBuilder);

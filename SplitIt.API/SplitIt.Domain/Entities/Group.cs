@@ -18,5 +18,6 @@ namespace SplitIt.Domain.Entities
         public bool AllowToDeleteExpenses { get; set; }
 
         public ICollection<GroupMember> GroupMembers { get; set; } = new List<GroupMember>();
+        public ICollection<Expense> Expenses { get; set; } = new List<Expense>();
     }
 }
