@@ -17,6 +17,7 @@ namespace SplitIt.Application.DTOs
         public DateTime Date { get; set; }
 
         public int GroupId { get; set; }
+        public int PaidById { get; set; }
 
         public List<ExpenseParticipantDto> Participants { get; set; } = new();
     }

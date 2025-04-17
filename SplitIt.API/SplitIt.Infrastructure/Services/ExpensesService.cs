@@ -28,7 +28,8 @@ namespace SplitIt.Infrastructure.Services
                 Amount = request.Amount,
                 Date = request.Date,
                 Note = request.Note,
-                CreatedById = createdById
+                CreatedById = createdById,
+                PaidById = request.PaidById,
             };
             await _context.Expense.AddAsync(expense);
             await _context.SaveChangesAsync();

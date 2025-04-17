@@ -34,7 +34,8 @@ export class GroupDetailComponent implements OnInit{
 
   onAddExpense(){
     this.dialog.open(AddExpenseDialogComponent, {
-          width: '600px'
+          width: '600px',
+          data: { groupId : this.groupId }
         });
   }
 

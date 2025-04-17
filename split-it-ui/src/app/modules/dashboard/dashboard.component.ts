@@ -30,8 +30,6 @@ export class DashboardComponent implements OnInit{
       this.groupService.getUserGroups(parseInt(userId)).subscribe((resp : UserGroup[]) =>{
         if (resp && resp.length)
         {
-          console.log(resp);
-          
           this.userHasGroups = true;
           this.userGroups = resp;        
         }

@@ -81,6 +81,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
                 entity.Property(e => e.Date).HasColumnType("date");
                 entity.HasOne(e => e.Group).WithMany(g => g.Expenses).HasForeignKey(e => e.GroupId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(e => e.CreatedBy).WithMany().HasForeignKey(e => e.CreatedById).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.PaidBy).WithMany().HasForeignKey(e => e.PaidById).OnDelete(DeleteBehavior.Restrict);
             });
 
             // Expense Share table configuration

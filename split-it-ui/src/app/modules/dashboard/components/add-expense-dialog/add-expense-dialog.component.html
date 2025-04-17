@@ -1,3 +1,5 @@
+<app-loading-spinner [isLoading]="isLoading"></app-loading-spinner>
+
 <h2 mat-dialog-title class="text-center">Add Expense</h2>
 
 <mat-dialog-content>
@@ -13,14 +15,14 @@
     <div class="row">
         <mat-form-field class="w-100">
             <mat-label>Notes</mat-label>
-            <textarea matInput formControlName="notes" rows="1"></textarea>
+            <textarea matInput formControlName="note" rows="1"></textarea>
         </mat-form-field>
         </div>
 
     <div class="row">
         <mat-form-field class="w-100">
           <mat-label>Amount</mat-label>
-          <input matInput type="number" formControlName="amount" />
+          <input matInput type="number" formControlName="amount" appPositiveNumber/>
         </mat-form-field>
     </div>
 
@@ -44,9 +46,9 @@
     </div>
 
     <div class="row">
-      <div class="split-expense-info">
+      <div class="split-expense-info" *ngIf="!isLoading && members.length > 0">
         <span>Paid by</span>
-        <mat-select formControlName="paidBy" panelClass="wide-select-panel">
+        <mat-select  formControlName="paidById" panelClass="wide-select-panel">
             <mat-option *ngFor="let member of members" [value]="member.id">
                 {{ member.name }}
             </mat-option>

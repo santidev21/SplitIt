@@ -17,7 +17,7 @@
         <div *ngFor="let member of members" class="split-input-row">
             <span class="member-name">{{ member.name }}</span>
             <mat-form-field class="member-input" appearance="fill">
-              <input matInput type="number" [(ngModel)]="member.amount" />
+              <input matInput type="number" [(ngModel)]="member.amount" appPositiveNumber/>
             </mat-form-field>
           </div>
           
@@ -30,7 +30,7 @@
         <div *ngFor="let member of members" class="split-input-row">
             <span class="member-name">{{ member.name }}</span>
             <mat-form-field class="member-input" appearance="fill">
-              <input matInput type="number" [(ngModel)]="member.amount" />
+              <input matInput type="number" [(ngModel)]="member.amount" appPercentage/>
             </mat-form-field>
           </div>          
       </div>

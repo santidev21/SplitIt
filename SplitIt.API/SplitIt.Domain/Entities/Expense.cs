@@ -25,6 +25,8 @@ namespace SplitIt.Domain.Entities
         public int CreatedById { get; set; }
 
         public User? CreatedBy { get; set; }
+        public int PaidById { get; set; }
+        public User? PaidBy { get; set; }
 
         public ICollection<ExpenseShare> Shares { get; set; } = new List<ExpenseShare>();
     }
