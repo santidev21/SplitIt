@@ -69,6 +69,26 @@ namespace SplitIt.Infrastructure.Services
             // TODO: Try using Automapper
             return groups;
         }
-        
+
+        public async Task<List<MemberDto>> GetGroupMembersAsync(int groupId, int currentUserId)
+        {
+            var group = await _context.Groups
+                .Include(g => g.GroupMembers)
+                .ThenInclude(gm => gm.User)
+                .FirstOrDefaultAsync(g => g.Id == groupId);
+
+            if (group == null)
+                throw new Exception("Group not found");
+
+            return group.GroupMembers
+                .Select(m => new MemberDto
+                {
+                    Id = m.UserId,
+                    Name = m.UserId == currentUserId ? "You" : m.User.Name
+                })
+                .ToList();
+        }
+
+
     }
 }

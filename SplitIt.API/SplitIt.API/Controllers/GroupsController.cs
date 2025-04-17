@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SplitIt.Application.DTOs;
 using SplitIt.Infrastructure.Services;
 using System.Security.Claims;
@@ -60,6 +61,19 @@ namespace SplitIt.API.Controllers
 
             var groups = await _groupService.GetGroupsForUserAsync(userId);
             return Ok(groups);
+        }
+
+        [HttpGet("{groupId}/members")]
+        public async Task<IActionResult> GetGroupMembers(int groupId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized();
+
+            int userId = int.Parse(userIdClaim);
+
+            var members = await _groupService.GetGroupMembersAsync(groupId, userId);
+            return Ok(members);
         }
 
         // TODO: OpenAPI documentation.
