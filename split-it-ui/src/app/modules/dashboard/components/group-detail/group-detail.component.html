@@ -60,6 +60,7 @@
           <div class="expense-row header-row">
             <div class="date">Date</div>
             <div class="title-amount">Title / Amount</div>
+            <div class="paid-by">Paid By</div>  
             <div class="participants">Participants</div>
             <div class="actions text-right">Actions</div>
           </div>
@@ -71,6 +72,10 @@
             <div class="title-amount">
               <div class="title" matTooltip="{{ exp.note }}">{{ exp.title }}</div>
               <div class="amount">$ {{ exp.amount}}</div>
+            </div>
+
+            <div class="paid-by">
+              {{ exp.paidBy }}
             </div>
       
             <div class="participants">
