@@ -113,7 +113,7 @@ export class AddExpenseDialogComponent implements OnInit {
 
       this.expenseService.addExpense(result).subscribe(resp =>{
         if (resp){
-          this.dialogRef.close(result);
+          this.dialogRef.close('saved');
         }
       });
     }

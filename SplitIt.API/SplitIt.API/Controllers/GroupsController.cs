@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SplitIt.Application.DTOs;
+using SplitIt.Domain.Entities;
 using SplitIt.Infrastructure.Services;
 using System.Security.Claims;
 
@@ -64,6 +65,7 @@ namespace SplitIt.API.Controllers
         }
 
         [HttpGet("{groupId}/members")]
+        [Authorize]
         public async Task<IActionResult> GetGroupMembers(int groupId)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -76,6 +78,37 @@ namespace SplitIt.API.Controllers
             return Ok(members);
         }
 
+        [HttpGet("{groupId}/details")]
+        [Authorize]
+        public async Task<IActionResult> getGroupDetails(int groupId)
+        {
+            // Get the ID of the currently logged-in user
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized();
+
+
+            var groupDetails = await _groupService.GetGroupDetails(groupId);
+            return Ok(groupDetails);
+        }
+
+        [HttpGet("{groupId}/userrole")]
+        [Authorize]
+        public async Task<IActionResult> GetUserGroupRoleAsync(int groupId)
+        {
+            // Get the ID of the currently logged-in user
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized();
+
+            int userId = int.Parse(userIdClaim);
+            var userRole = await _groupService.GetUserGroupRoleAsync(groupId, userId);
+
+            if (userRole == null)
+                return NotFound("User does not belong to this group.");
+
+            return Ok(new { role = userRole });
+        }
         // TODO: OpenAPI documentation.
     }
 }

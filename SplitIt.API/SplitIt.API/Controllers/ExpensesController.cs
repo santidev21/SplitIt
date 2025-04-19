@@ -11,12 +11,14 @@ namespace SplitIt.API.Controllers
     public class ExpensesController : ControllerBase
     {
         private readonly ExpensesService _expensesService;
+        private readonly GroupService _groupService;
 
         private readonly IConfiguration _configuration;
 
-        public ExpensesController(ExpensesService expensesService, IConfiguration configuration)
+        public ExpensesController(ExpensesService expensesService, GroupService groupService, IConfiguration configuration)
         {
             _expensesService = expensesService;
+            _groupService = groupService;
             _configuration = configuration;
         }
 
@@ -38,6 +40,20 @@ namespace SplitIt.API.Controllers
 
             var expense = await _expensesService.AddExpenseAsync(request, createdById);
             return CreatedAtAction(nameof(AddExpense), new { id = expense.Id }, expense);
+        }
+
+        [HttpGet("{groupId}/expenses")]
+        [Authorize]
+        public async Task<IActionResult> GetGroupExpenses(int groupId, [FromQuery] bool showAll = false)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized();
+
+
+            int userId = int.Parse(userIdClaim);
+            var expenses = await _expensesService.GetExpensesByGroupIdAsync(groupId, userId, showAll);
+            return Ok(expenses);
         }
     }
 }

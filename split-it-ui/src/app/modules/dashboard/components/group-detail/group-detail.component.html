@@ -50,7 +50,7 @@
         <!-- Table header -->
         <div class="flex justify-between items-center mb-4">
           <p class="heading-md">Expenses</p>
-          <mat-slide-toggle [(ngModel)]="showAllExpenses" *ngIf="isAdminOrCreator">
+          <mat-slide-toggle (click)="onShowAllExpenses()"[(ngModel)]="showAllExpenses" *ngIf="isAdminOrCreator">
             Show all
           </mat-slide-toggle>
         </div>
@@ -69,13 +69,13 @@
             <div class="date">{{ exp.date | date: 'dd/MM/yyyy' }}</div>
       
             <div class="title-amount">
-              <div class="title" matTooltip="{{ exp.notes }}">{{ exp.title }}</div>
-              <div class="amount">{{ exp.amount | currency: 'ARS' }}</div>
+              <div class="title" matTooltip="{{ exp.note }}">{{ exp.title }}</div>
+              <div class="amount">$ {{ exp.amount}}</div>
             </div>
       
             <div class="participants">
               <div *ngFor="let p of exp.participants">
-                {{ p.name }} ({{ p.amount | currency: 'ARS' }})
+                {{ p.name }} ( $ {{ p.amount}})
               </div>
             </div>
       

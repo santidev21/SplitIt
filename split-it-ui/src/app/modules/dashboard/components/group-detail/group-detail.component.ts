@@ -5,6 +5,11 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { AddExpenseDialogComponent } from '../add-expense-dialog/add-expense-dialog.component';
+import { Expense } from '../../../../models/expense.model';
+import { ExpenseService } from '../../services/expense.service';
+import { GroupDetails } from '../../../../models/group.model';
+import { GroupService } from '../../services/group.service';
+import { UserGroupRole } from '../../../../models/enums/user-group-role.enum';
 
 @Component({
   selector: 'app-group-detail',
@@ -14,14 +19,27 @@ import { AddExpenseDialogComponent } from '../add-expense-dialog/add-expense-dia
 })
 export class GroupDetailComponent implements OnInit{
   groupId!: number;
+  showAllExpenses = false;
+  isAdminOrCreator = true;
+  
+  filteredExpenses: Expense[] = [];
+  group : GroupDetails = {
+    name: 'Trip to Mendoza',
+    description: 'Expenses for the trip with friends in March 2025.'
+  };
 
   constructor(
     private route: ActivatedRoute,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private expenseService: ExpenseService,
+    private groupService: GroupService,
   ) {}
 
   ngOnInit(): void {
     this.groupId = Number(this.route.snapshot.paramMap.get('id'));
+    this.getGroupDetails();
+    this.getGroupExpenses();
+    this.getUserGroupRole();
   }
 
   onEdit(exp: any){
@@ -33,10 +51,16 @@ export class GroupDetailComponent implements OnInit{
   }
 
   onAddExpense(){
-    this.dialog.open(AddExpenseDialogComponent, {
+    const dialogRef = this.dialog.open(AddExpenseDialogComponent, {
           width: '600px',
           data: { groupId : this.groupId }
         });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'saved') {
+        this.getGroupExpenses();
+      }
+    });
   }
 
   onEditGroup(){
@@ -47,10 +71,34 @@ export class GroupDetailComponent implements OnInit{
 
   }
 
-  group = {
-    name: 'Trip to Mendoza',
-    description: 'Expenses for the trip with friends in March 2025.'
-  };
+  getGroupDetails(){
+    this.groupService.getGroupDetails(this.groupId).subscribe((resp) =>{
+      if (resp){
+        this.group = resp
+      }      
+    })
+  }
+
+  getGroupExpenses(){
+    this.expenseService.getGroupExpenses(this.groupId, this.showAllExpenses).subscribe((resp) =>{
+      if (resp && resp.length > 0){
+        this.filteredExpenses = resp
+      }
+      
+    })
+  }
+
+  getUserGroupRole(){
+    this.groupService.getUserGroupRole(this.groupId).subscribe((resp : any) =>{
+      const userRole = resp.role;
+      this.isAdminOrCreator = userRole === UserGroupRole.Creator || userRole === UserGroupRole.Admin;
+    })
+  }
+
+  onShowAllExpenses(){
+    this.getGroupExpenses();
+  }
+
   
   balance = {
     total: 45,
@@ -61,67 +109,7 @@ export class GroupDetailComponent implements OnInit{
     ]
   };
   
-  showAllExpenses = false;
-  isAdminOrCreator = true;
-  
-  filteredExpenses = [
-    {
-      title: 'Lunch at La Barra',
-      amount: 60,
-      paidBy: 'You',
-      date: new Date('2025-03-10'),
-      notes: 'Shared entrecote, wine and tip',
-      participants: [
-        { name: 'You', amount: 10 },
-        { name: 'Laura', amount: 50 }
-      ]
-    },
-    {
-      title: 'Groceries',
-      amount: 120,
-      paidBy: 'Laura',
-      date: new Date('2025-03-12'),
-      notes: 'Weekly groceries at Carrefour',
-      participants: [
-        { name: 'Laura', amount: 60 },
-        { name: 'You', amount: 60 }
-      ]
-    },
-    {
-      title: 'Pizza night',
-      amount: 80,
-      paidBy: 'Carlos',
-      date: new Date('2025-03-15'),
-      notes: 'Domino’s + beers 🍕🍺',
-      participants: [
-        { name: 'Carlos', amount: 40 },
-        { name: 'You', amount: 40 }
-      ]
-    },
-    {
-      title: 'Streaming Subscription',
-      amount: 50,
-      paidBy: 'You',
-      date: new Date('2025-03-20'),
-      notes: 'Netflix for the month',
-      participants: [
-        { name: 'You', amount: 25 },
-        { name: 'Laura', amount: 25 }
-      ]
-    },
-    {
-      title: 'Taxi to airport',
-      amount: 70,
-      paidBy: 'Laura',
-      date: new Date('2025-03-22'),
-      notes: 'Split ride with Carlos and you',
-      participants: [
-        { name: 'Laura', amount: 30 },
-        { name: 'Carlos', amount: 20 },
-        { name: 'You', amount: 20 }
-      ]
-    }
-  ];
+
   
 }
  

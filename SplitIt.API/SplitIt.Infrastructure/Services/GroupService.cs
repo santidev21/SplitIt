@@ -60,7 +60,7 @@ namespace SplitIt.Infrastructure.Services
             .Where(gm => gm.UserId == userId)
             .Select(gm => new UserGroupDto
             {
-                Id = gm.Id,
+                Id = gm.GroupId,
                 Name = gm.Group.Name,
                 Description = gm.Group.Description,
                 Role = gm.Role
@@ -89,6 +89,27 @@ namespace SplitIt.Infrastructure.Services
                 .ToList();
         }
 
+        public async Task<string?> GetUserGroupRoleAsync(int groupId, int userId)
+        {
+            var membership = await _context.GroupMembers
+                .FirstOrDefaultAsync(gm => gm.GroupId == groupId && gm.UserId == userId);
 
+            return membership?.Role;
+        }
+
+        public async Task<GroupDetailDTO> GetGroupDetails(int groupId)
+        {
+            var group = await _context.Groups
+                .FirstOrDefaultAsync(g => g.Id == groupId);
+
+            if (group == null)
+                throw new Exception("Group not found");
+
+            return new GroupDetailDTO()
+            {
+                Name = group.Name,
+                Description = group.Description,
+            };
+        }
     }
 }

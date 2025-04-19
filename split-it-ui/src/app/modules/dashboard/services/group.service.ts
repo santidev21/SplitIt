@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { GroupMember } from '../../../models/group.model';
+import { GroupDetails, GroupMember } from '../../../models/group.model';
 
 @Injectable({
   providedIn: 'root'
@@ -30,5 +30,13 @@ export class GroupService {
 
   getGroupMembers(groupId: number): Observable<GroupMember[]> {
     return this.http.get<GroupMember[]>(`${this.API_URL}/${groupId}/members`);
+  }
+
+  getGroupDetails(groupId: number): Observable<GroupDetails> {
+    return this.http.get<GroupDetails>(`${this.API_URL}/${groupId}/details`);
+  }
+
+  getUserGroupRole(groupId: number): Observable<any> {
+    return this.http.get<any>(`${this.API_URL}/${groupId}/userrole`);
   }
 }

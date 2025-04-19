@@ -9,4 +9,9 @@ export interface Group {
     id: number,
     name: string
   }
+
+  export interface GroupDetails{
+    name: string,
+    description: string
+  }
   
