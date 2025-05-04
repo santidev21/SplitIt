@@ -4,6 +4,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { User } from '../../../models/user.model';
 import { Expense, ExpenseParticipant } from '../../../models/expense.model';
+import { FullDebtSummaryDto } from '../../../models/debts-summary';
 
 @Injectable({
   providedIn: 'root'
@@ -30,7 +31,10 @@ export class ExpenseService {
     return this.http.get<Expense[]>(`${this.API_URL}/${groupId}/expenses`, {
       params: { showAll }
     });
-  
+  }
+
+  getFullDebtSummary(groupId: number): Observable<FullDebtSummaryDto> {
+    return this.http.get<FullDebtSummaryDto>(`${this.API_URL}/debt-summary?groupId=${groupId}`);
   }
 
 }

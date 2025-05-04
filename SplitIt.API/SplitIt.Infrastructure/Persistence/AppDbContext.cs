@@ -90,6 +90,8 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
                 entity.HasKey(es => es.Id);entity.Property(es => es.AmountOwed).HasColumnType("decimal(18,2)");
                 entity.HasOne(es => es.Expense).WithMany(e => e.Shares).HasForeignKey(es => es.ExpenseId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(es => es.User).WithMany().HasForeignKey(es => es.UserId).OnDelete(DeleteBehavior.Restrict);
+                entity.Property(es => es.IsSettled).IsRequired().HasDefaultValue(false);
+                entity.Property(es => es.SettledAt).HasColumnType("datetime");
             });
 
             SeedRoles(modelBuilder);

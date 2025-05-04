@@ -21,6 +21,8 @@ namespace SplitIt.Domain.Entities
         public User? User { get; set; }
 
         public decimal AmountOwed { get; set; }
+        public bool IsSettled { get; set; } = false;
+        public DateTime? SettledAt { get; set; }
     }
 
 }

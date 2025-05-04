@@ -55,5 +55,21 @@ namespace SplitIt.API.Controllers
             var expenses = await _expensesService.GetExpensesByGroupIdAsync(groupId, userId, showAll);
             return Ok(expenses);
         }
+
+        [HttpGet("debt-summary")]
+        [Authorize]
+        public async Task<IActionResult> GetFullDebtSummary([FromQuery] int groupId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized();
+
+
+            int userId = int.Parse(userIdClaim);
+
+            var summary = await _expensesService.GetFullDebtSummaryAsync(userId, groupId);
+
+            return Ok(summary);
+        }
     }
 }

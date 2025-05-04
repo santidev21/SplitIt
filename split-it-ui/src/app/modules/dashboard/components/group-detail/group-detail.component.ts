@@ -10,6 +10,7 @@ import { ExpenseService } from '../../services/expense.service';
 import { GroupDetails } from '../../../../models/group.model';
 import { GroupService } from '../../services/group.service';
 import { UserGroupRole } from '../../../../models/enums/user-group-role.enum';
+import { DebtDetails, DebtOwedByUserDto, DebtOwedToUserDto, FullDebtSummaryDto } from '../../../../models/debts-summary';
 
 @Component({
   selector: 'app-group-detail',
@@ -21,6 +22,13 @@ export class GroupDetailComponent implements OnInit{
   groupId!: number;
   showAllExpenses = false;
   isAdminOrCreator = true;
+
+  debtsOwedByUser: DebtOwedByUserDto[] = [];
+  debtsOwedToUser: DebtOwedToUserDto[] = [];
+  debtDetails: DebtDetails[] = [];
+  debtMessage: string = '';
+  totalOwedByUser = 0;
+  totalOwedToUser = 0;
   
   filteredExpenses: Expense[] = [];
   group : GroupDetails = {
@@ -39,6 +47,7 @@ export class GroupDetailComponent implements OnInit{
     this.groupId = Number(this.route.snapshot.paramMap.get('id'));
     this.getGroupDetails();
     this.getGroupExpenses();
+    this.getDebtsSummary();
     this.getUserGroupRole();
   }
 
@@ -86,6 +95,37 @@ export class GroupDetailComponent implements OnInit{
       }
       
     })
+  }
+
+  getDebtsSummary(){
+    this.expenseService.getFullDebtSummary(this.groupId).subscribe((resp: FullDebtSummaryDto) =>{
+      this.totalOwedByUser = resp.debtsOwedByUser.reduce((sum, d) => sum + d.totalAmountOwed, 0);
+      this.totalOwedToUser = resp.debtsOwedToUser.reduce((sum, d) => sum + d.totalAmountOwed, 0);
+
+      if (this.totalOwedByUser > this.totalOwedToUser) {
+        const amount = Math.round(this.totalOwedByUser - this.totalOwedToUser);
+        this.debtMessage = `You owe: $${amount}`;
+      } else if (this.totalOwedToUser > this.totalOwedByUser) {
+        const amount = Math.round(this.totalOwedToUser - this.totalOwedByUser);
+        this.debtMessage = `You are owed: $${amount}`;
+      } else {
+        this.debtMessage = 'You are all settled up!';
+      }
+
+      // Combine debts into a single list with signed values
+    const debtsToUser = resp.debtsOwedToUser.map(d => ({
+      name: d.debtorUserName,
+      amount: Math.round(d.totalAmountOwed)
+    }));
+
+    const debtsByUser = resp.debtsOwedByUser.map(d => ({
+      name: d.creditorUserName,
+      amount: -Math.round(d.totalAmountOwed)
+    }));
+
+    // Order first debtsToUser
+    this.debtDetails = [...debtsToUser, ...debtsByUser].filter(d => d.amount !== 0);
+    });
   }
 
   getUserGroupRole(){

@@ -27,20 +27,24 @@
 
     <!-- Debt summary card -->
     <mat-card class="p-2 mb-2">
-      <p class="heading-lg">{{ balance.total >= 0 ? 'You are owed' : 'You owe' }} : $ {{balance.total}}</p>
+      <p class="heading-lg"
+      [ngClass]="{
+        'text-success': totalOwedToUser > totalOwedByUser,
+        'text-danger': totalOwedByUser > totalOwedToUser,
+        'text-neutral': totalOwedByUser === totalOwedToUser
+      }">
+        {{debtMessage}}
+      </p>
 
       <!-- List of debts per participant (excluding 0 balances) -->
       <div>
         <p class="heading-md mb-1">Summary per participant:</p>
         <ul>
-          <ng-container *ngFor="let item of balance.details">
-            <li *ngIf="item.amount !== 0">
-              {{ item.name }}:
-              <span [ngClass]="{ 'text-green-600': item.amount > 0, 'text-red-600': item.amount < 0 }">
-                {{ item.amount > 0 ? '+' : '-' }}{{ item.amount | currency:'ARS' }}
-              </span>
-            </li>
-          </ng-container>
+          <li *ngFor="let item of debtDetails" 
+          [class.text-green-600]="item.amount > 0"
+            [class.text-red-600]="item.amount < 0">
+            {{ item.name }}: {{ item.amount > 0 ? '+ $' : '- $' }}{{ item.amount < 0 ? item.amount * -1 : item.amount }}
+          </li>
         </ul>
       </div>
     </mat-card>
