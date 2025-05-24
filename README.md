@@ -47,3 +47,19 @@ dotnet restore
 dotnet ef database update
 dotnet run
 ```
+
+## 🖼️ Screenshots
+### 🔹 Add group  
+![Add group](docs/images/add-group.png)
+
+### 🔹 Group Overview  
+![Group Overview](docs/images/group-overview.png)
+
+### 🔹 Add Expense Dialog  
+![Add Expense](docs/images/add-expense.png)
+
+## 📌 Future Features
+[ ] Add partial payments functionality
+[ ] Support alternative split methods (by amount or percentage)
+[ ] Email validation
+[ ] Add group admin and application admin roles
