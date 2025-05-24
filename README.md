@@ -59,7 +59,7 @@ dotnet run
 ![Add Expense](docs/images/add-expense.png)
 
 ## 📌 Future Features
-[ ] Add partial payments functionality
-[ ] Support alternative split methods (by amount or percentage)
-[ ] Email validation
-[ ] Add group admin and application admin roles
+- [ ] Add partial payments functionality  
+- [ ] Support alternative split methods (by amount or percentage)  
+- [ ] Email validation  
+- [ ] Add group admin and application admin roles
