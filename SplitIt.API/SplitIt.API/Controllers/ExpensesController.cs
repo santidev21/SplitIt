@@ -71,5 +71,25 @@ namespace SplitIt.API.Controllers
 
             return Ok(summary);
         }
+
+        [HttpPost("settle")]
+        [Authorize]
+        public async Task<IActionResult> SettleExpenseWithUser([FromBody] RegisterPaymentDto dto)
+        {
+            // Get the ID of the currently logged-in user
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized();
+
+            int receiverUserId = int.Parse(userIdClaim);
+
+            var expenseDetailsId = await _expensesService.RegisterPayment(dto.PayerUserId, receiverUserId, dto.GroupId, dto.Amount);
+            int settledCount = await _expensesService.SettleExpenseWithUser(dto.PayerUserId, receiverUserId);
+
+            if (settledCount == 0)
+                return NotFound("No unsettled debts found.");
+
+            return Ok(new { SettledCount = settledCount });
+        }
     }
 }

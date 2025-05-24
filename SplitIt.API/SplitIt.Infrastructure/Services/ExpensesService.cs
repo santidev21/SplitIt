@@ -54,7 +54,8 @@ namespace SplitIt.Infrastructure.Services
                 .Where(e => e.GroupId == groupId)
                 .Include(e => e.PaidBy)
                 .Include(e => e.Shares)
-                    .ThenInclude(ep => ep.User)
+                .ThenInclude(ep => ep.User)
+                .OrderByDescending(e => e.Date)
                 .ToListAsync();
 
             if (!showAll)
@@ -160,5 +161,60 @@ namespace SplitIt.Infrastructure.Services
                 DebtsOwedToUser = adjustedDebtsOwedToUser
             };
         }
+
+        public async Task<int> SettleExpenseWithUser(int payerUserId, int receiverUserId)
+        {
+            var unsettledShares = await _context.ExpenseShare
+            .Include(es => es.Expense)
+            .Where(es =>
+                !es.IsSettled && (
+                    (es.UserId == receiverUserId && es.Expense.PaidById == payerUserId) ||
+                    (es.UserId == payerUserId && es.Expense.PaidById == receiverUserId)
+                )
+            )
+            .ToListAsync();
+
+            foreach (var share in unsettledShares)
+            {
+                share.IsSettled = true;
+                share.SettledAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return unsettledShares.Count;
+        }
+
+        public async Task<int> RegisterPayment(int payerUserId, int receiverUserId, int groupId, decimal amount)
+        {
+            var expense = new Expense
+            {
+                GroupId = groupId,
+                Title = "Debt Payment",
+                Amount = amount,
+                Date = DateTime.UtcNow,
+                Note = "Payment ",
+                CreatedById = receiverUserId,  // The one recording the payment
+                PaidById = payerUserId, // The one who actually paid
+            };
+
+            await _context.Expense.AddAsync(expense);
+            await _context.SaveChangesAsync();
+
+            var expenseDetails = new ExpenseShare
+            {
+                UserId = receiverUserId, // The one who receives the payment (was owed money)
+                ExpenseId = expense.Id,
+                AmountOwed = amount,
+                IsSettled = true,
+                SettledAt = DateTime.UtcNow,
+            };
+
+            await _context.ExpenseShare.AddRangeAsync(expenseDetails);
+            await _context.SaveChangesAsync();
+
+            return expenseDetails.Id;
+        }
+            
     }
 }

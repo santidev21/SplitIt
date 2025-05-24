@@ -37,4 +37,7 @@ export class ExpenseService {
     return this.http.get<FullDebtSummaryDto>(`${this.API_URL}/debt-summary?groupId=${groupId}`);
   }
 
+  settleExpenseWithUser(body: { payerUserId: number, groupId: number, amount: number }): Observable<any> {
+    return this.http.post(`${this.API_URL}/settle`, body);
+  }
 }

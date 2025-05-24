@@ -16,6 +16,7 @@ export interface FullDebtSummaryDto {
 }
 
 export interface DebtDetails{
+    userId: number;
     name: string; 
     amount: number;
 }

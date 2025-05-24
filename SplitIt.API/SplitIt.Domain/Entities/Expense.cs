@@ -29,5 +29,6 @@ namespace SplitIt.Domain.Entities
         public User? PaidBy { get; set; }
 
         public ICollection<ExpenseShare> Shares { get; set; } = new List<ExpenseShare>();
+        public bool IsPayment { get; set; } = false;
     }
 }

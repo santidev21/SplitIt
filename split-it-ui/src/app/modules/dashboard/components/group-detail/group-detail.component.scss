@@ -23,6 +23,19 @@
     gap: 0.5rem;
   }
 
+  .debt-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .debt-item button {
+    transition: transform 0.2s ease;
+  }
+  
+  .debt-item button:hover {
+    transform: scale(1.2);
+  }
   
 .expense-list {
     display: flex;

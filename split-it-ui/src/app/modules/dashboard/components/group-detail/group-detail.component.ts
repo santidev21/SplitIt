@@ -11,6 +11,7 @@ import { GroupDetails } from '../../../../models/group.model';
 import { GroupService } from '../../services/group.service';
 import { UserGroupRole } from '../../../../models/enums/user-group-role.enum';
 import { DebtDetails, DebtOwedByUserDto, DebtOwedToUserDto, FullDebtSummaryDto } from '../../../../models/debts-summary';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-group-detail',
@@ -41,6 +42,7 @@ export class GroupDetailComponent implements OnInit{
     private dialog: MatDialog,
     private expenseService: ExpenseService,
     private groupService: GroupService,
+    private snackbar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -67,7 +69,7 @@ export class GroupDetailComponent implements OnInit{
 
     dialogRef.afterClosed().subscribe(result => {
       if (result === 'saved') {
-        this.getGroupExpenses();
+        this.refreshPage();
       }
     });
   }
@@ -114,11 +116,13 @@ export class GroupDetailComponent implements OnInit{
 
       // Combine debts into a single list with signed values
     const debtsToUser = resp.debtsOwedToUser.map(d => ({
+      userId: d.debtorUserId,
       name: d.debtorUserName,
       amount: Math.round(d.totalAmountOwed)
     }));
 
     const debtsByUser = resp.debtsOwedByUser.map(d => ({
+      userId: d.creditorUserId,
       name: d.creditorUserName,
       amount: -Math.round(d.totalAmountOwed)
     }));
@@ -139,17 +143,25 @@ export class GroupDetailComponent implements OnInit{
     this.getGroupExpenses();
   }
 
-  
-  balance = {
-    total: 45,
-    details: [
-      { name: 'Pedro', amount: 25 },
-      { name: 'Laura', amount: 20 },
-      { name: 'Carlos', amount: 0 }
-    ]
-  };
-  
+  settleDebt(debt: DebtDetails){
+    const httpBody = {
+      payerUserId: debt.userId,
+      groupId: this.groupId,
+      amount: debt.amount
+    }
 
+    this.expenseService.settleExpenseWithUser(httpBody).subscribe((resp) =>{
+      if(resp){
+        this.refreshPage();
+        this.snackbar.open(`${resp.settledCount} debts settled successfully!`, 'OK', { duration: 3000 });
+      }
+    })
+  }
   
+  refreshPage(){
+    this.getGroupDetails();
+    this.getGroupExpenses();
+    this.getDebtsSummary();
+  }
 }
  
