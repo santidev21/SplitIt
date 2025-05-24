@@ -34,12 +34,16 @@
 - SQL Server
 
 ### Frontend Setup
-cd frontend
+```bash
+cd split-it-ui
 npm install
 ng serve
+```
 
 ### Backend Setup
-cd backend
+```bash
+cd SplitIt.API
 dotnet restore
 dotnet ef database update
 dotnet run
+```
