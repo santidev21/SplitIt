@@ -2,6 +2,7 @@
 
 **SplitIt** is a web application designed to help people manage shared expenses within groups. Whether you're on a trip with friends, splitting rent with roommates, or handling any shared bills, SplitIt simplifies the process of tracking expenses and settling debts fairly.
 
+![Group Overview](docs/images/group-overview.png)
 ---
 
 ## ✨ Features
@@ -16,10 +17,22 @@
 
 ---
 
+## 🏗️ Architecture
+
+The backend is structured following a Clean Architecture pattern:
+
+- **`SplitIt.API`** → API layer (Controllers, Endpoints, Middlewares)
+- **`SplitIt.Application`** → Data Transfer Objects (DTOs), Application Services, Use Cases
+- **`SplitIt.Domain`** → Core domain layer containing Entities, Value Objects, Domain Logic
+- **`SplitIt.Infrastructure`** → Data persistence (Entity Framework Core), Migrations, External services integration
+- **`SplitIt.Shared`** → Shared kernel for cross-cutting concerns and reusable components (currently empty)
+
+---
+
 ## 🛠 Tech Stack
 
-- **Frontend**: Angular, Angular Material, SCSS
-- **Backend**: .NET 9 Web API (C#)
+- **Frontend**: Angular, Angular Material, SCSS, Bootstrap
+- **Backend**: .NET 8 Web API (C#), Clean Architecture
 - **Database**: SQL Server (via Entity Framework Core)
 - **Authentication**: JWT (JSON Web Tokens)
 
@@ -30,7 +43,7 @@
 ### Prerequisites
 
 - Node.js and Angular CLI
-- .NET 9 SDK
+- .NET 8 SDK
 - SQL Server
 
 ### Frontend Setup
