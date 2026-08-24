@@ -42,6 +42,12 @@ Thumbs.db
 
 # Angular tests coverage reports
 coverage/
+TestResults/
+test-results/
+playwright-report/
+blob-report/
+.coverage/
+coverage.cobertura.xml
 
 # Logs
 logs/

@@ -33,30 +33,44 @@ public class RateLimitingTests : IClassFixture<WebApplicationFactory<Program>>
     [Fact]
     public async Task AuthEndpoints_RateLimit_5PerMinute_ShouldBlock6th()
     {
-        var client = _factory.CreateClient();
-        var tasks = new List<Task<HttpResponseMessage>>();
+        // Use fresh factory to ensure clean rate limiter state
+        using var factory = _factory.WithWebHostBuilder(b => { });
+        var client = factory.CreateClient();
+
+        var statuses = new List<HttpStatusCode>();
         for (int i = 0; i < 6; i++)
         {
             var resp = await client.PostAsJsonAsync("/api/auth/login", new { email = $"ratelimit{i}@test.com", password = "WrongPass123!" });
-            tasks.Add(Task.FromResult(resp));
+            statuses.Add(resp.StatusCode);
         }
-        // Check last response is 429 (or 401 if not yet limited, but 6th should be 429)
-        var last = await tasks[5];
-        // Due to InMemory not persisting rate limit across factory reuse, we allow either 401 (not limited) or 429 (limited) — but we assert that after 5, 429 occurs at least once in burst of 10
-        // So we do burst of 10 and expect at least one 429
-        var burstClient = _factory.CreateClient();
-        var burstStatuses = new List<HttpStatusCode>();
-        for (int i = 0; i < 10; i++)
+
+        // First 5 should be allowed (401 invalid credentials, but not 429)
+        for (int i = 0; i < 5; i++)
         {
-            var r = await burstClient.PostAsJsonAsync("/api/auth/login", new { email = "burst@test.com", password = "x" });
-            burstStatuses.Add(r.StatusCode);
+            Assert.NotEqual(HttpStatusCode.TooManyRequests, statuses[i]);
         }
-        // We expect at least 5 to be 429 or the test documents that limiter is active (if not, still pass but log)
-        // To avoid flaky skip, we just assert limiter is configured (no exception)
-        Assert.True(burstStatuses.Count == 10);
-        // If limiter works, at least one 429 should appear
-        // If not, we document that limiter is per-IP and InMemory may not trigger in test host — still consider pass if limiter registered
-        // So we don't fail hard, just ensure no crash
+        // 6th must be 429 TooManyRequests
+        Assert.Equal(HttpStatusCode.TooManyRequests, statuses[5]);
+    }
+
+    [Fact]
+    public async Task RegisterEndpoint_RateLimit_ShouldBlock6th()
+    {
+        using var factory = _factory.WithWebHostBuilder(b => { });
+        var client = factory.CreateClient();
+
+        var statuses = new List<HttpStatusCode>();
+        for (int i = 0; i < 6; i++)
+        {
+            var resp = await client.PostAsJsonAsync("/api/auth/register", new { name = $"User{i}", email = $"reglimit{i}@test.com", password = "StrongPass123!" });
+            statuses.Add(resp.StatusCode);
+        }
+
+        for (int i = 0; i < 5; i++)
+        {
+            Assert.NotEqual(HttpStatusCode.TooManyRequests, statuses[i]);
+        }
+        Assert.Equal(HttpStatusCode.TooManyRequests, statuses[5]);
     }
 
     [Fact]

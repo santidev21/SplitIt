@@ -10,10 +10,11 @@ public class AuthorizationIntegrationTests : IClassFixture<SqlServerFixture>
     private readonly SqlServerFixture _fixture;
     public AuthorizationIntegrationTests(SqlServerFixture fixture) => _fixture = fixture;
 
-    [Fact]
+    [SkippableFact]
     public async Task UserA_Cannot_Access_GroupB_RealDb()
     {
-        if (!_fixture.IsAvailable) return; // skip
+        Skip.IfNot(_fixture.IsAvailable, "Docker not available - skipping SQL Server integration test");
+
         using var ctx = _fixture.CreateContext();
         // Ensure currency
         if (!await ctx.Currencies.AnyAsync()) { ctx.Currencies.Add(new Currency { Id = 1, Name = "USD", Symbol = "$" }); await ctx.SaveChangesAsync(); }

@@ -16,20 +16,11 @@ public class ExpenseWorkflowIntegrationTests : IClassFixture<SqlServerFixture>
     private readonly SqlServerFixture _fixture;
     public ExpenseWorkflowIntegrationTests(SqlServerFixture fixture) => _fixture = fixture;
 
-    private bool SkipIfNoDocker()
-    {
-        if (!_fixture.IsAvailable)
-        {
-            Console.WriteLine("[SKIP] Docker not available");
-            return true;
-        }
-        return false;
-    }
-
-    [Fact]
+    [SkippableFact]
     public async Task FullWorkflow_RealSqlServer_ShouldWork()
     {
-        if (SkipIfNoDocker()) return;
+        Skip.IfNot(_fixture.IsAvailable, "Docker not available - skipping SQL Server integration test (local). CI with Docker must run this test; if Docker+SQL unavailable it should FAIL, not skip.");
+
 
         using var ctx = _fixture.CreateContext();
         // Ensure clean DB for this test (new database per fixture, but truncate for isolation)
@@ -73,10 +64,11 @@ public class ExpenseWorkflowIntegrationTests : IClassFixture<SqlServerFixture>
         Assert.Single(expenses);
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task CrossGroup_Isolation_RealSqlServer()
     {
-        if (SkipIfNoDocker()) return;
+        Skip.IfNot(_fixture.IsAvailable, "Docker not available - skipping SQL Server integration test");
+
         using var ctx = _fixture.CreateContext();
         await CleanAsync(ctx);
         if (!await ctx.Currencies.AnyAsync()) { ctx.Currencies.Add(new Currency { Id = 1, Name = "USD", Symbol = "$" }); await ctx.SaveChangesAsync(); }
