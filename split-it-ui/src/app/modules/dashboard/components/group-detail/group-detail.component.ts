@@ -144,16 +144,25 @@ export class GroupDetailComponent implements OnInit{
   }
 
   settleDebt(debt: DebtDetails){
+    const currentUserId = Number(localStorage.getItem('userId'));
+    // debt.amount is signed: negative = current user owes creditor, positive = debtor owes current user
+    // Determine payer (debtor) correctly and use absolute amount
+    const amount = Math.abs(debt.amount);
+    // For partial payments, we could prompt for amount; for now use full remaining
     const httpBody = {
       payerUserId: debt.userId,
       groupId: this.groupId,
-      amount: debt.amount
-    }
+      amount: amount
+    };
 
-    this.expenseService.settleExpenseWithUser(httpBody).subscribe((resp) =>{
-      if(resp){
+    this.expenseService.settleExpenseWithUser(httpBody).subscribe({
+      next: (resp: any) =>{
         this.refreshPage();
-        this.snackbar.open(`${resp.settledCount} debts settled successfully!`, 'OK', { duration: 3000 });
+        const remaining = resp.remainingDebt !== undefined ? ` Remaining: $${resp.remainingDebt}` : '';
+        this.snackbar.open(`Payment of $${amount} registered!${remaining}`, 'OK', { duration: 3000 });
+      },
+      error: (err) => {
+        this.snackbar.open(err.error?.message || 'Payment failed', 'OK', { duration: 3000 });
       }
     })
   }

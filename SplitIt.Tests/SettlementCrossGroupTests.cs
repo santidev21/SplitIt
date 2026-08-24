@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SplitIt.Domain.Entities;
 using SplitIt.Infrastructure.Services;
+using SplitIt.Infrastructure.Persistence;
 using SplitIt.Tests.Helpers;
 
 namespace SplitIt.Tests;

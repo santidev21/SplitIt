@@ -111,6 +111,56 @@ namespace SplitIt.API.Controllers
 
             return Ok(new { role = userRole });
         }
+
+        [HttpPut("{groupId}/members/{userId}/role")]
+        [Authorize]
+        public async Task<IActionResult> UpdateMemberRole(int groupId, int userId, [FromBody] UpdateGroupMemberRoleDto dto)
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(claim) || !int.TryParse(claim, out var requesterId)) return Unauthorized();
+            if (!await _groupService.IsUserMemberAsync(groupId, requesterId)) return Forbid();
+            try
+            {
+                await _groupService.UpdateMemberRoleAsync(groupId, userId, dto.Role, requesterId);
+                return Ok(new { message = "Role updated." });
+            }
+            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        }
+
+        [HttpDelete("{groupId}/members/{userId}")]
+        [Authorize]
+        public async Task<IActionResult> RemoveMember(int groupId, int userId)
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(claim) || !int.TryParse(claim, out var requesterId)) return Unauthorized();
+            if (!await _groupService.IsUserMemberAsync(groupId, requesterId)) return Forbid();
+            try
+            {
+                await _groupService.RemoveMemberAsync(groupId, userId, requesterId);
+                return Ok(new { message = "Member removed." });
+            }
+            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        }
+
+        [HttpDelete("{groupId}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteGroup(int groupId)
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(claim) || !int.TryParse(claim, out var requesterId)) return Unauthorized();
+            try
+            {
+                await _groupService.DeleteGroupAsync(groupId, requesterId);
+                return Ok(new { message = "Group deleted." });
+            }
+            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        }
         // TODO: OpenAPI documentation.
     }
 }

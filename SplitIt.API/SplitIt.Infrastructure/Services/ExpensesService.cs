@@ -199,9 +199,21 @@ namespace SplitIt.Infrastructure.Services
             };
         }
 
+        public async Task<decimal> GetRemainingDebtAsync(int payerUserId, int receiverUserId, int groupId)
+        {
+            // Net debt payer -> receiver
+            var payerOwesReceiver = await _context.ExpenseShare
+                .Where(es => !es.IsSettled && es.Expense.GroupId == groupId && es.UserId == payerUserId && es.Expense.PaidById == receiverUserId)
+                .SumAsync(es => (decimal?)es.AmountOwed) ?? 0;
+            var receiverOwesPayer = await _context.ExpenseShare
+                .Where(es => !es.IsSettled && es.Expense.GroupId == groupId && es.UserId == receiverUserId && es.Expense.PaidById == payerUserId)
+                .SumAsync(es => (decimal?)es.AmountOwed) ?? 0;
+            return Math.Round(payerOwesReceiver - receiverOwesPayer, 2, MidpointRounding.AwayFromZero);
+        }
+
         public async Task<int> SettleExpenseWithUser(int payerUserId, int receiverUserId, int groupId)
         {
-            // Validate both users are members of group and groupId is used to scope settlement (fix cross-group bug)
+            // Full settlement: settle all shares between the two users in the group (both directions net to zero)
             var groupExists = await _context.Groups.AnyAsync(g => g.Id == groupId);
             if (!groupExists)
                 throw new KeyNotFoundException("Group not found.");
@@ -234,6 +246,8 @@ namespace SplitIt.Infrastructure.Services
 
         public async Task<int> RegisterPayment(int payerUserId, int receiverUserId, int groupId, decimal amount)
         {
+            // Monetary precision: round to 2 decimals away from zero
+            amount = Math.Round(amount, 2, MidpointRounding.AwayFromZero);
             if (amount <= 0 || amount > 1000000)
                 throw new ArgumentException("Invalid payment amount.");
             if (payerUserId == receiverUserId)
@@ -248,6 +262,13 @@ namespace SplitIt.Infrastructure.Services
             if (!payerMember || !receiverMember)
                 throw new UnauthorizedAccessException("One or both users are not members of the group.");
 
+            var remainingDebt = await GetRemainingDebtAsync(payerUserId, receiverUserId, groupId);
+            if (remainingDebt <= 0.009m)
+                throw new ArgumentException("No debt to settle between these users in this group.");
+
+            if (amount > remainingDebt + 0.01m)
+                throw new ArgumentException($"Payment {amount} exceeds remaining debt {remainingDebt}.");
+
             var expense = new Expense
             {
                 GroupId = groupId,
@@ -255,8 +276,8 @@ namespace SplitIt.Infrastructure.Services
                 Amount = amount,
                 Date = DateTime.UtcNow,
                 Note = "Payment",
-                CreatedById = receiverUserId,  // The one recording the payment
-                PaidById = payerUserId, // The one who actually paid
+                CreatedById = receiverUserId,
+                PaidById = payerUserId,
                 IsPayment = true,
             };
 
@@ -265,7 +286,7 @@ namespace SplitIt.Infrastructure.Services
 
             var expenseDetails = new ExpenseShare
             {
-                UserId = receiverUserId, // The one who receives the payment (was owed money)
+                UserId = receiverUserId,
                 ExpenseId = expense.Id,
                 AmountOwed = amount,
                 IsSettled = true,
@@ -273,6 +294,36 @@ namespace SplitIt.Infrastructure.Services
             };
 
             await _context.ExpenseShare.AddRangeAsync(expenseDetails);
+            await _context.SaveChangesAsync();
+
+            // Apply partial settlement to existing debts (payer owes receiver)
+            var remainingPayment = amount;
+            var shares = await _context.ExpenseShare
+                .Include(es => es.Expense)
+                .Where(es => !es.IsSettled && es.Expense.GroupId == groupId && es.UserId == payerUserId && es.Expense.PaidById == receiverUserId)
+                .OrderBy(es => es.Expense.Date)
+                .ThenBy(es => es.Id)
+                .ToListAsync();
+
+            foreach (var share in shares)
+            {
+                if (remainingPayment <= 0.009m) break;
+                if (share.AmountOwed <= remainingPayment + 0.01m)
+                {
+                    remainingPayment = Math.Round(remainingPayment - share.AmountOwed, 2, MidpointRounding.AwayFromZero);
+                    share.IsSettled = true;
+                    share.SettledAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    share.AmountOwed = Math.Round(share.AmountOwed - remainingPayment, 2, MidpointRounding.AwayFromZero);
+                    remainingPayment = 0;
+                }
+            }
+
+            // If still remaining (due to rounding or netting with opposite direction), also check opposite direction netting?
+            // For now, if remainingPayment >0 and no payer->receiver shares left, it may be that receiver owes payer (net negative) — but we already validated net >0, so this shouldn't happen.
+
             await _context.SaveChangesAsync();
 
             return expenseDetails.Id;

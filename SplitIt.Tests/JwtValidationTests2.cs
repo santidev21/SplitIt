@@ -65,7 +65,11 @@ public class JwtValidationTests
     public void TamperedToken_ShouldFail()
     {
         var valid = GenerateToken(Secret, Issuer, Audience);
-        var tampered = valid[..^1] + (valid[^1] == 'a' ? 'b' : 'a');
+        // Corrupt payload (middle) to ensure signature mismatch
+        var parts = valid.Split('.');
+        var payload = parts[1];
+        var tamperedPayload = payload.Substring(0, payload.Length / 2) + "XXXX" + payload.Substring(payload.Length / 2 + 4);
+        var tampered = $"{parts[0]}.{tamperedPayload}.{parts[2]}";
         var handler = new JwtSecurityTokenHandler();
         Assert.ThrowsAny<Exception>(() => handler.ValidateToken(tampered, GetValidationParams(Secret, Issuer, Audience), out _));
     }

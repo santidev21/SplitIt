@@ -107,6 +107,80 @@ namespace SplitIt.Infrastructure.Services
             return await _context.GroupMembers.AnyAsync(gm => gm.GroupId == groupId && gm.UserId == userId);
         }
 
+        public async Task<bool> IsUserAdminOrCreatorAsync(int groupId, int userId)
+        {
+            var role = await GetUserGroupRoleAsync(groupId, userId);
+            return role == "creator" || role == "admin";
+        }
+
+        public async Task<bool> IsUserCreatorAsync(int groupId, int userId)
+        {
+            var role = await GetUserGroupRoleAsync(groupId, userId);
+            return role == "creator";
+        }
+
+        public async Task UpdateMemberRoleAsync(int groupId, int targetUserId, string newRole, int requesterId)
+        {
+            newRole = newRole.ToLowerInvariant();
+            if (newRole != "admin" && newRole != "member")
+                throw new ArgumentException("Invalid role. Allowed: admin, member.");
+
+            var requesterRole = await GetUserGroupRoleAsync(groupId, requesterId);
+            if (requesterRole != "creator" && requesterRole != "admin")
+                throw new UnauthorizedAccessException("Only group creator or admin can change roles.");
+
+            var target = await _context.GroupMembers.FirstOrDefaultAsync(gm => gm.GroupId == groupId && gm.UserId == targetUserId);
+            if (target == null)
+                throw new KeyNotFoundException("Target user is not a member of the group.");
+
+            if (target.Role == "creator")
+                throw new ArgumentException("Cannot change role of group creator.");
+
+            if (targetUserId == requesterId)
+                throw new ArgumentException("Cannot change your own role.");
+
+            // Admin cannot promote to admin? Actually creator can promote member to admin, admin can demote admin to member? Let's allow creator->admin, admin->member demotion, but admin cannot promote to admin (only creator can)
+            if (newRole == "admin" && requesterRole != "creator")
+                throw new UnauthorizedAccessException("Only group creator can promote to admin.");
+
+            target.Role = newRole;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task RemoveMemberAsync(int groupId, int targetUserId, int requesterId)
+        {
+            var requesterRole = await GetUserGroupRoleAsync(groupId, requesterId);
+            if (requesterRole != "creator" && requesterRole != "admin")
+                throw new UnauthorizedAccessException("Only creator or admin can remove members.");
+
+            var target = await _context.GroupMembers.FirstOrDefaultAsync(gm => gm.GroupId == groupId && gm.UserId == targetUserId);
+            if (target == null)
+                throw new KeyNotFoundException("Target user not found in group.");
+
+            if (target.Role == "creator")
+                throw new ArgumentException("Cannot remove group creator. Delete the group instead.");
+
+            if (target.Role == "admin" && requesterRole != "creator")
+                throw new UnauthorizedAccessException("Only creator can remove an admin.");
+
+            _context.GroupMembers.Remove(target);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteGroupAsync(int groupId, int requesterId)
+        {
+            var isCreator = await IsUserCreatorAsync(groupId, requesterId);
+            if (!isCreator)
+                throw new UnauthorizedAccessException("Only group creator can delete the group.");
+
+            var group = await _context.Groups.FirstOrDefaultAsync(g => g.Id == groupId);
+            if (group == null)
+                throw new KeyNotFoundException("Group not found.");
+
+            _context.Groups.Remove(group);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<GroupDetailDTO> GetGroupDetails(int groupId)
         {
             var group = await _context.Groups

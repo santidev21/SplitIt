@@ -91,18 +91,35 @@ namespace SplitIt.API.Controllers
                 return ValidationProblem(ModelState);
 
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var receiverUserId))
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var currentUserId))
                 return Unauthorized();
 
             try
             {
-                var expenseDetailsId = await _expensesService.RegisterPayment(dto.PayerUserId, receiverUserId, dto.GroupId, dto.Amount);
-                int settledCount = await _expensesService.SettleExpenseWithUser(dto.PayerUserId, receiverUserId, dto.GroupId);
+                // Determine payer/receiver correctly for partial payments (handle both directions)
+                var payer = dto.PayerUserId;
+                var receiver = currentUserId;
+                var remaining = await _expensesService.GetRemainingDebtAsync(payer, receiver, dto.GroupId);
+                if (remaining <= 0.009m)
+                {
+                    // Try swapped direction (current user may be payer)
+                    var swapped = await _expensesService.GetRemainingDebtAsync(receiver, payer, dto.GroupId);
+                    if (swapped > 0.009m)
+                    {
+                        payer = currentUserId;
+                        receiver = dto.PayerUserId;
+                        remaining = swapped;
+                    }
+                }
 
-                if (settledCount == 0)
-                    return NotFound(new { message = "No unsettled debts found." });
+                // Validate amount not empty and use absolute
+                var amount = Math.Abs(dto.Amount);
+                amount = Math.Round(amount, 2, MidpointRounding.AwayFromZero);
+                if (amount <= 0) return BadRequest(new { message = "Invalid amount." });
 
-                return Ok(new { SettledCount = settledCount });
+                var paymentId = await _expensesService.RegisterPayment(payer, receiver, dto.GroupId, amount);
+                var remainingAfter = await _expensesService.GetRemainingDebtAsync(payer, receiver, dto.GroupId);
+                return Ok(new { PaymentId = paymentId, RemainingDebt = remainingAfter, SettledCount = 1 });
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -116,6 +133,24 @@ namespace SplitIt.API.Controllers
             {
                 return NotFound(new { message = ex.Message });
             }
+        }
+
+        [HttpGet("remaining-debt")]
+        [Authorize]
+        public async Task<IActionResult> GetRemainingDebt([FromQuery] int otherUserId, [FromQuery] int groupId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var currentUserId))
+                return Unauthorized();
+
+            if (!await _groupService.IsUserMemberAsync(groupId, currentUserId))
+                return Forbid();
+
+            var remaining = await _expensesService.GetRemainingDebtAsync(otherUserId, currentUserId, groupId);
+            // Also try opposite direction if no debt in that direction
+            if (remaining <= 0)
+                remaining = await _expensesService.GetRemainingDebtAsync(currentUserId, otherUserId, groupId);
+            return Ok(new { RemainingDebt = Math.Abs(remaining) });
         }
     }
 }
