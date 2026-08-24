@@ -20,10 +20,10 @@ describe('AppComponent', () => {
     expect(app.title).toEqual('split-it-ui');
   });
 
-  it('should render title', () => {
+  it('should render router-outlet', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, split-it-ui');
+    expect(compiled.querySelector('router-outlet')).toBeTruthy();
   });
 });

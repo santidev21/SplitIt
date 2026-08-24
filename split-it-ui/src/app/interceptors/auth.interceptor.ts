@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const router = inject(Router);
   const token = localStorage.getItem('token');
   const authReq = token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
 
@@ -13,7 +14,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         localStorage.removeItem('token');
         localStorage.removeItem('userName');
         localStorage.removeItem('userId');
-        const router = inject(Router);
         router.navigate(['/auth/login']);
       }
       return throwError(() => error);
