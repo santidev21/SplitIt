@@ -19,10 +19,11 @@ npm-debug.log
 yarn-debug.log
 yarn-error.log
 
-# Environment files
+# Environment files — NEVER commit real secrets
 .env
 .env.local
 .env.*.local
+!.env.example
 
 # OS generated files
 .DS_Store
@@ -35,7 +36,6 @@ Thumbs.db
 
 # Temporary files created by Angular CLI
 *.tgz
-package-lock.json
 
 # Compiled TypeScript files
 *.tsbuildinfo

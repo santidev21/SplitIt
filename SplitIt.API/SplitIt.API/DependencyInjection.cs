@@ -8,8 +8,15 @@ namespace SplitIt.API
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                // In dev, EF will fail on first DB call with clear message; in prod builder already throws for missing config elsewhere
+                Console.WriteLine("WARNING: ConnectionStrings:DefaultConnection is empty. Set via env ConnectionStrings__DefaultConnection.");
+            }
+
             services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(connectionString));
 
             return services;
         }

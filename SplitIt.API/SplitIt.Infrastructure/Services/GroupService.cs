@@ -20,12 +20,17 @@ namespace SplitIt.Infrastructure.Services
         }
         public async Task<int> CreateGroup(string name, string description, bool allowToDeleteExpenses, int currencyId, int userId)
         {
+            // Validate currency exists
+            var currencyExists = await _context.Currencies.AnyAsync(c => c.Id == currencyId);
+            if (!currencyExists)
+                throw new ArgumentException("Invalid currency.");
+
             Group group = new Group()
             {
-                Name = name,
-                Description = description,
+                Name = name.Trim(),
+                Description = description.Trim(),
                 CurrencyId = currencyId,
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
             };
             _context.Groups.Add(group);
             await _context.SaveChangesAsync();
@@ -78,7 +83,7 @@ namespace SplitIt.Infrastructure.Services
                 .FirstOrDefaultAsync(g => g.Id == groupId);
 
             if (group == null)
-                throw new Exception("Group not found");
+                throw new KeyNotFoundException("Group not found");
 
             return group.GroupMembers
                 .Select(m => new MemberDto
@@ -97,13 +102,18 @@ namespace SplitIt.Infrastructure.Services
             return membership?.Role;
         }
 
+        public async Task<bool> IsUserMemberAsync(int groupId, int userId)
+        {
+            return await _context.GroupMembers.AnyAsync(gm => gm.GroupId == groupId && gm.UserId == userId);
+        }
+
         public async Task<GroupDetailDTO> GetGroupDetails(int groupId)
         {
             var group = await _context.Groups
                 .FirstOrDefaultAsync(g => g.Id == groupId);
 
             if (group == null)
-                throw new Exception("Group not found");
+                throw new KeyNotFoundException("Group not found");
 
             return new GroupDetailDTO()
             {

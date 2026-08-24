@@ -21,19 +21,56 @@ namespace SplitIt.Infrastructure.Services
 
         public async Task<Expense> AddExpenseAsync(CreateExpenseDto request, int createdById)
         {
+            // Ownership check: createdBy must be member of group
+            var isMember = await _context.GroupMembers.AnyAsync(gm => gm.GroupId == request.GroupId && gm.UserId == createdById);
+            if (!isMember)
+                throw new UnauthorizedAccessException("User is not a member of the group.");
+
+            // Validate group exists
+            var groupExists = await _context.Groups.AnyAsync(g => g.Id == request.GroupId);
+            if (!groupExists)
+                throw new KeyNotFoundException("Group not found.");
+
+            // Validate PaidBy is member
+            var paidByMember = await _context.GroupMembers.AnyAsync(gm => gm.GroupId == request.GroupId && gm.UserId == request.PaidById);
+            if (!paidByMember)
+                throw new ArgumentException("PaidBy user is not a member of the group.");
+
+            if (request.Participants == null || request.Participants.Count == 0)
+                throw new ArgumentException("At least one participant required.");
+            if (request.Participants.Count > 50)
+                throw new ArgumentException("Too many participants.");
+            if (request.Amount <= 0 || request.Amount > 1000000)
+                throw new ArgumentException("Invalid amount.");
+
+            // Validate participants are members and amounts >0
+            var participantIds = request.Participants.Select(p => p.UserId).Distinct().ToList();
+            var memberCount = await _context.GroupMembers.CountAsync(gm => gm.GroupId == request.GroupId && participantIds.Contains(gm.UserId));
+            if (memberCount != participantIds.Count)
+                throw new ArgumentException("One or more participants are not members of the group.");
+
+            var sumOwed = request.Participants.Sum(p => p.AmountOwed);
+            if (Math.Abs(sumOwed - request.Amount) > 0.02m)
+                throw new ArgumentException($"Sum of participant amounts ({sumOwed}) does not match expense amount ({request.Amount}).");
+
+            foreach (var p in request.Participants)
+            {
+                if (p.AmountOwed <= 0)
+                    throw new ArgumentException("Participant amount must be positive.");
+            }
+
             var expense = new Expense
             {
                 GroupId = request.GroupId,
-                Title = request.Title,
+                Title = request.Title.Trim(),
                 Amount = request.Amount,
-                Date = request.Date,
-                Note = request.Note,
+                Date = request.Date.ToUniversalTime(),
+                Note = request.Note?.Trim(),
                 CreatedById = createdById,
                 PaidById = request.PaidById,
             };
             await _context.Expense.AddAsync(expense);
             await _context.SaveChangesAsync();
-
 
             var participants = request.Participants.Select(p => new ExpenseShare
             {
@@ -162,12 +199,22 @@ namespace SplitIt.Infrastructure.Services
             };
         }
 
-        public async Task<int> SettleExpenseWithUser(int payerUserId, int receiverUserId)
+        public async Task<int> SettleExpenseWithUser(int payerUserId, int receiverUserId, int groupId)
         {
+            // Validate both users are members of group and groupId is used to scope settlement (fix cross-group bug)
+            var groupExists = await _context.Groups.AnyAsync(g => g.Id == groupId);
+            if (!groupExists)
+                throw new KeyNotFoundException("Group not found.");
+
+            var payerMember = await _context.GroupMembers.AnyAsync(gm => gm.GroupId == groupId && gm.UserId == payerUserId);
+            var receiverMember = await _context.GroupMembers.AnyAsync(gm => gm.GroupId == groupId && gm.UserId == receiverUserId);
+            if (!payerMember || !receiverMember)
+                throw new UnauthorizedAccessException("One or both users are not members of the group.");
+
             var unsettledShares = await _context.ExpenseShare
             .Include(es => es.Expense)
             .Where(es =>
-                !es.IsSettled && (
+                !es.IsSettled && es.Expense.GroupId == groupId && (
                     (es.UserId == receiverUserId && es.Expense.PaidById == payerUserId) ||
                     (es.UserId == payerUserId && es.Expense.PaidById == receiverUserId)
                 )
@@ -187,15 +234,30 @@ namespace SplitIt.Infrastructure.Services
 
         public async Task<int> RegisterPayment(int payerUserId, int receiverUserId, int groupId, decimal amount)
         {
+            if (amount <= 0 || amount > 1000000)
+                throw new ArgumentException("Invalid payment amount.");
+            if (payerUserId == receiverUserId)
+                throw new ArgumentException("Payer and receiver must be different.");
+
+            var groupExists = await _context.Groups.AnyAsync(g => g.Id == groupId);
+            if (!groupExists)
+                throw new KeyNotFoundException("Group not found.");
+
+            var payerMember = await _context.GroupMembers.AnyAsync(gm => gm.GroupId == groupId && gm.UserId == payerUserId);
+            var receiverMember = await _context.GroupMembers.AnyAsync(gm => gm.GroupId == groupId && gm.UserId == receiverUserId);
+            if (!payerMember || !receiverMember)
+                throw new UnauthorizedAccessException("One or both users are not members of the group.");
+
             var expense = new Expense
             {
                 GroupId = groupId,
                 Title = "Debt Payment",
                 Amount = amount,
                 Date = DateTime.UtcNow,
-                Note = "Payment ",
+                Note = "Payment",
                 CreatedById = receiverUserId,  // The one recording the payment
                 PaidById = payerUserId, // The one who actually paid
+                IsPayment = true,
             };
 
             await _context.Expense.AddAsync(expense);

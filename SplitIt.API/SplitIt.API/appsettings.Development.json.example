@@ -1,0 +1,20 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost,1433;Database=SplitItDB;User Id=sa;Password=CHANGE_ME_STRONG_PASSWORD;TrustServerCertificate=True;"
+  },
+  "JwtSettings": {
+    "Issuer": "https://localhost:7191",
+    "Audience": "https://localhost:7191",
+    "SecretKey": "CHANGE_ME_GENERATE_WITH_openssl_rand_-base64_64_MIN_64_CHARS",
+    "ExpirationInMinutes": 60
+  },
+  "Cors": {
+    "AllowedOrigins": "http://localhost:4200"
+  }
+}

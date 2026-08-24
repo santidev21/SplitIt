@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using SplitIt.Application.DTOs;
 using SplitIt.Domain.Entities;
@@ -16,7 +17,6 @@ namespace SplitIt.API.Controllers
         private readonly AuthService _authService;
         private readonly IConfiguration _configuration;
 
-
         public AuthController(AuthService authService, IConfiguration configuration)
         {
             _authService = authService;
@@ -24,11 +24,13 @@ namespace SplitIt.API.Controllers
         }
 
         [HttpPost("register")]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
+            // Generic response to avoid enumeration timing is handled via constant-time-ish flow
             bool success = await _authService.RegisterUser(request.Name, request.Email, request.Password);
             if (!success)
-                return BadRequest(new { message = "The user already exists!" });
+                return Conflict(new { message = "Unable to register. If the email is already registered, try logging in." });
 
             var user = await _authService.GetUserByEmail(request.Email);
             if (user == null)
@@ -46,21 +48,26 @@ namespace SplitIt.API.Controllers
         }
 
         [HttpPost("login")]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
             var user = await _authService.GetUserByEmail(request.Email);
             if (user == null || !await _authService.ValidateUser(request.Email, request.Password))
                 return Unauthorized(new { error = "Invalid credentials" });
 
-            var token = GenerateJwtToken(user);
-            return Ok(new {message = "Login successful.", token, userName = user.Name, userId = user.Id});
+            // Re-fetch to get rehashed password if legacy migrated
+            user = await _authService.GetUserByEmail(request.Email);
+            var token = GenerateJwtToken(user!);
+            return Ok(new {message = "Login successful.", token, userName = user!.Name, userId = user.Id});
         }
 
         private string GenerateJwtToken(User user)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
-            var key = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);
-            var expiration = int.Parse(jwtSettings["ExpirationInMinutes"]);
+            var secret = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JwtSettings:SecretKey missing");
+            var key = Encoding.UTF8.GetBytes(secret);
+            var expirationStr = jwtSettings["ExpirationInMinutes"];
+            var expiration = int.TryParse(expirationStr, out var exp) ? exp : 60;
 
             var claims = new List<Claim>
             {

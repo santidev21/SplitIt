@@ -1,24 +1,56 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
-using SplitIt.Infrastructure.Persistence;
-using SplitIt.API;
-using SplitIt.Infrastructure.Services;
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using SplitIt.API;
+using SplitIt.API.Middleware;
+using SplitIt.Domain.Entities;
+using SplitIt.Infrastructure.Persistence;
+using SplitIt.Infrastructure.Services;
+using System.Text;
 using System.Text.Json;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Config validation — fail fast if secrets missing in non-dev (but allow empty in dev for local testing without DB)
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secretKey = jwtSettings.GetValue<string>("SecretKey");
+var jwtIssuer = jwtSettings.GetValue<string>("Issuer");
+var jwtAudience = jwtSettings.GetValue<string>("Audience");
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+if (string.IsNullOrWhiteSpace(secretKey) || secretKey.Length < 32)
+{
+    if (builder.Environment.IsProduction())
+        throw new InvalidOperationException("JwtSettings:SecretKey is missing or too short (min 32 chars). Set via env JwtSettings__SecretKey.");
+    // In Development, allow empty to still build but warn
+    Console.WriteLine("WARNING: JwtSettings:SecretKey is missing/short. Set a 64+ random string for production.");
+}
+
+if ((string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience)) && builder.Environment.IsProduction())
+    throw new InvalidOperationException("JwtSettings:Issuer/Audience required in Production.");
+
+var effectiveSecret = string.IsNullOrWhiteSpace(secretKey) ? "dev-override-not-for-production-0123456789-ABCDEF-0123456789-64chars_long!!" : secretKey;
+var effectiveIssuer = string.IsNullOrWhiteSpace(jwtIssuer) ? "https://localhost" : jwtIssuer;
+var effectiveAudience = string.IsNullOrWhiteSpace(jwtAudience) ? "https://localhost" : jwtAudience;
+var keyBytes = Encoding.UTF8.GetBytes(effectiveSecret);
+
+// Services
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// Health checks
+builder.Services.AddHealthChecks();
+
+// Password hasher
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 // App services
 builder.Services.AddScoped<AuthService>();
@@ -27,37 +59,80 @@ builder.Services.AddScoped<CurrenciesService>();
 builder.Services.AddScoped<UsersService>();
 builder.Services.AddScoped<ExpensesService>();
 
-builder.Services
-    .AddControllers()
-    .AddJsonOptions(options =>
+// Exception handling
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
+// Rate limiting — auth endpoints: 5 requests per minute per IP, general API moderate
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = 429;
+    options.OnRejected = async (context, token) =>
     {
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        context.HttpContext.Response.StatusCode = 429;
+        await context.HttpContext.Response.WriteAsJsonAsync(new { message = "Too many requests. Please try again later." }, token);
+    };
+
+    // Strict for login/register
+    options.AddPolicy("auth", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? httpContext.Request.Headers.Host.ToString(),
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }));
+
+    // Moderate for general API
+    options.AddFixedWindowLimiter("fixed", opt =>
+    {
+        opt.PermitLimit = 100;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueLimit = 0;
     });
+});
 
-// JWT
-var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = jwtSettings.GetValue<string>("SecretKey") ?? throw new InvalidOperationException("SecretKey is missing in JwtSettings");
-var key = Encoding.ASCII.GetBytes(secretKey);
-
+// JWT — unified UTF8, ClockSkew Zero, strict validation
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false;
+    options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
+        IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
         ValidateIssuer = true,
         ValidateAudience = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidAudience = jwtSettings["Audience"],
+        ValidIssuer = effectiveIssuer,
+        ValidAudience = effectiveAudience,
         ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero,
+        RequireSignedTokens = true,
+        RequireExpirationTime = true,
+        ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 }
+    };
+    // Explicitly reject 'alg:none' is default, but enforce algorithm check via event
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = context =>
+        {
+            var alg = context.SecurityToken is Microsoft.IdentityModel.JsonWebTokens.JsonWebToken jwt ? jwt.Alg : null;
+            if (alg != null && !string.Equals(alg, SecurityAlgorithms.HmacSha256, StringComparison.Ordinal))
+            {
+                context.Fail($"Invalid token algorithm: {alg}");
+            }
+            return Task.CompletedTask;
+        }
     };
 });
+
+builder.Services.AddAuthorization();
 
 // Swagger
 builder.Services.AddSwaggerGen(c =>
@@ -68,56 +143,81 @@ builder.Services.AddSwaggerGen(c =>
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
-        Scheme = "bearer"
+        Scheme = "bearer",
+        BearerFormat = "JWT"
     });
-
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
             new string[] {}
         }
     });
 });
 
-builder.Services.AddAuthorization();
+// CORS — env-based, no AllowAnyOrigin in production
+var allowedOriginsRaw = builder.Configuration.GetValue<string>("Cors:AllowedOrigins") ?? builder.Configuration.GetValue<string>("Cors__AllowedOrigins") ?? "";
+var allowedOrigins = allowedOriginsRaw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    .Where(o => !string.IsNullOrWhiteSpace(o)).ToArray();
 
-// CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAngular", policy =>
+    options.AddPolicy("AppCors", policy =>
     {
-        policy.AllowAnyOrigin() 
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        if (allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        }
+        else if (builder.Environment.IsDevelopment())
+        {
+            // Dev default — only localhost:4200, not AnyOrigin
+            policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        }
+        else
+        {
+            // Production without config — deny all (fail closed)
+            policy.WithOrigins(Array.Empty<string>());
+        }
     });
 });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Middleware pipeline
+app.UseExceptionHandler();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-// CORS
-app.UseCors("AllowAngular");
+else
+{
+    // Production: HSTS (if behind proxy, nginx will add HSTS as well)
+    app.UseHsts();
+}
 
 app.UseHttpsRedirection();
+app.UseCors("AppCors");
+app.UseRateLimiter();
 
 app.UseAuthentication();
-
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/ready");
 
 app.Run();
+
+// For integration tests
+public partial class Program { }

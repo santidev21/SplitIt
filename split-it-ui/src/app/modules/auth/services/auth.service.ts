@@ -24,7 +24,7 @@ export class AuthService {
         localStorage.setItem('token', response.token);
         localStorage.setItem('userName', response.userName);
         localStorage.setItem('userId', response.userId.toString());
-        this.router.navigate(['/home']);
+        this.router.navigate(['/dashboard/home']);
       })
     );
   }
@@ -38,7 +38,7 @@ export class AuthService {
         localStorage.setItem('token', response.token);
         localStorage.setItem('userName', response.userName);
         localStorage.setItem('userId', response.userId.toString());
-        this.router.navigate(['/home']);
+        this.router.navigate(['/dashboard/home']);
       })
     );
   }
@@ -46,6 +46,16 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('userName');
+    localStorage.removeItem('userId');
     this.router.navigate(['auth/login']);
+  }
+
+  isAuthenticated(): boolean {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.exp && payload.exp > Math.floor(Date.now() / 1000);
+    } catch { return false; }
   }
 }

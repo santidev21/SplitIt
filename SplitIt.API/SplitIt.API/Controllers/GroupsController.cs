@@ -30,14 +30,17 @@ namespace SplitIt.API.Controllers
         public async Task<IActionResult> CreateGroup([FromBody] CreateGroupDto request)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim))
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
                 return Unauthorized();
 
-            int userId = int.Parse(userIdClaim);
+            // Prevent duplicate members and validate count limit (business limit)
+            var distinctMembers = request.Members.Distinct().Where(id => id != userId).ToList();
+            if (distinctMembers.Count > 50)
+                return BadRequest(new { message = "Too many members (max 50)." });
 
             string name = request.Name;
             string description = request.Description;
-            List<int> members = new List<int> { userId }.Concat(request.Members).ToList();
+            List<int> members = new List<int> { userId }.Concat(distinctMembers).ToList();
             bool allowToDeleteExpenses = request.AllowToDeleteExpenses;
             int currencyId = request.CurrencyId;
 
@@ -69,10 +72,11 @@ namespace SplitIt.API.Controllers
         public async Task<IActionResult> GetGroupMembers(int groupId)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim))
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
                 return Unauthorized();
 
-            int userId = int.Parse(userIdClaim);
+            if (!await _groupService.IsUserMemberAsync(groupId, userId))
+                return Forbid();
 
             var members = await _groupService.GetGroupMembersAsync(groupId, userId);
             return Ok(members);
@@ -82,11 +86,12 @@ namespace SplitIt.API.Controllers
         [Authorize]
         public async Task<IActionResult> getGroupDetails(int groupId)
         {
-            // Get the ID of the currently logged-in user
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim))
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
                 return Unauthorized();
 
+            if (!await _groupService.IsUserMemberAsync(groupId, userId))
+                return Forbid();
 
             var groupDetails = await _groupService.GetGroupDetails(groupId);
             return Ok(groupDetails);
@@ -96,14 +101,11 @@ namespace SplitIt.API.Controllers
         [Authorize]
         public async Task<IActionResult> GetUserGroupRoleAsync(int groupId)
         {
-            // Get the ID of the currently logged-in user
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim))
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
                 return Unauthorized();
 
-            int userId = int.Parse(userIdClaim);
             var userRole = await _groupService.GetUserGroupRoleAsync(groupId, userId);
-
             if (userRole == null)
                 return NotFound("User does not belong to this group.");
 

@@ -1,0 +1,22 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning",
+      "Microsoft.AspNetCore": "Warning",
+      "Microsoft.EntityFrameworkCore.Database.Command": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "DefaultConnection": "SET_VIA_ENV__ConnectionStrings__DefaultConnection"
+  },
+  "JwtSettings": {
+    "Issuer": "SET_VIA_ENV__JwtSettings__Issuer",
+    "Audience": "SET_VIA_ENV__JwtSettings__Audience",
+    "SecretKey": "SET_VIA_ENV__JwtSettings__SecretKey",
+    "ExpirationInMinutes": 60
+  },
+  "Cors": {
+    "AllowedOrigins": "SET_VIA_ENV__Cors__AllowedOrigins"
+  }
+}

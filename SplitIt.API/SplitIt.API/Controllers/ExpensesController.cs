@@ -26,20 +26,30 @@ namespace SplitIt.API.Controllers
         [Authorize]
         public async Task<IActionResult> AddExpense([FromBody] CreateExpenseDto request)
         {
-            if (request.GroupId <= 0 || string.IsNullOrEmpty(request.Title) || request.Amount <= 0 || request.Participants.Count == 0)
-            {
-                return BadRequest("Invalid data.");
-            }
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
 
-            // Get the ID of the currently logged-in user
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim))
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var createdById))
                 return Unauthorized();
 
-            int createdById = int.Parse(userIdClaim);
-
-            var expense = await _expensesService.AddExpenseAsync(request, createdById);
-            return CreatedAtAction(nameof(AddExpense), new { id = expense.Id }, expense);
+            try
+            {
+                var expense = await _expensesService.AddExpenseAsync(request, createdById);
+                return CreatedAtAction(nameof(AddExpense), new { id = expense.Id }, expense);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
         [HttpGet("{groupId}/expenses")]
@@ -47,11 +57,12 @@ namespace SplitIt.API.Controllers
         public async Task<IActionResult> GetGroupExpenses(int groupId, [FromQuery] bool showAll = false)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim))
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
                 return Unauthorized();
 
+            if (!await _groupService.IsUserMemberAsync(groupId, userId))
+                return Forbid();
 
-            int userId = int.Parse(userIdClaim);
             var expenses = await _expensesService.GetExpensesByGroupIdAsync(groupId, userId, showAll);
             return Ok(expenses);
         }
@@ -61,11 +72,11 @@ namespace SplitIt.API.Controllers
         public async Task<IActionResult> GetFullDebtSummary([FromQuery] int groupId)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim))
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
                 return Unauthorized();
 
-
-            int userId = int.Parse(userIdClaim);
+            if (!await _groupService.IsUserMemberAsync(groupId, userId))
+                return Forbid();
 
             var summary = await _expensesService.GetFullDebtSummaryAsync(userId, groupId);
 
@@ -76,20 +87,35 @@ namespace SplitIt.API.Controllers
         [Authorize]
         public async Task<IActionResult> SettleExpenseWithUser([FromBody] RegisterPaymentDto dto)
         {
-            // Get the ID of the currently logged-in user
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim))
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var receiverUserId))
                 return Unauthorized();
 
-            int receiverUserId = int.Parse(userIdClaim);
+            try
+            {
+                var expenseDetailsId = await _expensesService.RegisterPayment(dto.PayerUserId, receiverUserId, dto.GroupId, dto.Amount);
+                int settledCount = await _expensesService.SettleExpenseWithUser(dto.PayerUserId, receiverUserId, dto.GroupId);
 
-            var expenseDetailsId = await _expensesService.RegisterPayment(dto.PayerUserId, receiverUserId, dto.GroupId, dto.Amount);
-            int settledCount = await _expensesService.SettleExpenseWithUser(dto.PayerUserId, receiverUserId);
+                if (settledCount == 0)
+                    return NotFound(new { message = "No unsettled debts found." });
 
-            if (settledCount == 0)
-                return NotFound("No unsettled debts found.");
-
-            return Ok(new { SettledCount = settledCount });
+                return Ok(new { SettledCount = settledCount });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
     }
 }
