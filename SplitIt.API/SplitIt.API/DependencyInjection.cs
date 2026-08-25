@@ -16,7 +16,16 @@ namespace SplitIt.API
             }
 
             services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(connectionString));
+                options.UseSqlServer(connectionString, sqlOpts =>
+                {
+                    // Production resilience: transient retry for SQL Server (3 retries, 2s delay)
+                    sqlOpts.EnableRetryOnFailure(
+                        maxRetryCount: 3,
+                        maxRetryDelay: TimeSpan.FromSeconds(2),
+                        errorNumbersToAdd: null);
+                    // Command timeout 30s default, keep as is for monetary transactions
+                    sqlOpts.CommandTimeout(30);
+                }));
 
             return services;
         }

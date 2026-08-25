@@ -212,6 +212,30 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Phase 10: dedicated migration job — handle --migrate flag before starting web server
+if (args.Contains("--migrate"))
+{
+    Console.WriteLine("=== SplitIt migrator: applying EF Core migrations ===");
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    try
+    {
+        var pending = db.Database.GetPendingMigrations().ToList();
+        Console.WriteLine($"Pending migrations: {(pending.Count == 0 ? "(none)" : string.Join(", ", pending))}");
+        db.Database.Migrate();
+        var applied = db.Database.GetAppliedMigrations().ToList();
+        Console.WriteLine($"Applied migrations count: {applied.Count} — last: {applied.LastOrDefault()}");
+        Console.WriteLine("Migrations applied successfully — exiting migrator");
+        return;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"MIGRATION FAILED: {ex}");
+        Environment.Exit(1);
+        return;
+    }
+}
+
 // Middleware pipeline
 app.UseExceptionHandler();
 
@@ -263,23 +287,6 @@ app.MapHealthChecks("/health", new HealthCheckOptions
         await ctx.Response.WriteAsync(report.Status == HealthStatus.Healthy ? "Healthy" : "Unhealthy");
     }
 });
-
-// Run database migrations automatically on startup
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetService<AppDbContext>();
-    if (db != null)
-    {
-        try
-        {
-            db.Database.Migrate();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"DB Migration status: {ex.Message}");
-        }
-    }
-}
 
 app.Run();
 

@@ -40,11 +40,39 @@ services:
       - MSSQL_SA_PASSWORD=${DB_PASSWORD}
       - MSSQL_APP_USER=${DB_APP_USER:-splitit_app}
       - MSSQL_APP_PASSWORD=${DB_APP_PASSWORD:-${DB_PASSWORD}}
+      - MSSQL_MIGRATOR_USER=${DB_MIGRATOR_USER:-splitit_migrator}
+      - MSSQL_MIGRATOR_PASSWORD=${DB_MIGRATOR_PASSWORD:-${DB_PASSWORD}}
     networks:
       - splitit-backend-net
     volumes:
-      - ./docker/sqlserver/init-app-user.sh:/usr/src/init-app-user.sh:ro
-    entrypoint: ["/bin/bash", "/usr/src/init-app-user.sh"]
+      - ./docker/sqlserver/init-db-users.sh:/usr/src/init-db-users.sh:ro
+    entrypoint: ["/bin/bash", "/usr/src/init-db-users.sh"]
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+
+  migrator:
+    container_name: splitit-migrator
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=SplitItDb;User Id=${DB_MIGRATOR_USER:-splitit_migrator};Password=${DB_MIGRATOR_PASSWORD:-${DB_PASSWORD}};TrustServerCertificate=True;
+      - JwtSettings__SecretKey=${JWT_SECRET}
+      - JwtSettings__Issuer=${JWT_ISSUER}
+      - JwtSettings__Audience=${JWT_AUDIENCE}
+    networks:
+      - splitit-backend-net
+    volumes:
+      - dataprotection_keys:/home/app/.aspnet/DataProtection-Keys
+    entrypoint: ["dotnet", "SplitIt.API.dll", "--migrate"]
     restart: "no"
     deploy:
       resources:
@@ -61,7 +89,7 @@ services:
     depends_on:
       sqlserver:
         condition: service_healthy
-      db-init:
+      migrator:
         condition: service_completed_successfully
     environment:
       - ASPNETCORE_ENVIRONMENT=Production

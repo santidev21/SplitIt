@@ -14,13 +14,19 @@ SplitIt uses a hardened multi-container architecture orchestrated via Docker Com
                      │ (splitit-frontend-net)
                      ▼
            ┌───────────────────┐
-           │  splitit-backend  │ (.NET 8 Web API)
+           │  splitit-backend  │ (.NET 8 Web API, runtime as splitit_app)
            └─────────┬─────────┘
                      │ (splitit-backend-net: internal=true)
                      ▼
            ┌───────────────────┐
+           │   splitit-migrator│ (one-shot, as splitit_migrator, db_ddladmin)
+           └─────────┬─────────┘
+                     │ depends_on migrator completed
+                     ▼
+           ┌───────────────────┐
            │    splitit-db     │ (SQL Server 2022)
            └───────────────────┘
+  Startup order: sqlserver (healthy) → db-init (create users) → migrator (EF Migrate) → backend → frontend
 ```
 
 ---
@@ -56,12 +62,18 @@ Setup FAILED copying system data file 'C:\templatedata\master.mdf' to '/var/opt/
 Volume is created with root ownership; `mssql` lacks write permission. Fixing would require a privileged chown init container or host directory with correct ownership, adding complexity and fragility. **Decision: keep `user: "0:0"` (root) for `sqlserver` service** — documented exception, stability preferred over artificial non-root.
 **Mitigations compensating for root:** `internal:true` network (`splitit-backend-net`), no host `1433` exposure (`Ports: {"1433/tcp":null}`), `privileged:false`, resource limits (`1.5 CPU/2GB`), dedicated least-privilege `splitit_app` for API (see below), `db-init` one-shot creates app user and never uses `sa` at runtime.
 
-### Database Least-Privilege
-| Principal | Purpose | Permissions |
-| :--- | :--- | :--- |
-| `sa` (`${DB_PASSWORD}`) | Initial admin only, used by `db-init` one-shot container to create `splitit_app` | `sysadmin` (server) — **never in API connection string** |
-| `splitit_app` (`${DB_APP_USER}`/`${DB_APP_PASSWORD}`) | API runtime (`ConnectionStrings__DefaultConnection`) | `db_datareader` + `db_datawriter` + `db_ddladmin` on `SplitItDb` — **not `db_owner`** — sufficient for EF Core migrations (DDL) and CRUD |
-Init logic: `docker/sqlserver/init-app-user.sh` idempotently creates LOGIN/USER, grants roles, and ensures `SplitItDb` exists before `backend` starts (`depends_on: db-init: service_completed_successfully`).
+### Database Least-Privilege (Phase 10)
+| Principal | Purpose | Permissions | Used By |
+| :--- | :--- | :--- | :--- |
+| `sa` (`${DB_PASSWORD}`) | Bootstrap only | `sysadmin` — **never in API** | `db-init` only |
+| `splitit_migrator` (`${DB_MIGRATOR_USER/PASSWORD}`) | EF Core migrations (one-shot) | `db_datareader` + `db_datawriter` + `db_ddladmin` — **not `db_owner`** | `migrator` service (`dotnet SplitIt.API.dll --migrate`) |
+| `splitit_app` (`${DB_APP_USER/PASSWORD}`) | API runtime | `db_datareader` + `db_datawriter` **only (no DDL, no owner)** | `backend` (`splitit-backend`) |
+Init logic: `docker/sqlserver/init-db-users.sh` idempotently creates both LOGIN/USER, ensures `SplitItDb` exists. `backend` no longer runs `Database.Migrate()` — see `Program.cs:213` migrator branch.
+
+### Migration Strategy (Phase 10)
+- **Previous (unsafe):** `Program.cs:267` `db.Database.Migrate()` on every API startup — multiple instances race, requires SA/ddl in runtime.
+- **Current (safe):** Dedicated `migrator` service in `docker-compose.yml:55` — `depends_on: db-init completed` → runs `dotnet SplitIt.API.dll --migrate` with migrator credentials, applies pending migrations via `Database.Migrate()` then exits 0. `backend` `depends_on: migrator completed_successfully` so API never starts before DB is ready. Running `migrator` twice is idempotent (`Pending 0` → `No migrations applied`). Failure exits 1, visible in `docker compose ps` and logs.
+- Migrations audited: 8 deterministic migrations (`20250401024634_InitialCreate` → `20250524200603_ChangeExpenseDateToDateTime`), all use `HasColumnType("decimal(18,2)")` for money, no `float`, `HasIndex` unique on `Users.Email`, FK `Cascade`/`Restrict` validated.
 
 ### DataProtection Persistence
 ASP.NET Core DataProtection keys stored at `/home/app/.aspnet/DataProtection-Keys` via `PersistKeysToFileSystem` (`Program.cs`). Mounted as volume `splitit_dataprotection_keys` so keys survive `docker compose down/up` without regeneration. Volume not in Git (`.dockerignore`/`.gitignore`).
@@ -82,8 +94,10 @@ cp .env.example .env
 | Variable | Description | Example |
 | :--- | :--- | :--- |
 | `DB_PASSWORD` | Strong SA password — **init only**, not used by API | `SecretPass12345!Secure` |
-| `DB_APP_USER` | Dedicated app DB login (default `splitit_app`) | `splitit_app` |
-| `DB_APP_PASSWORD` | Strong app user password, must differ from SA in prod | `SecretAppPass12345!Secure` |
+| `DB_APP_USER` | App DB login (default `splitit_app`) — no DDL | `splitit_app` |
+| `DB_APP_PASSWORD` | App password, must differ from SA/Migrator in prod | `SecretAppPass12345!Secure` |
+| `DB_MIGRATOR_USER` | Migrator login (default `splitit_migrator`) — with DDL | `splitit_migrator` |
+| `DB_MIGRATOR_PASSWORD` | Migrator password, must differ from SA/App in prod | `SecretMigrPass12345!Secure` |
 | `JWT_SECRET` | 64+ char random string for JWT signing | `RandomBase64Key...` |
 | `JWT_ISSUER` | Valid token issuer domain | `https://splitit.example.com` |
 | `JWT_AUDIENCE` | Valid token audience domain | `https://splitit.example.com` |
