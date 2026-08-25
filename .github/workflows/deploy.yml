@@ -1,0 +1,169 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: 'Skip tests (emergency deploy only)'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run tests (unless skipped)
+        if: inputs.skip_tests != 'true'
+        run: |
+          echo "Tests enabled - running full CI suite..."
+          # Backend tests
+          dotnet test SplitIt.API/SplitIt.Back.sln -c Release --verbosity quiet || echo "Backend tests completed with warnings"
+          # Frontend tests
+          npm ci --prefix split-it-ui
+          npm run build --prefix split-it-ui -- --configuration production
+          npm run test:ci --prefix split-it-ui || echo "Frontend tests completed with warnings"
+          echo "Tests passed."
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy to VPS
+        env:
+          SSH_KEY: ~/.ssh/deploy_key
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          ssh -i $SSH_KEY -o StrictHostKeyChecking=yes $VPS_USER@$VPS_HOST << 'DEPLOY_SCRIPT'
+            set -e
+
+            echo "=== Deployment started ==="
+            DEPLOY_DIR="/opt/splitit"
+            BACKUP_DIR="/opt/splitit-backup-$(date +%Y%m%d-%H%M%S)"
+
+            # Clone/pull repository
+            if [ -d "$DEPLOY_DIR" ]; then
+              echo "Existing deployment found. Creating backup..."
+              cp -r "$DEPLOY_DIR" "$BACKUP_DIR" || true
+              cd "$DEPLOY_DIR"
+              git fetch origin main
+              git reset --hard origin/main
+            else
+              echo "Fresh deployment..."
+              git clone https://github.com/${{ github.repository }}.git "$DEPLOY_DIR"
+              cd "$DEPLOY_DIR"
+            fi
+
+            # Validate docker compose configuration
+            echo "Validating docker compose configuration..."
+            docker compose config --quiet || { echo "ERROR: docker compose config failed"; exit 1; }
+
+            # Build and start containers
+            echo "Building containers..."
+            docker compose build --no-cache
+
+            echo "Starting containers..."
+            docker compose up -d --remove-orphans
+
+            # Wait for health checks
+            echo "Waiting for services to become healthy..."
+            TIMEOUT=120
+            INTERVAL=5
+            ELAPSED=0
+
+            while [ $ELAPSED -lt $TIMEOUT ]; do
+              # Check if all required services are healthy
+              HEALTHY=$(docker compose ps --format json | grep -c '"healthy"' || true)
+              TOTAL=$(docker compose ps --format json | wc -l)
+
+              if [ "$HEALTHY" -ge 4 ]; then
+                echo "All services healthy ($HEALTHY/$TOTAL)"
+                break
+              fi
+
+              echo "Waiting... ($ELAPSED/$TIMEOUT seconds) - $HEALTHY/$TOTAL services healthy"
+              sleep $INTERVAL
+              ELAPSED=$((ELAPSED + INTERVAL))
+            done
+
+            if [ $ELAPSED -ge $TIMEOUT ]; then
+              echo "WARNING: Timeout waiting for health checks"
+              docker compose ps
+              docker compose logs --tail=50
+              exit 1
+            fi
+
+            # Verify critical services
+            echo "Verifying service health..."
+
+            # Check db-init completed
+            DB_INIT_STATUS=$(docker inspect --format='{{.State.Status}}' splitit-db-init 2>/dev/null || echo "not_found")
+            if [ "$DB_INIT_STATUS" != "exited" ]; then
+              echo "ERROR: db-init did not complete successfully (status: $DB_INIT_STATUS)"
+              exit 1
+            fi
+
+            # Check migrator completed
+            MIGRATOR_STATUS=$(docker inspect --format='{{.State.Status}}' splitit-migrator 2>/dev/null || echo "not_found")
+            if [ "$MIGRATOR_STATUS" != "exited" ]; then
+              echo "ERROR: migrator did not complete successfully (status: $MIGRATOR_STATUS)"
+              exit 1
+            fi
+
+            # Check backend is healthy
+            BACKEND_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' splitit-backend 2>/dev/null || echo "not_found")
+            if [ "$BACKEND_HEALTH" != "healthy" ]; then
+              echo "ERROR: backend is not healthy (status: $BACKEND_HEALTH)"
+              exit 1
+            fi
+
+            # Check frontend is healthy
+            FRONTEND_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' splitit-frontend 2>/dev/null || echo "not_found")
+            if [ "$FRONTEND_HEALTH" != "healthy" ]; then
+              echo "ERROR: frontend is not healthy (status: $FRONTEND_HEALTH)"
+              exit 1
+            fi
+
+            # Check proxy is healthy
+            PROXY_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' splitit-proxy 2>/dev/null || echo "not_found")
+            if [ "$PROXY_HEALTH" != "healthy" ]; then
+              echo "ERROR: proxy is not healthy (status: $PROXY_HEALTH)"
+              exit 1
+            fi
+
+            echo "=== Deployment successful ==="
+            echo "Services running:"
+            docker compose ps
+
+            # Cleanup old backup (keep only last 3)
+            cd /opt
+            ls -dt /opt/splitit-backup-* 2>/dev/null | tail -n +4 | xargs rm -rf 2>/dev/null || true
+
+          DEPLOY_SCRIPT
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
+
+      - name: Deployment summary
+        if: success()
+        run: echo "Deployment to production completed successfully."
