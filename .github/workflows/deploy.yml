@@ -33,7 +33,7 @@ jobs:
         run: |
           echo "Running full CI test suite..."
           dotnet test SplitIt.API/SplitIt.Back.sln -c Release --verbosity quiet
-          npm ci --prefix split-it-ui
+          npm ci --legacy-peer-deps --prefix split-it-ui
           npm run build --prefix split-it-ui -- --configuration production
           npm run test:ci --prefix split-it-ui
           echo "All tests passed."

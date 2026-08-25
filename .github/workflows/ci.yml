@@ -80,7 +80,7 @@ jobs:
           cache-dependency-path: split-it-ui/package-lock.json
 
       - name: Install dependencies
-        run: npm ci --prefix split-it-ui
+        run: npm ci --legacy-peer-deps --prefix split-it-ui
 
       - name: Build Angular (production)
         run: npm run build --prefix split-it-ui -- --configuration production
@@ -113,7 +113,7 @@ jobs:
           cache-dependency-path: split-it-ui/package-lock.json
 
       - name: Install dependencies
-        run: npm ci --prefix split-it-ui
+        run: npm ci --legacy-peer-deps --prefix split-it-ui
 
       - name: Build Angular (production)
         run: npm run build --prefix split-it-ui -- --configuration production
