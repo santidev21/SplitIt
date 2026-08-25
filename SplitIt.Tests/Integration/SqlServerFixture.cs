@@ -39,7 +39,7 @@ public class SqlServerFixture : IAsyncLifetime
         // If Docker available, try to start container - if this fails due to SQL, we want FAIL not skip
         try
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
             await _container!.StartAsync(cts.Token);
             var options = new DbContextOptionsBuilder<AppDbContext>()
                 .UseSqlServer(ConnectionString)

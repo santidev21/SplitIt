@@ -1,0 +1,128 @@
+name: splitit
+
+services:
+  sqlserver:
+    container_name: splitit-db
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    # SECURITY EXCEPTION: Official image defaults to USER mssql (non-root, UID 10001) but on Docker Desktop Windows with named volume
+    # `splitit_sqlserver_data:/var/opt/mssql/data` it fails with `BootstrapSystemDataDirectories() 0x80070005 Access is denied`
+    # copying master.mdf (verified via docker logs). This is a known platform limitation — volume created with root ownership blocks mssql.
+    # Mitigations instead of non-root: internal network (internal:true), no host port 1433, no privileged, resource limits, db-init creates least-privilege app user.
+    # If non-root is strictly required, a privileged chown init container or host volume with correct permissions would be needed, but risks stability.
+    user: "0:0"
+    restart: unless-stopped
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - sqlserver_data:/var/opt/mssql/data
+    networks:
+      - splitit-backend-net
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"SELECT 1\" || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.50'
+          memory: 2048M
+
+  db-init:
+    container_name: splitit-db-init
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD}
+      - MSSQL_APP_USER=${DB_APP_USER:-splitit_app}
+      - MSSQL_APP_PASSWORD=${DB_APP_PASSWORD:-${DB_PASSWORD}}
+    networks:
+      - splitit-backend-net
+    volumes:
+      - ./docker/sqlserver/init-app-user.sh:/usr/src/init-app-user.sh:ro
+    entrypoint: ["/bin/bash", "/usr/src/init-app-user.sh"]
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+
+  backend:
+    container_name: splitit-backend
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=SplitItDb;User Id=${DB_APP_USER:-splitit_app};Password=${DB_APP_PASSWORD:-${DB_PASSWORD}};TrustServerCertificate=True;
+      - JwtSettings__SecretKey=${JWT_SECRET}
+      - JwtSettings__Issuer=${JWT_ISSUER}
+      - JwtSettings__Audience=${JWT_AUDIENCE}
+      - Cors__AllowedOrigins=${CORS_ALLOWED_ORIGINS}
+    volumes:
+      - dataprotection_keys:/home/app/.aspnet/DataProtection-Keys
+    networks:
+      - splitit-frontend-net
+      - splitit-backend-net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 512M
+
+  frontend:
+    container_name: splitit-frontend
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    networks:
+      - splitit-frontend-net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 128M
+
+networks:
+  splitit-frontend-net:
+    name: splitit-frontend-net
+    driver: bridge
+  splitit-backend-net:
+    name: splitit-backend-net
+    driver: bridge
+    internal: true
+
+volumes:
+  sqlserver_data:
+    name: splitit_sqlserver_data
+  dataprotection_keys:
+    name: splitit_dataprotection_keys

@@ -1,0 +1,42 @@
+# Multi-stage Dockerfile for SplitIt Angular SPA Frontend
+# Stage 1: Build Angular application using Node.js
+FROM node:20-alpine AS build
+WORKDIR /app
+
+# Copy package definition files to leverage Docker layer caching
+COPY split-it-ui/package.json split-it-ui/package-lock.json ./
+RUN npm ci --legacy-peer-deps
+
+# Copy full frontend source code
+COPY split-it-ui/ ./
+
+# Build production distribution
+RUN npm run build -- --configuration production
+
+# Stage 2: Serve static files with Nginx Alpine
+FROM nginx:1.27-alpine AS final
+
+# Install wget and upgrade Alpine packages to patch base OS vulnerabilities
+RUN apk add --no-cache wget && apk upgrade --no-cache
+
+# Copy custom Nginx configuration
+COPY docker/frontend/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Remove default static files and copy compiled Angular output
+RUN rm -rf /usr/share/nginx/html/*
+COPY --from=build /app/dist/split-it-ui/browser /usr/share/nginx/html
+
+# Adjust permissions for non-root execution
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html && \
+    touch /var/run/nginx.pid && \
+    chown -R nginx:nginx /var/run/nginx.pid /var/cache/nginx /var/log/nginx
+
+USER nginx
+
+EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]
