@@ -124,8 +124,7 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-    ports:
-      - "${FRONTEND_PORT:-80}:80"
+    # Port 80 is intentionally NOT published. Only the reverse proxy accesses this container.
     networks:
       - splitit-frontend-net
     healthcheck:
@@ -139,6 +138,60 @@ services:
         limits:
           cpus: '0.50'
           memory: 128M
+
+  proxy:
+    container_name: splitit-proxy
+    build:
+      context: .
+      dockerfile: docker/proxy/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    ports:
+      - "${PROXY_HTTP_PORT:-80}:8080"
+      - "${PROXY_HTTPS_PORT:-443}:8443"
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+      - TLS_MODE=${TLS_MODE:-selfsigned}
+      - BACKEND_HOST=backend
+      - FRONTEND_HOST=frontend
+      - HTTP_LISTEN_PORT=8080
+      - HTTPS_LISTEN_PORT=8443
+    networks:
+      - splitit-frontend-net
+    volumes:
+      # Certificates and DH parameters are persisted outside the image.
+      - nginx_certs:/etc/nginx/ssl
+      # Let's Encrypt certificates (mounted read-only when issued).
+      - certbot_certs:/etc/letsencrypt:ro
+      # ACME challenge webroot shared with certbot.
+      - certbot_www:/var/www/certbot
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "https://localhost:8443/health/live", "--no-check-certificate"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 128M
+
+  # One-shot Let's Encrypt certificate issuance/renewal. Start manually; do not enable by default.
+  certbot:
+    container_name: splitit-certbot
+    image: certbot/certbot:latest
+    profiles: ["certbot"]
+    entrypoint: ["/bin/sh", "-c", "echo 'Run certbot manually. See docs/HTTPS.md for commands.'"]
+    volumes:
+      - certbot_certs:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    networks:
+      - splitit-frontend-net
 
 networks:
   splitit-frontend-net:
@@ -154,3 +207,9 @@ volumes:
     name: splitit_sqlserver_data
   dataprotection_keys:
     name: splitit_dataprotection_keys
+  nginx_certs:
+    name: splitit_nginx_certs
+  certbot_certs:
+    name: splitit_certbot_certs
+  certbot_www:
+    name: splitit_certbot_www

@@ -25,6 +25,18 @@ yarn-error.log
 .env.*.local
 !.env.example
 
+# TLS certificates and private keys — NEVER commit
+certs/
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+docker/proxy/ssl/
+scripts/*.pem
+scripts/*.key
+scripts/*.crt
+
 # OS generated files
 .DS_Store
 Thumbs.db

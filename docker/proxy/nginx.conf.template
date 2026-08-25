@@ -1,0 +1,181 @@
+worker_processes auto;
+error_log /var/log/nginx/error.log warn;
+pid /var/run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for"';
+    access_log /var/log/nginx/access.log main;
+
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+
+    # Disable Nginx version disclosure in Server header and error pages.
+    server_tokens off;
+
+    # Real IP handling: trust only private Docker networks and documented proxy ranges.
+    # Do NOT blindly trust arbitrary X-Forwarded-For headers from the Internet.
+    set_real_ip_from 10.0.0.0/8;
+    set_real_ip_from 172.16.0.0/12;
+    set_real_ip_from 192.168.0.0/16;
+    set_real_ip_from 127.0.0.1/32;
+    # Optional: trust additional CDN/proxy ranges defined in this file (mounted read-only in production if needed).
+    include /etc/nginx/snippets/trusted-proxies.conf;
+    real_ip_header X-Forwarded-For;
+    real_ip_recursive on;
+
+    # Rate limiting zones. Memory 10 MiB each (~160k sessions per zone).
+    # Auth endpoints: strict enough to mitigate credential stuffing, generous enough for human retries.
+    limit_req_zone $binary_remote_addr zone=auth:10m rate=30r/m;
+    # General API: moderate, should not block normal UI usage.
+    limit_req_zone $binary_remote_addr zone=api:10m rate=100r/m;
+    # Static assets / SPA: generous.
+    limit_req_zone $binary_remote_addr zone=general:10m rate=200r/m;
+
+    # Request body size limit (covers expense payloads with descriptions).
+    client_max_body_size 10m;
+
+    # Upstream definitions. Backend and frontend are internal-only services.
+    upstream backend {
+        server ${BACKEND_HOST}:8080;
+    }
+
+    upstream frontend {
+        server ${FRONTEND_HOST}:80;
+    }
+
+    # HTTP server: ACME HTTP-01 challenge + permanent HTTPS redirect.
+    server {
+        listen ${HTTP_LISTEN_PORT};
+        server_name ${DOMAIN};
+        server_tokens off;
+
+        # Let's Encrypt HTTP-01 challenge webroot.
+        location /.well-known/acme-challenge/ {
+            root /var/www/certbot;
+            default_type "text/plain";
+            try_files $uri =404;
+        }
+
+        # All other HTTP traffic is redirected to HTTPS with a permanent redirect.
+        location / {
+            return 301 https://$host$request_uri;
+        }
+    }
+
+    # HTTPS server: terminates TLS and routes to backend or frontend.
+    server {
+        listen ${HTTPS_LISTEN_PORT} ssl;
+        http2 on;
+        server_name ${DOMAIN};
+        server_tokens off;
+
+        ssl_certificate ${SSL_CERTIFICATE};
+        ssl_certificate_key ${SSL_CERTIFICATE_KEY};
+        include /etc/nginx/snippets/ssl-params.conf;
+
+        # Security headers (configured in a dedicated snippet for maintainability).
+        include /etc/nginx/snippets/security-headers.conf;
+
+        # -------------------------------------------------
+        # Health checks — must be routed to backend and must NOT fall through to the SPA.
+        # -------------------------------------------------
+        location ~ ^/health(/.*)?$ {
+            limit_req zone=general burst=20 nodelay;
+            proxy_pass http://backend;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header X-Forwarded-Port $server_port;
+            proxy_connect_timeout 5s;
+            proxy_send_timeout 60s;
+            proxy_read_timeout 60s;
+            proxy_buffering off;
+        }
+
+        # -------------------------------------------------
+        # API routes — backend. Placed before the SPA catch-all.
+        # -------------------------------------------------
+        location /api/auth/ {
+            limit_req zone=auth burst=50 nodelay;
+            proxy_pass http://backend/api/auth/;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header X-Forwarded-Port $server_port;
+            proxy_set_header Authorization $http_authorization;
+            proxy_connect_timeout 5s;
+            proxy_send_timeout 60s;
+            proxy_read_timeout 60s;
+            proxy_buffering off;
+        }
+
+        location /api/ {
+            limit_req zone=api burst=20 nodelay;
+            proxy_pass http://backend/api/;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header X-Forwarded-Port $server_port;
+            proxy_set_header Authorization $http_authorization;
+            proxy_connect_timeout 5s;
+            proxy_send_timeout 60s;
+            proxy_read_timeout 60s;
+            proxy_buffering off;
+        }
+
+        # -------------------------------------------------
+        # Static assets — long cache, served by the frontend container.
+        # -------------------------------------------------
+        location ~* \.(?:ico|css|js|gif|jpe?g|png|webp|woff2?|eot|ttf|svg|otf)$ {
+            proxy_pass http://frontend;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            expires 6M;
+            access_log off;
+            add_header Cache-Control "public, max-age=15552000, immutable";
+        }
+
+        # -------------------------------------------------
+        # Angular SPA catch-all. HTML5 history fallback.
+        # -------------------------------------------------
+        location / {
+            limit_req zone=general burst=50 nodelay;
+            proxy_pass http://frontend;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header X-Forwarded-Port $server_port;
+            proxy_connect_timeout 5s;
+            proxy_send_timeout 60s;
+            proxy_read_timeout 60s;
+            proxy_buffering off;
+        }
+    }
+}

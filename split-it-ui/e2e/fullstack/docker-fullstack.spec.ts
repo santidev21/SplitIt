@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe.serial('Real Docker Full-Stack E2E (No Mocks)', () => {
+test.describe.serial('Real Docker Full-Stack E2E through Nginx HTTPS (No Mocks)', () => {
   const timestamp = Date.now();
   const userA = { name: `UserA_${timestamp}`, email: `usera_${timestamp}@e2e.local`, password: 'Password123!' };
   const userB = { name: `UserB_${timestamp}`, email: `userb_${timestamp}@e2e.local`, password: 'Password123!' };
@@ -12,7 +12,9 @@ test.describe.serial('Real Docker Full-Stack E2E (No Mocks)', () => {
   let groupId: number = 0;
   let expenseId: number = 0;
 
-  const baseUrl = process.env.E2E_BASE_URL || 'http://localhost';
+  const baseUrl = process.env.E2E_BASE_URL || 'https://localhost';
+
+  test.use({ ignoreHTTPSErrors: true });
 
   test('1. Protected Route — Unauthenticated redirect', async ({ page }) => {
     await page.goto(`${baseUrl}/dashboard/home`);
