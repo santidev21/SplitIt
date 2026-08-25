@@ -181,17 +181,50 @@ services:
           cpus: '0.50'
           memory: 128M
 
-  # One-shot Let's Encrypt certificate issuance/renewal. Start manually; do not enable by default.
+  # One-shot Let's Encrypt certificate issuance or manual operations.
+  # Start manually with: docker compose --profile certbot run --rm certbot <command>
   certbot:
     container_name: splitit-certbot
     image: certbot/certbot:latest
     profiles: ["certbot"]
     entrypoint: ["/bin/sh", "-c", "echo 'Run certbot manually. See docs/HTTPS.md for commands.'"]
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+      - ACME_EMAIL=${ACME_EMAIL:-admin@localhost}
     volumes:
       - certbot_certs:/etc/letsencrypt
       - certbot_www:/var/www/certbot
     networks:
       - splitit-frontend-net
+
+  # Automated Let's Encrypt certificate renewal (Phase 12).
+  # Enabled with: COMPOSE_PROFILES=letsencrypt in .env or --profile letsencrypt flag.
+  # Runs a renewal loop every 12h; writes a sentinel to certbot_www on success.
+  # The proxy entrypoint watches for the sentinel and reloads Nginx automatically.
+  certbot-renewer:
+    container_name: splitit-certbot-renewer
+    image: certbot/certbot:latest
+    profiles: ["letsencrypt"]
+    restart: unless-stopped
+    depends_on:
+      proxy:
+        condition: service_healthy
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+      - ACME_EMAIL=${ACME_EMAIL:-admin@localhost}
+      - RENEWAL_INTERVAL=${RENEWAL_INTERVAL:-12h}
+    volumes:
+      - ./docker/proxy/certbot-renew.sh:/usr/src/certbot-renew.sh:ro
+      - certbot_certs:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: ["/bin/sh", "/usr/src/certbot-renew.sh"]
+    networks:
+      - splitit-frontend-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 64M
 
 networks:
   splitit-frontend-net:

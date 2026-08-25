@@ -69,6 +69,23 @@ envsubst '$DOMAIN $TLS_MODE $BACKEND_HOST $FRONTEND_HOST $HTTP_LISTEN_PORT $HTTP
 # Validate configuration before starting.
 nginx -t
 
+# --- Phase 12: background watcher for Let's Encrypt renewal reload ---
+# The certbot-renewer service writes a sentinel file to the shared certbot_www
+# volume after a successful certificate renewal (via certbot --deploy-hook).
+# This watcher checks for the sentinel every 60s and reloads Nginx so the new
+# certificate is picked up without restarting the proxy container.
+RELOAD_SENTINEL="/var/www/certbot/.reload-trigger"
+(
+    while true; do
+        if [ -f "${RELOAD_SENTINEL}" ]; then
+            rm -f "${RELOAD_SENTINEL}" 2>/dev/null || true
+            echo "[$(date)] Certificate renewal detected. Reloading Nginx..."
+            nginx -s reload 2>/dev/null || true
+        fi
+        sleep 60
+    done
+) &
+
 echo "Starting SplitIt reverse proxy — domain=${DOMAIN}, tls=${TLS_MODE}, http=${HTTP_LISTEN_PORT}, https=${HTTPS_LISTEN_PORT}"
 
 exec "$@"

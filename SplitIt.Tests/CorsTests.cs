@@ -1,31 +1,70 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.Configuration;
 using System.Net;
 
 namespace SplitIt.Tests;
 
-public class CorsTests : IClassFixture<WebApplicationFactory<Program>>
+/// <summary>
+/// CORS fail-closed and allowed-origin tests under Production environment.
+///
+/// Program.cs validates JwtSettings:SecretKey and reads Cors:AllowedOrigins
+/// during WebApplication.CreateBuilder() — BEFORE WebApplicationFactory's
+/// WithWebHostBuilder.ConfigureAppConfiguration is applied (that callback is
+/// deferred to builder.Build()).  To make configuration available at that
+/// early stage, we set environment variables (JwtSettings__SecretKey, etc.)
+/// which WebApplicationBuilder reads immediately during construction.
+/// </summary>
+public class CorsTests : IClassFixture<WebApplicationFactory<Program>>, IDisposable
 {
     private readonly WebApplicationFactory<Program> _factory;
 
+    private const string TestSecretKey = "TestSecretKey_That_Is_Long_Enough_For_HS256_64_chars_random_value_123456";
+    private const string TestIssuer = "https://test-issuer";
+    private const string TestAudience = "https://test-audience";
+    private const string TestConnStr = "Server=(localdb)\\mssqllocaldb;Database=SplitItCorsTest;Trusted_Connection=True;TrustServerCertificate=True;";
+    private const string TestAllowedOrigin = "https://splitit.yourdomain.com";
+
+    private readonly string? _origSecret;
+    private readonly string? _origIssuer;
+    private readonly string? _origAudience;
+    private readonly string? _origCors;
+    private readonly string? _origConnStr;
+
     public CorsTests(WebApplicationFactory<Program> factory)
     {
+        _origSecret = Environment.GetEnvironmentVariable("JwtSettings__SecretKey");
+        _origIssuer = Environment.GetEnvironmentVariable("JwtSettings__Issuer");
+        _origAudience = Environment.GetEnvironmentVariable("JwtSettings__Audience");
+        _origCors = Environment.GetEnvironmentVariable("Cors__AllowedOrigins");
+        _origConnStr = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+
+        Environment.SetEnvironmentVariable("JwtSettings__SecretKey", TestSecretKey);
+        Environment.SetEnvironmentVariable("JwtSettings__Issuer", TestIssuer);
+        Environment.SetEnvironmentVariable("JwtSettings__Audience", TestAudience);
+        Environment.SetEnvironmentVariable("Cors__AllowedOrigins", TestAllowedOrigin);
+        Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", TestConnStr);
+
         _factory = factory.WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Production");
-            builder.ConfigureAppConfiguration((_, config) =>
-            {
-                config.AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    ["JwtSettings:SecretKey"] = "TestSecretKey_That_Is_Long_Enough_For_HS256_64_chars_random_value_123456",
-                    ["JwtSettings:Issuer"] = "https://test-issuer",
-                    ["JwtSettings:Audience"] = "https://test-audience",
-                    ["ConnectionStrings:DefaultConnection"] = "Server=(localdb)\\mssqllocaldb;Database=SplitItCorsTest;Trusted_Connection=True;TrustServerCertificate=True;",
-                    ["Cors:AllowedOrigins"] = "https://splitit.yourdomain.com"
-                });
-            });
         });
+    }
+
+    public void Dispose()
+    {
+        RestoreEnv("JwtSettings__SecretKey", _origSecret);
+        RestoreEnv("JwtSettings__Issuer", _origIssuer);
+        RestoreEnv("JwtSettings__Audience", _origAudience);
+        RestoreEnv("Cors__AllowedOrigins", _origCors);
+        RestoreEnv("ConnectionStrings__DefaultConnection", _origConnStr);
+    }
+
+    private static void RestoreEnv(string key, string? original)
+    {
+        if (original is null)
+            Environment.SetEnvironmentVariable(key, null);
+        else
+            Environment.SetEnvironmentVariable(key, original);
     }
 
     [Fact]
@@ -54,7 +93,6 @@ public class CorsTests : IClassFixture<WebApplicationFactory<Program>>
 
         var response = await client.SendAsync(request);
 
-        // When origin is not allowed, ASP.NET CORS returns 204 without Access-Control-Allow-Origin.
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         Assert.False(response.Headers.Contains("Access-Control-Allow-Origin"));
     }
@@ -74,25 +112,27 @@ public class CorsTests : IClassFixture<WebApplicationFactory<Program>>
     [Fact]
     public async Task Production_EmptyAllowedOrigins_FailClosed()
     {
-        using var scopedFactory = _factory.WithWebHostBuilder(builder =>
+        Environment.SetEnvironmentVariable("Cors__AllowedOrigins", "");
+        try
         {
-            builder.ConfigureAppConfiguration((_, config) =>
+            using var scopedFactory = _factory.WithWebHostBuilder(builder =>
             {
-                config.AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    ["Cors:AllowedOrigins"] = ""
-                });
+                builder.UseEnvironment("Production");
             });
-        });
 
-        using var client = scopedFactory.CreateClient();
-        using var request = new HttpRequestMessage(HttpMethod.Options, "/api/auth/login");
-        request.Headers.Add("Origin", "https://any-origin.example.com");
-        request.Headers.Add("Access-Control-Request-Method", "POST");
+            using var client = scopedFactory.CreateClient();
+            using var request = new HttpRequestMessage(HttpMethod.Options, "/api/auth/login");
+            request.Headers.Add("Origin", "https://any-origin.example.com");
+            request.Headers.Add("Access-Control-Request-Method", "POST");
 
-        var response = await client.SendAsync(request);
+            var response = await client.SendAsync(request);
 
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        Assert.False(response.Headers.Contains("Access-Control-Allow-Origin"));
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            Assert.False(response.Headers.Contains("Access-Control-Allow-Origin"));
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("Cors__AllowedOrigins", TestAllowedOrigin);
+        }
     }
 }
