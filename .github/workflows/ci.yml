@@ -230,6 +230,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Create external network for validation
+        run: docker network create splitit-frontend-net || true
+
       - name: Validate docker-compose.yml
         run: |
           docker compose config --quiet
