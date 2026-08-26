@@ -5,7 +5,7 @@ set -euo pipefail
 # Usage: ./deploy.sh [pull|build|up|deploy|status|rollback|logs|verify]
 
 DEPLOY_DIR="/opt/splitit"
-BACKUP_DIR="/opt/splitit-backup-$(date +%Y%m%d-%H%M%S)"
+BACKUP_DIR="/tmp/splitit-backup-$(date +%Y%m%d-%H%M%S)"
 LOG_FILE="/tmp/splitit-deploy.log"
 MAX_BACKUPS=5
 
@@ -76,7 +76,7 @@ backup() {
         chmod 700 "$BACKUP_DIR"
         log "Backup created with permissions 700."
         # Cleanup old backups, keep MAX_BACKUPS
-        BACKUP_COUNT=$(ls -dt /opt/splitit-backup-* 2>/dev/null | wc -l)
+        BACKUP_COUNT=$(ls -dt /tmp/splitit-backup-* 2>/dev/null | wc -l)
         if [ "$BACKUP_COUNT" -gt "$MAX_BACKUPS" ]; then
             log "Rotating backups (keeping last $MAX_BACKUPS)..."
             ls -dt /opt/splitit-backup-* 2>/dev/null | tail -n +$((MAX_BACKUPS + 1)) | xargs rm -rf 2>/dev/null || true
@@ -223,7 +223,7 @@ status() {
 rollback() {
     log "=== Starting rollback ==="
 
-    LATEST_BACKUP=$(ls -dt /opt/splitit-backup-* 2>/dev/null | head -1)
+    LATEST_BACKUP=$(ls -dt /tmp/splitit-backup-* 2>/dev/null | head -1)
     if [ -z "$LATEST_BACKUP" ]; then
         error_exit "No backup found for rollback"
     fi
