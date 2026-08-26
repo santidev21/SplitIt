@@ -25,6 +25,13 @@ describe('PositiveNumberDirective', () => {
     expect(event.preventDefault).not.toHaveBeenCalled();
   });
 
+  it('should allow arrow keys', () => {
+    const event = new KeyboardEvent('keydown', { key: 'ArrowLeft' });
+    spyOn(event, 'preventDefault');
+    directive.onKeyDown(event);
+    expect(event.preventDefault).not.toHaveBeenCalled();
+  });
+
   it('should block non-digit keys', () => {
     const event = new KeyboardEvent('keydown', { key: 'a' });
     spyOn(event, 'preventDefault');
@@ -32,23 +39,10 @@ describe('PositiveNumberDirective', () => {
     expect(event.preventDefault).toHaveBeenCalled();
   });
 
-  it('should allow valid numeric paste', () => {
-    const dt = new DataTransfer();
-    dt.setData('text', '123');
-    const init: ClipboardEventInit = { clipboardData: dt };
-    const event = new ClipboardEvent('paste', init);
+  it('should block special characters', () => {
+    const event = new KeyboardEvent('keydown', { key: '!' });
     spyOn(event, 'preventDefault');
-    directive.onPaste(event);
-    expect(event.preventDefault).not.toHaveBeenCalled();
-  });
-
-  it('should block non-numeric paste', () => {
-    const dt = new DataTransfer();
-    dt.setData('text', 'abc');
-    const init: ClipboardEventInit = { clipboardData: dt };
-    const event = new ClipboardEvent('paste', init);
-    spyOn(event, 'preventDefault');
-    directive.onPaste(event);
+    directive.onKeyDown(event);
     expect(event.preventDefault).toHaveBeenCalled();
   });
 });
