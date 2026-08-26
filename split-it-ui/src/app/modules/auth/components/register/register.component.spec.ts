@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { of, throwError } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('RegisterComponent', () => {
   let component: RegisterComponent;
@@ -19,7 +20,7 @@ describe('RegisterComponent', () => {
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-      imports: [RegisterComponent, NoopAnimationsModule],
+      imports: [RegisterComponent, NoopAnimationsModule, RouterTestingModule],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
