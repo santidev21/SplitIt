@@ -26,6 +26,11 @@ COPY docker/frontend/nginx.conf /etc/nginx/conf.d/default.conf
 RUN rm -rf /usr/share/nginx/html/*
 COPY --from=build /app/dist/split-it-ui/browser /usr/share/nginx/html
 
+# Remove Angular's media="print" onload optimization from index.html.
+# This optimization uses an inline event handler (onload) which is blocked by CSP script-src 'self'.
+# Without this fix, the global CSS applies only to print media and never switches to screen.
+RUN sed -i 's/ media="print" onload="this\.media=.all."//g' /usr/share/nginx/html/index.html
+
 # Adjust permissions for non-root execution
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chmod -R 755 /usr/share/nginx/html && \
