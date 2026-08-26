@@ -68,4 +68,26 @@ describe('CreateGroupComponent', () => {
     component.close();
     expect(dialogRefSpy.close).toHaveBeenCalled();
   });
+
+  it('onSubmit should not call service when form is invalid', () => {
+    const groupSpy = TestBed.inject(GroupService) as jasmine.SpyObj<GroupService>;
+    component.onSubmit();
+    expect(groupSpy.createGroup).not.toHaveBeenCalled();
+  });
+
+  it('onSubmit should create group and navigate when form is valid', () => {
+    const groupSpy = TestBed.inject(GroupService) as jasmine.SpyObj<GroupService>;
+    const router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+    component.createGroupForm.patchValue({
+      name: 'Trip',
+      description: 'Desc',
+      currencyId: 1,
+      members: [2],
+      allowToDeleteExpenses: false
+    });
+    component.onSubmit();
+    expect(groupSpy.createGroup).toHaveBeenCalled();
+    expect(dialogRefSpy.close).toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['/dashboard/group', 99]);
+  });
 });
