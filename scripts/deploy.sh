@@ -160,7 +160,7 @@ wait_healthy() {
     while [ $ELAPSED -lt $TIMEOUT ]; do
         HEALTHY=$(docker compose ps --format json 2>/dev/null | grep -c '"healthy"' || true)
 
-        if [ "$HEALTHY" -ge 4 ]; then
+        if [ "$HEALTHY" -ge 3 ]; then
             log "All services healthy ($HEALTHY services)"
             break
         fi
@@ -204,12 +204,6 @@ verify() {
     FRONTEND_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' splitit-frontend 2>/dev/null || echo "not_found")
     if [ "$FRONTEND_HEALTH" != "healthy" ]; then
         error_exit "frontend is not healthy (status: $FRONTEND_HEALTH)"
-    fi
-
-    # Check proxy
-    PROXY_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' splitit-proxy 2>/dev/null || echo "not_found")
-    if [ "$PROXY_HEALTH" != "healthy" ]; then
-        error_exit "proxy is not healthy (status: $PROXY_HEALTH)"
     fi
 
     log "All services verified healthy."

@@ -52,7 +52,7 @@ SplitIt uses GitHub Actions for continuous integration and deployment. The pipel
 | `e2e` | Playwright E2E tests | `frontend` |
 | `security` | Secrets detection, .env/.dockerignore validation | `backend`, `frontend` |
 | `docker-build` | Build Docker images + Trivy HIGH/CRITICAL scan | `backend`, `frontend` |
-| `docker-compose-validate` | Validate compose config (default, letsencrypt, certbot) | None |
+| `docker-compose-validate` | Validate compose config | None |
 
 **Key features:**
 - SQL Server 2022 service container for integration tests
@@ -148,13 +148,6 @@ sudo nano /opt/splitit/.env
 The `.env` file on the VPS must contain:
 
 ```bash
-# Domain / TLS
-DOMAIN=splitit.yourdomain.com
-TLS_MODE=letsencrypt
-ACME_EMAIL=admin@yourdomain.com
-PROXY_HTTP_PORT=80
-PROXY_HTTPS_PORT=443
-
 # SQL Server
 DB_PASSWORD=<strong-sa-password>
 DB_APP_USER=splitit_app

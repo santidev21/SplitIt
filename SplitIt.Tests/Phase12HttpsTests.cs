@@ -73,64 +73,8 @@ public class Phase12HttpsTests
     }
 
     // --- docker-compose.yml ---
-
-    [Fact]
-    public void Compose_HasCertbotRenewerService()
-    {
-        var compose = ReadRepoFile("docker-compose.yml");
-        Assert.Contains("certbot-renewer", compose);
-    }
-
-    [Fact]
-    public void Compose_CertbotRenewerHasLetsencryptProfile()
-    {
-        var compose = ReadRepoFile("docker-compose.yml");
-        Assert.Contains("letsencrypt", compose);
-    }
-
-    [Fact]
-    public void Compose_CertbotRenewerHasCorrectVolumes()
-    {
-        var compose = ReadRepoFile("docker-compose.yml");
-        Assert.Contains("certbot_certs", compose);
-        Assert.Contains("certbot_www", compose);
-        Assert.Contains("certbot-renew.sh", compose);
-    }
-
-    [Fact]
-    public void Compose_CertbotRenewerHasResourceLimits()
-    {
-        var compose = ReadRepoFile("docker-compose.yml");
-        var renewerSection = ExtractServiceSection(compose, "certbot-renewer");
-        Assert.Contains("cpus", renewerSection);
-        Assert.Contains("memory", renewerSection);
-    }
-
-    [Fact]
-    public void Compose_CertbotRenewerDependsOnProxy()
-    {
-        var compose = ReadRepoFile("docker-compose.yml");
-        var renewerSection = ExtractServiceSection(compose, "certbot-renewer");
-        Assert.Contains("proxy", renewerSection);
-        Assert.Contains("service_healthy", renewerSection);
-    }
-
-    // --- .env.example ---
-
-    [Fact]
-    public void EnvExample_DocumentsComposeProfiles()
-    {
-        var env = ReadRepoFile(".env.example");
-        Assert.Contains("COMPOSE_PROFILES", env);
-        Assert.Contains("letsencrypt", env);
-    }
-
-    [Fact]
-    public void EnvExample_DocumentsRenewalInterval()
-    {
-        var env = ReadRepoFile(".env.example");
-        Assert.Contains("RENEWAL_INTERVAL", env);
-    }
+    // NOTE: certbot-renewer service tests removed — service was removed in OPTION A architecture.
+    // TLS termination and certificate renewal are now handled by the VPS reverse-proxy.
 
     // --- nginx.conf.template: 80→443 redirect & ACME ---
 
@@ -225,15 +169,4 @@ public class Phase12HttpsTests
         Assert.Contains("*.crt", dockerignore);
     }
 
-    /// <summary>
-    /// Extracts the YAML block for a specific service from docker-compose.yml.
-    /// Returns everything from the service name until the next top-level service or section.
-    /// </summary>
-    private static string ExtractServiceSection(string compose, string serviceName)
-    {
-        var pattern = $@"  {serviceName}:\s*\n(.*?)(?=\n  [a-z]|\n  #|\Z)";
-        var match = Regex.Match(compose, pattern, RegexOptions.Singleline);
-        Assert.True(match.Success, $"Service '{serviceName}' not found in docker-compose.yml");
-        return match.Value;
-    }
 }

@@ -7,14 +7,21 @@ SplitIt uses a hardened multi-container architecture orchestrated via Docker Com
 ```
                   INTERNET
                      │
-                     ▼ HTTP / HTTPS (:80 / :443)
+              :80 / :443
+                     │
+         ┌───────────▼───────────┐
+         │   VPS reverse-proxy   │  (existing nginx, TLS termination)
+         │   splitit-frontend-net│
+         └───────────┬───────────┘
+                     │ (splitit-frontend-net)
+                     ▼
            ┌───────────────────┐
-           │ splitit-frontend  │ (Nginx + Angular SPA)
+           │ splitit-frontend  │ (Nginx + Angular SPA, port 80 internal)
            └─────────┬─────────┘
                      │ (splitit-frontend-net)
                      ▼
            ┌───────────────────┐
-           │  splitit-backend  │ (.NET 8 Web API, runtime as splitit_app)
+           │  splitit-backend  │ (.NET 8 Web API, port 8080 internal)
            └─────────┬─────────┘
                      │ (splitit-backend-net: internal=true)
                      ▼
@@ -35,8 +42,11 @@ SplitIt uses a hardened multi-container architecture orchestrated via Docker Com
 
 To support hosting multiple projects cleanly on the same VPS, networks are explicitly named:
 
-1. **`splitit-frontend-net`**:
-   - Bridge network connecting the Nginx frontend / reverse proxy to the .NET 8 Web API.
+1. **`splitit-frontend-net`** (external):
+   - Bridge network connecting the VPS reverse-proxy to SplitIt's frontend and backend containers.
+   - Declared as `external: true` so Docker Compose does not create/remove it.
+   - Must be created manually: `docker network create splitit-frontend-net`.
+   - The existing VPS `reverse-proxy` container must be connected: `docker network connect splitit-frontend-net reverse-proxy`.
 2. **`splitit-backend-net`** (`internal: true`):
    - Private, isolated internal network connecting `.NET 8 Web API` to `SQL Server`.
    - Outbound and inbound external traffic is blocked by Docker daemon. SQL Server port `1433` is **not** exposed to the host machine.

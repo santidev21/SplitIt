@@ -206,17 +206,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build proxy image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: docker/proxy/Dockerfile
-          push: false
-          load: true
-          tags: splitit-proxy:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
       - name: Trivy scan - backend
         uses: aquasecurity/trivy-action@0.28.0
         with:
@@ -233,14 +222,6 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: 1
 
-      - name: Trivy scan - proxy
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: splitit-proxy:test
-          format: table
-          severity: HIGH,CRITICAL
-          exit-code: 1
-
   docker-compose-validate:
     name: Docker Compose Validation
     runs-on: ubuntu-latest
@@ -253,13 +234,3 @@ jobs:
         run: |
           docker compose config --quiet
           echo "docker-compose.yml is valid."
-
-      - name: Validate with letsencrypt profile
-        run: |
-          docker compose --profile letsencrypt config --quiet
-          echo "docker-compose.yml with letsencrypt profile is valid."
-
-      - name: Validate with certbot profile
-        run: |
-          docker compose --profile certbot config --quiet
-          echo "docker-compose.yml with certbot profile is valid."

@@ -1,5 +1,11 @@
 # SplitIt Nginx Reverse Proxy
 
+> **Note (Phase 14/OPTION A):** The `splitit-proxy` container has been removed from the Docker Compose stack.
+> TLS termination, security headers, rate limiting, and routing are now handled by the VPS reverse-proxy
+> (`reverse-proxy` container in the `portfolio` compose stack). This document describes the configuration
+> that was previously used internally and is now replicated in the VPS Nginx configuration for
+> `splitit.santidev21.tech`.
+
 ## Role
 
 The `splitit-proxy` container is the **only** Internet-facing service. It terminates TLS, applies security headers, enforces rate limits, and routes traffic to the Angular frontend or the .NET backend.
