@@ -14,7 +14,7 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'npx --prefix split-it-ui serve -s dist/split-it-ui/browser -l 4200',
+    command: 'cd split-it-ui && npx serve -s dist/split-it-ui/browser -l 4200',
     url: 'http://localhost:4200',
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
