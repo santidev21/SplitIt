@@ -117,7 +117,7 @@ jobs:
         run: npm run build --prefix split-it-ui -- --configuration production
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium --prefix split-it-ui
+        run: cd split-it-ui && npx playwright install --with-deps chromium
 
       - name: Run Playwright tests
         run: npx playwright test --reporter=list
@@ -205,7 +205,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Trivy scan - backend
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: splitit-backend:test
           format: table
@@ -213,7 +213,7 @@ jobs:
           exit-code: 1
 
       - name: Trivy scan - frontend
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: splitit-frontend:test
           format: table
