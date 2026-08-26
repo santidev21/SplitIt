@@ -26,7 +26,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
 WORKDIR /app
 
 # Install wget and icu-libs for healthcheck and EF Core database migration support
-RUN apk add --no-cache wget icu-libs
+RUN apk add --no-cache wget icu-libs && apk upgrade --no-cache
 
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     ASPNETCORE_URLS=http://+:8080 \
