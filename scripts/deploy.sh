@@ -6,7 +6,7 @@ set -euo pipefail
 
 DEPLOY_DIR="/opt/splitit"
 BACKUP_DIR="/opt/splitit-backup-$(date +%Y%m%d-%H%M%S)"
-LOG_FILE="/var/log/splitit-deploy.log"
+LOG_FILE="/tmp/splitit-deploy.log"
 MAX_BACKUPS=5
 
 log() {

@@ -53,7 +53,7 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
         run: |
           ssh -i "$SSH_KEY" -o StrictHostKeyChecking=yes "$VPS_USER@$VPS_HOST" \
-            'cd /opt/splitit && sudo ./scripts/deploy.sh deploy'
+            'cd /opt/splitit && ./scripts/deploy.sh deploy'
 
       - name: Cleanup SSH key
         if: always()
