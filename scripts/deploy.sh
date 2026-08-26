@@ -43,8 +43,9 @@ validate_config() {
 validate_clean_worktree() {
     log "Checking VPS working tree..."
     cd "$DEPLOY_DIR"
-    # Check for uncommitted changes (staged or unstaged)
-    if ! git diff --quiet HEAD 2>/dev/null; then
+    # Check for uncommitted content changes (file mode changes from chmod are ignored)
+    LINES_CHANGED=$(git diff --numstat HEAD 2>/dev/null | awk '{sum += $1 + $2} END {print sum+0}')
+    if [ "$LINES_CHANGED" -gt 0 ]; then
         error_exit "VPS has uncommitted changes in $DEPLOY_DIR. Commit or discard them before deploying."
     fi
     # Check for untracked files that aren't in .gitignore
