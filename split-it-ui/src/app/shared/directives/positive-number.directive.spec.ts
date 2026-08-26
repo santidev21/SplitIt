@@ -35,7 +35,8 @@ describe('PositiveNumberDirective', () => {
   it('should allow valid numeric paste', () => {
     const dt = new DataTransfer();
     dt.setData('text', '123');
-    const event = new ClipboardEvent('paste', { clipboardData: dt });
+    const init: ClipboardEventInit = { clipboardData: dt };
+    const event = new ClipboardEvent('paste', init);
     spyOn(event, 'preventDefault');
     directive.onPaste(event);
     expect(event.preventDefault).not.toHaveBeenCalled();
@@ -44,7 +45,8 @@ describe('PositiveNumberDirective', () => {
   it('should block non-numeric paste', () => {
     const dt = new DataTransfer();
     dt.setData('text', 'abc');
-    const event = new ClipboardEvent('paste', { clipboardData: dt });
+    const init: ClipboardEventInit = { clipboardData: dt };
+    const event = new ClipboardEvent('paste', init);
     spyOn(event, 'preventDefault');
     directive.onPaste(event);
     expect(event.preventDefault).toHaveBeenCalled();
