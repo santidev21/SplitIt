@@ -39,20 +39,19 @@ SplitIt uses GitHub Actions for continuous integration and deployment. The pipel
                     └─────────────┘
 ```
 
-## 2. Workflows
-
-### 2.1 CI Workflow (`.github/workflows/ci.yml`)
+### 2.1 Unified Pipeline (`.github/workflows/ci.yml`)
 
 **Trigger:** Push to `main`, Pull requests to `main`
 
-| Job | Description | Dependencies |
-|-----|-------------|--------------|
-| `backend` | .NET restore/build/test with SQL Server service container | None |
-| `frontend` | Angular build + Karma unit tests with coverage | None |
-| `e2e` | Playwright E2E tests | `frontend` |
-| `security` | Secrets detection, .env/.dockerignore validation | `backend`, `frontend` |
-| `docker-build` | Build Docker images + Trivy HIGH/CRITICAL scan | `backend`, `frontend` |
-| `docker-compose-validate` | Validate compose config | None |
+| Job | Description | Dependencies | Runs on PR? |
+|-----|-------------|--------------|-------------|
+| `backend` | .NET restore/build/test with SQL Server | None | Yes |
+| `frontend` | Angular build + Karma tests with coverage | None | Yes |
+| `e2e` | Playwright E2E tests | `frontend` | Yes |
+| `security` | Secrets detection, .env/.dockerignore validation | `backend`, `frontend` | Yes |
+| `docker-build` | Build Docker images + Trivy HIGH/CRITICAL scan | `backend`, `frontend` | Yes |
+| `docker-compose-validate` | Validate compose config | None | Yes |
+| `deploy` | SSH to VPS and run deploy.sh | **All above** | **No** (push to main only) |
 
 **Key features:**
 - SQL Server 2022 service container for integration tests
@@ -60,43 +59,37 @@ SplitIt uses GitHub Actions for continuous integration and deployment. The pipel
 - Artifact upload for test results and coverage reports
 - Trivy fails on HIGH or CRITICAL vulnerabilities
 - No secrets exposed in logs
-
-### 2.2 Deploy Workflow (`.github/workflows/deploy.yml`)
-
-**Trigger:** Push to `main` (after CI passes), Manual dispatch
-
-| Input | Description | Default |
-|-------|-------------|---------|
-| `skip_tests` | Skip tests (emergency deploy only) | `false` |
-
-**Deployment flow:**
-1. Run tests (unless skipped)
-2. SSH into VPS
-3. Create backup of current deployment
-4. Pull latest code
-5. Validate docker compose config
-6. Build and start containers
-7. Wait for health checks (120s timeout)
-8. Verify all services healthy
-9. Cleanup old backups (keep last 3)
+- **Deploy is gated:** only runs after ALL CI jobs pass on push to main
+- Deploy uses `environment: production` for secret access
+- Emergency manual deploy: SSH to VPS and run `./scripts/deploy.sh deploy`
 
 **Concurrency:** Only one production deployment at a time (`cancel-in-progress: false`)
 
+**Deployment flow (when deploy job runs):**
+1. All CI tests/builds/validations pass
+2. SSH into VPS using production environment secrets
+3. Execute `deploy.sh deploy` which:
+   - Validates .env and docker compose config
+   - Creates backup of current deployment
+   - Backs up database (if SQL Server healthy)
+   - Pulls latest code (`git fetch + reset`)
+   - Builds Docker images
+   - Starts containers
+   - Waits for health checks (120s timeout)
+   - Verifies all services healthy
+   - Cleanup old backups (keep last 5)
+
 ## 3. Required GitHub Secrets
-
-### Repository Secrets
-
-| Secret | Description | Example |
-|--------|-------------|---------|
-| `VPS_SSH_PRIVATE_KEY` | SSH private key for VPS access | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
-| `VPS_HOST` | VPS hostname or IP | `splitit.yourdomain.com` |
-| `VPS_USER` | SSH username (non-root) | `deploy` |
 
 ### Environment Secrets (Production)
 
-| Secret | Description |
-|--------|-------------|
-| (None additional) | All production secrets remain on VPS |
+| Secret | Description | Example |
+|--------|-------------|---------|
+| `VPS_SSH_PRIVATE_KEY` | SSH private key for VPS access (no passphrase) | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
+| `VPS_HOST` | VPS hostname or IP | `2.25.112.139` |
+| `VPS_USER` | SSH username (non-root) | `santidev21` |
+
+All production secrets (database passwords, JWT keys) remain exclusively on the VPS in `/opt/splitit/.env`. They are NEVER copied to GitHub.
 
 **Security rules:**
 - Never commit `.env` to Git
