@@ -12,25 +12,25 @@ describe('RegisterComponent', () => {
   let component: RegisterComponent;
   let fixture: ComponentFixture<RegisterComponent>;
   let authServiceSpy: jasmine.SpyObj<AuthService>;
-  let routerSpy: jasmine.SpyObj<Router>;
+  let router: Router;
 
   beforeEach(async () => {
     authServiceSpy = jasmine.createSpyObj('AuthService', ['register']);
     authServiceSpy.register.and.returnValue(of({ token: 'fake', name: 'Test', id: 1 }));
-    routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
       imports: [RegisterComponent, NoopAnimationsModule, RouterTestingModule],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: AuthService, useValue: authServiceSpy },
-        { provide: Router, useValue: routerSpy }
+        { provide: AuthService, useValue: authServiceSpy }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(RegisterComponent);
     component = fixture.componentInstance;
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
     fixture.detectChanges();
   });
 
@@ -49,7 +49,7 @@ describe('RegisterComponent', () => {
     spyOn(event, 'preventDefault');
     component.register(event);
     expect(authServiceSpy.register).toHaveBeenCalledWith('Test', 'test@test.com', 'password123');
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/dashboard']);
+    expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
   });
 
   it('register should handle error', () => {
