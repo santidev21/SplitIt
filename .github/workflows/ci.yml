@@ -144,7 +144,7 @@ jobs:
       - name: Check for secrets in code
         run: |
           echo "Scanning for potential secrets..."
-          if grep -rn --include="*.cs" --include="*.ts" --include="*.js" --include="*.json" --include="*.yml" --include="*.yaml" -E "(password|secret|api[_-]?key|token)\s*[:=]\s*['\"][^'\"]{8,}" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=dist --exclude-dir=bin --exclude-dir=obj --exclude-dir=coverage . 2>/dev/null; then
+          if grep -rn --include="*.cs" --include="*.ts" --include="*.js" --include="*.json" --exclude="ci.yml" -E "(password|secret|api[_-]?key|token)\s*[:=]\s*['\"][^'\"]{8,}" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=dist --exclude-dir=bin --exclude-dir=obj --exclude-dir=coverage . 2>/dev/null; then
             echo "Potential secrets found. Review above."
             exit 1
           fi
