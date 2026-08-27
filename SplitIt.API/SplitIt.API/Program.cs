@@ -14,6 +14,7 @@ using SplitIt.Domain.Entities;
 using SplitIt.Infrastructure.Persistence;
 using SplitIt.Infrastructure.Services;
 using System.Text;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.RateLimiting;
 
@@ -26,7 +27,13 @@ var jwtIssuer = jwtSettings.GetValue<string>("Issuer");
 var jwtAudience = jwtSettings.GetValue<string>("Audience");
 
 if (string.IsNullOrWhiteSpace(secretKey) || secretKey.Length < 32)
-    throw new InvalidOperationException("JwtSettings:SecretKey is missing or too short (min 32 chars). Set via env JwtSettings__SecretKey.");
+{
+    if (builder.Environment.IsProduction())
+        throw new InvalidOperationException("JwtSettings:SecretKey is missing or too short (min 32 chars). Set via env JwtSettings__SecretKey.");
+    // Dev/test: generate ephemeral key so app and tests can start without config
+    secretKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+    Console.WriteLine("WARNING: JwtSettings:SecretKey not configured. Using ephemeral key (tokens will not survive restart).");
+}
 
 if ((string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience)) && builder.Environment.IsProduction())
     throw new InvalidOperationException("JwtSettings:Issuer/Audience required in Production.");
