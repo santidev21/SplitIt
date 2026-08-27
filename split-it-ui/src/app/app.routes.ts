@@ -9,5 +9,9 @@ export const routes: Routes = [
       path: 'dashboard',
       loadChildren: () => import('./modules/dashboard/dashboard.module').then(m => m.DashboardModule)
     },
+    {
+      path: 'admin',
+      loadChildren: () => import('./modules/admin/admin.module').then(m => m.AdminModule)
+    },
     { path: '', redirectTo: 'auth/login', pathMatch: 'full' }
   ];

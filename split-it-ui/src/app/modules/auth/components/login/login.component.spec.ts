@@ -54,12 +54,19 @@ describe('LoginComponent', () => {
 
   it('login should handle error', () => {
     authServiceSpy.login.and.returnValue(throwError(() => new Error('Invalid')));
-    component.loginForm.patchValue({ email: 'test@test.com', password: 'wrong' });
+    component.loginForm.patchValue({ email: 'test@test.com', password: 'wrongpass' });
     const event = new Event('submit');
     spyOn(event, 'preventDefault');
-    spyOn(console, 'error');
     component.login(event);
     expect(authServiceSpy.login).toHaveBeenCalled();
     expect(component.isLoading).toBeFalse();
+  });
+
+  it('login should not call service when email is malformed', () => {
+    component.loginForm.patchValue({ email: 'not-an-email', password: 'password123' });
+    const event = new Event('submit');
+    spyOn(event, 'preventDefault');
+    component.login(event);
+    expect(authServiceSpy.login).not.toHaveBeenCalled();
   });
 });

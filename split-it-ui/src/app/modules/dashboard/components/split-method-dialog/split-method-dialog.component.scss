@@ -4,7 +4,25 @@
     flex-direction: column;
     gap: 1rem;
 }
-  
+
+.split-error-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 1.5rem;
+    padding: 10px 14px;
+    border-radius: 6px;
+    background-color: #fdecea;
+    color: #b71c1c;
+    font-size: 14px;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
 .split-input-row {
     display: flex;
     align-items: stretch;

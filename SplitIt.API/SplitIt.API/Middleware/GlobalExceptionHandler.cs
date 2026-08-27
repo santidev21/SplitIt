@@ -20,15 +20,34 @@ public class GlobalExceptionHandler : IExceptionHandler
         var traceId = httpContext.TraceIdentifier;
         _logger.LogError(exception, "Unhandled exception TraceId:{TraceId} Path:{Path}", traceId, httpContext.Request.Path);
 
-        // Do not leak internal details in production
-        var isDev = _env.IsDevelopment();
-        var title = exception is UnauthorizedAccessException ? "Unauthorized" : "An unexpected error occurred.";
-        var status = exception is UnauthorizedAccessException ? (int)HttpStatusCode.Unauthorized : (int)HttpStatusCode.InternalServerError;
-        var detail = isDev ? exception.Message : "An unexpected error occurred. Please try again later.";
+        // Business-rule exceptions carry user-safe messages: always surface them.
+        // Unexpected exceptions are only detailed in development.
+        var isBusinessRule =
+            exception is ArgumentException ||
+            exception is KeyNotFoundException ||
+            exception is UnauthorizedAccessException;
 
-        // Map known exceptions to status codes
-        if (exception is ArgumentException) status = 400;
-        if (exception is KeyNotFoundException) status = 404;
+        var status = exception switch
+        {
+            ArgumentException => (int)HttpStatusCode.BadRequest,
+            KeyNotFoundException => (int)HttpStatusCode.NotFound,
+            UnauthorizedAccessException => (int)HttpStatusCode.Forbidden,
+            _ => (int)HttpStatusCode.InternalServerError
+        };
+
+        var title = exception switch
+        {
+            ArgumentException => "Invalid request.",
+            KeyNotFoundException => "Not found.",
+            UnauthorizedAccessException => "Not allowed.",
+            _ => "An unexpected error occurred."
+        };
+
+        var detail = isBusinessRule
+            ? exception.Message
+            : _env.IsDevelopment()
+                ? exception.Message
+                : "An unexpected error occurred. Please try again later.";
 
         var problem = new ProblemDetails
         {
@@ -36,7 +55,7 @@ public class GlobalExceptionHandler : IExceptionHandler
             Title = title,
             Detail = detail,
             Instance = httpContext.Request.Path,
-            Extensions = { ["traceId"] = traceId }
+            Extensions = { ["traceId"] = traceId, ["message"] = detail }
         };
 
         httpContext.Response.StatusCode = status;

@@ -15,6 +15,7 @@ export class LoginComponent {
 
   loginForm: FormGroup;
   isLoading: boolean = false;
+  submitAttempted = false;
 
   constructor(
     private authService: AuthService,
@@ -22,17 +23,21 @@ export class LoginComponent {
     private router: Router
   ){
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, ]], //Validators.email
-      password: ['', [Validators.required, ]] //Validators.minLength(6)
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
   login(event: Event) {
     event.preventDefault();
-    if (this.loginForm.invalid) return;
+    this.submitAttempted = true;
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      return;
+    }
     this.isLoading = true;
 
-    const { email, password } = this.loginForm.value;    
+    const { email, password } = this.loginForm.value;
     this.authService.login(email, password).subscribe({
       next: (response) => {
         this.isLoading = false;
@@ -40,7 +45,6 @@ export class LoginComponent {
       },
       error: (err) => {
         this.isLoading = false;
-        console.error('Login failed', err);
       }
     });
   }

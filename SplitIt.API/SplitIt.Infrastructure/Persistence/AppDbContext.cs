@@ -21,6 +21,8 @@ namespace SplitIt.Infrastructure.Persistence
         public DbSet<GroupMember> GroupMembers { get; set; }
         public DbSet<Expense> Expense{get; set;}
         public DbSet<ExpenseShare> ExpenseShare{get; set;}
+        public DbSet<Friendship> Friendships { get; set; }
+        public DbSet<AppSetting> AppSettings { get; set; }
 
 protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -34,6 +36,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
                 entity.Property(u => u.Email).IsRequired().HasMaxLength(100);
                 entity.Property(u => u.PasswordHash).IsRequired();
                 entity.Property(u => u.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(u => u.IsActive).IsRequired().HasDefaultValue(true);
             });
 
             // Role table configuration
@@ -94,8 +97,31 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
                 entity.Property(es => es.SettledAt).HasColumnType("datetime");
             });
 
+            // Friendship table configuration
+            modelBuilder.Entity<Friendship>(entity =>
+            {
+                entity.HasKey(f => f.Id);
+                // Normalized ordering prevents duplicate reverse requests
+                entity.HasIndex(f => new { f.RequesterId, f.AddresseeId }).IsUnique();
+                entity.Property(f => f.Status).IsRequired().HasMaxLength(20);
+                entity.Property(f => f.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(f => f.RespondedAt).HasColumnType("datetime");
+                entity.HasOne(f => f.Requester).WithMany().HasForeignKey(f => f.RequesterId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(f => f.Addressee).WithMany().HasForeignKey(f => f.AddresseeId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // AppSetting table configuration
+            modelBuilder.Entity<AppSetting>(entity =>
+            {
+                entity.HasKey(s => s.Id);
+                entity.HasIndex(s => s.Key).IsUnique();
+                entity.Property(s => s.Key).IsRequired().HasMaxLength(100);
+                entity.Property(s => s.Value).IsRequired().HasMaxLength(500);
+            });
+
             SeedRoles(modelBuilder);
             SeedCurrency(modelBuilder);
+            SeedSettings(modelBuilder);
         }
 
         private static void SeedRoles(ModelBuilder modelBuilder)
@@ -112,6 +138,14 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
             modelBuilder.Entity<Currency>().HasData(
                 new Currency { Id = 1, Name = "Dólar", Symbol = "USD" },
                 new Currency { Id = 2, Name = "Peso Colombiano", Symbol = "COP" }
+            );
+        }
+
+        private static void SeedSettings(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<AppSetting>().HasData(
+                new AppSetting { Id = 1, Key = "RegistrationEnabled", Value = "true" },
+                new AppSetting { Id = 2, Key = "MaxExpenseAmount", Value = "1000000" }
             );
         }
     }

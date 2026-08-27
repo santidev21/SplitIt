@@ -20,6 +20,7 @@ export class SplitMethodDialogComponent {
   amountSplit: { [key: string]: number } = {};
   percentageSplit: { [key: string]: number } = {};
   amount: number = 0;
+  validationError: string = '';
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -34,8 +35,60 @@ export class SplitMethodDialogComponent {
     this.amount = data.amount;
   }
 
+  onTabChange(index: number): void {
+    this.selectedTabIndex = index;
+    this.validationError = '';
+  }
+
+  validateEqualSplit(): string {
+    const selected = this.members.filter(m => this.equalSplitSelection[m.id]);
+    if (selected.length === 0) return 'Select at least one member to split the expense.';
+    return '';
+  }
+
+  validateByAmount(): string {
+    const entered = this.members.filter(m => m.amount != null && Number(m.amount) > 0);
+    if (entered.length === 0) return 'Enter an amount for at least one member.';
+    const sum = entered.reduce((s, m) => s + Number(m.amount), 0);
+    if (Math.abs(sum - this.amount) > 0.01) {
+      const diff = Math.abs(sum - this.amount);
+      if (sum < this.amount) {
+        return `Amounts add up to $${sum.toFixed(2)} — missing $${diff.toFixed(2)} to reach $${this.amount.toFixed(2)}.`;
+      }
+      return `Amounts add up to $${sum.toFixed(2)} — $${diff.toFixed(2)} over the total $${this.amount.toFixed(2)}.`;
+    }
+    return '';
+  }
+
+  validateByPercentage(): string {
+    const entered = this.members.filter(m => m.amount != null && Number(m.amount) !== 0);
+    if (entered.length === 0) return 'Enter a percentage for at least one member.';
+    for (const m of entered) {
+      const pct = Number(m.amount);
+      if (pct < 0 || pct > 100) return `Percentages must be between 0 and 100 (${m.name}: ${pct}).`;
+    }
+    const sumPct = entered.reduce((s, m) => s + Number(m.amount), 0);
+    if (Math.abs(sumPct - 100) > 0.01) {
+      return `Percentages add up to ${sumPct.toFixed(2)}% — they must add up to 100%.`;
+    }
+    return '';
+  }
+
+  currentValidationError(): string {
+    if (this.selectedTabIndex === 0) return this.validateEqualSplit();
+    if (this.selectedTabIndex === 1) return this.validateByAmount();
+    return this.validateByPercentage();
+  }
+
   // Confirm and return the selected method + data
   confirmSplit(): void {
+    const error = this.currentValidationError();
+    if (error) {
+      this.validationError = error;
+      return;
+    }
+    this.validationError = '';
+
     let result: { method: string; expenseParticipant: ExpenseParticipant[] };
 
     if (this.selectedTabIndex === 0) {
@@ -46,12 +99,12 @@ export class SplitMethodDialogComponent {
     } else if (this.selectedTabIndex === 1) {
       result = {
         method: 'unequally',
-        expenseParticipant: this.calculateSpitByAmount()
+        expenseParticipant: this.calculateSplitByAmount()
       };
     } else {
       result = {
         method: 'percentage',
-        expenseParticipant: this.calculateSplyByPercentage()
+        expenseParticipant: this.calculateSplitByPercentage()
       };
     }
 
@@ -72,31 +125,18 @@ export class SplitMethodDialogComponent {
       });
     }
 
-    calculateSpitByAmount() : ExpenseParticipant[] {
+    calculateSplitByAmount() : ExpenseParticipant[] {
       const filtered = this.members.filter(m => m.amount != null && m.amount > 0);
-      // Validation: sum must equal amount ±0.01
-      const sum = filtered.reduce((s, m) => s + Number(m.amount), 0);
-      if (Math.abs(sum - this.amount) > 0.01) {
-        // Return empty to indicate invalid; caller will handle
-        return [];
-      }
+      if (Math.abs(filtered.reduce((s, m) => s + Number(m.amount), 0) - this.amount) > 0.01) return [];
       return filtered.map((m) =>({
         userId: m.id,
         amountOwed: Math.round(Number(m.amount) * 100) / 100
       }));
     }
 
-    calculateSplyByPercentage() : ExpenseParticipant[] {
+    calculateSplitByPercentage() : ExpenseParticipant[] {
       const filtered = this.members.filter(m => m.amount != null && m.amount > 0);
-      const sumPct = filtered.reduce((s, m) => s + Number(m.amount), 0);
-      if (Math.abs(sumPct - 100) > 0.01) {
-        return [];
-      }
-      // Check each percentage 0-100
-      for (const m of filtered) {
-        const pct = Number(m.amount);
-        if (pct < 0 || pct > 100) return [];
-      }
+      if (Math.abs(filtered.reduce((s, m) => s + Number(m.amount), 0) - 100) > 0.01) return [];
       return filtered.map((m) =>({
         userId: m.id,
         amountOwed: Math.round((Number(m.amount) / 100) * this.amount * 100) / 100

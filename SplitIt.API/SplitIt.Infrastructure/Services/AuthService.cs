@@ -37,6 +37,7 @@ namespace SplitIt.Infrastructure.Services
         {
             var user = await GetUserByEmail(email);
             if (user == null) return false;
+            if (!user.IsActive) return false;
 
             var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
             if (result == PasswordVerificationResult.Success || result == PasswordVerificationResult.SuccessRehashNeeded)

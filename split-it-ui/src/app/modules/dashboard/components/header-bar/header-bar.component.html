@@ -2,10 +2,12 @@
     <div class="logo">SplitIt</div>
     
     <nav class="nav-links">
-      <a routerLink="/dashboard">Home</a>
+      <a routerLink="/dashboard/home">Home</a>
+      <a routerLink="/dashboard/friends">Friends</a>
       <!-- Temporaly return -->
-      <a routerLink="/dashboard">Expenses</a>
-      <a routerLink="/dashboard">Settings</a>
+      <a routerLink="/dashboard/home">Expenses</a>
+      <a routerLink="/dashboard/home">Settings</a>
+      <a *ngIf="isAdmin" routerLink="/admin" class="admin-link">Admin</a>
     </nav>
   
     <button class="logout-button" (click)="logout()">Logout</button>

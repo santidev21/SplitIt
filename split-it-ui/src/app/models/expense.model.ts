@@ -16,6 +16,7 @@ export interface Expense {
     paidBy: string;
     date: string;
     note: string | null;
+    isPayment?: boolean;
     participants: ExpenseParticipantDetail [];
 }
   

@@ -81,6 +81,8 @@ builder.Services.AddScoped<GroupService>();
 builder.Services.AddScoped<CurrenciesService>();
 builder.Services.AddScoped<UsersService>();
 builder.Services.AddScoped<ExpensesService>();
+builder.Services.AddScoped<FriendshipsService>();
+builder.Services.AddScoped<SettingsService>();
 
 // Exception handling
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

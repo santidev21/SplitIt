@@ -39,4 +39,28 @@ export class GroupService {
   getUserGroupRole(groupId: number): Observable<any> {
     return this.http.get<any>(`${this.API_URL}/${groupId}/userrole`);
   }
+
+  updateGroup(groupId: number, data: {
+    name: string;
+    description: string;
+    allowToDeleteExpenses: boolean;
+  }): Observable<any> {
+    return this.http.put(`${this.API_URL}/${groupId}`, data);
+  }
+
+  inviteMember(groupId: number, userId: number): Observable<any> {
+    return this.http.post(`${this.API_URL}/${groupId}/members`, { userId });
+  }
+
+  updateMemberRole(groupId: number, userId: number, role: string): Observable<any> {
+    return this.http.put(`${this.API_URL}/${groupId}/members/${userId}/role`, { role });
+  }
+
+  removeMember(groupId: number, userId: number): Observable<any> {
+    return this.http.delete(`${this.API_URL}/${groupId}/members/${userId}`);
+  }
+
+  deleteGroup(groupId: number): Observable<any> {
+    return this.http.delete(`${this.API_URL}/${groupId}`);
+  }
 }

@@ -1,0 +1,109 @@
+<app-header-bar></app-header-bar>
+
+<div class="friends-container space-y-4">
+  <mat-card class="p-4">
+    <div class="flex justify-between items-center mb-2">
+      <p class="heading-xl m-0">Friends</p>
+      <span class="badge" *ngIf="incoming.length > 0">{{ incoming.length }} pending request(s)</span>
+    </div>
+
+    <mat-tab-group [(selectedIndex)]="selectedTab">
+      <!-- My friends -->
+      <mat-tab label="My friends">
+        <div class="tab-content" *ngIf="!isLoading">
+          <div *ngIf="friends.length === 0" class="empty-state">
+            <mat-icon>person_off</mat-icon>
+            <p>You don't have friends yet. Search users to add them.</p>
+          </div>
+          <div *ngFor="let friend of friends" class="friend-row">
+            <div class="friend-info">
+              <mat-icon>person</mat-icon>
+              <div>
+                <div class="friend-name">{{ friend.name }}</div>
+                <div class="friend-email">{{ friend.email }}</div>
+              </div>
+            </div>
+            <button mat-icon-button color="warn" (click)="removeFriend(friend)" matTooltip="Remove friend">
+              <mat-icon>person_remove</mat-icon>
+            </button>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Requests -->
+      <mat-tab label="Requests">
+        <div class="tab-content" *ngIf="!isLoading">
+          <p class="heading-md mb-1">Incoming requests</p>
+          <div *ngIf="incoming.length === 0" class="empty-state">
+            <p>No incoming requests.</p>
+          </div>
+          <div *ngFor="let req of incoming" class="friend-row">
+            <div class="friend-info">
+              <mat-icon>person_add</mat-icon>
+              <div>
+                <div class="friend-name">{{ req.name }}</div>
+                <div class="friend-email">{{ req.email }}</div>
+              </div>
+            </div>
+            <div class="request-actions">
+              <button mat-flat-button color="primary" (click)="acceptRequest(req)">Accept</button>
+              <button mat-button color="warn" (click)="rejectRequest(req)">Reject</button>
+            </div>
+          </div>
+
+          <p class="heading-md mb-1 mt-3">Sent requests</p>
+          <div *ngIf="sent.length === 0" class="empty-state">
+            <p>No sent requests.</p>
+          </div>
+          <div *ngFor="let req of sent" class="friend-row">
+            <div class="friend-info">
+              <mat-icon>hourglass_top</mat-icon>
+              <div>
+                <div class="friend-name">{{ req.name }}</div>
+                <div class="friend-email">Waiting for response</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Search -->
+      <mat-tab label="Find friends">
+        <div class="tab-content">
+          <div class="search-row">
+            <mat-form-field appearance="outline" class="search-field">
+              <mat-label>Search by name or email</mat-label>
+              <input matInput [(ngModel)]="searchTerm" (keyup.enter)="search()" placeholder="e.g. alice@split.com" />
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+            <button mat-flat-button color="primary" (click)="search()" [disabled]="isSearching">Search</button>
+          </div>
+
+          <mat-divider class="my-3"></mat-divider>
+
+          <div class="search-row">
+            <mat-form-field appearance="outline" class="search-field">
+              <mat-label>Or add by exact email</mat-label>
+              <input matInput [(ngModel)]="addByEmail" (keyup.enter)="sendByEmail()" placeholder="friend@email.com" />
+            </mat-form-field>
+            <button mat-button color="primary" (click)="sendByEmail()">Send request</button>
+          </div>
+
+          <div *ngFor="let user of searchResults" class="friend-row">
+            <div class="friend-info">
+              <mat-icon>person_outline</mat-icon>
+              <div>
+                <div class="friend-name">{{ user.name }}</div>
+                <div class="friend-email">{{ user.email }}</div>
+              </div>
+            </div>
+            <button mat-icon-button color="primary" (click)="addUserToFriends(user)"
+                    [disabled]="pendingSearchUserId === user.id" matTooltip="Send friend request">
+              <mat-icon>person_add</mat-icon>
+            </button>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card>
+</div>

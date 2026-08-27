@@ -43,13 +43,27 @@
           <li *ngFor="let item of debtDetails" class="debt-item"
           [class.text-green-600]="item.amount > 0"
             [class.text-red-600]="item.amount < 0">
-            {{ item.name }}: {{ item.amount > 0 ? '+ $' : '- $' }}{{ item.amount < 0 ? item.amount * -1 : item.amount }} 
-            <button mat-icon-button color="primary" (click)="settleDebt(item)" matTooltip="Settle">
+            {{ item.name }}: {{ item.amount > 0 ? '+ $' : '- $' }}{{ item.amount < 0 ? -item.amount : item.amount | number: '1.2-2' }}
+            <button mat-icon-button color="primary" (click)="settleDebt(item)" matTooltip="Settle (supports partial payment)">
               <mat-icon>check_circle</mat-icon>
             </button>
           </li>
         </ul>
       </div>
+    </mat-card>
+
+    <!-- Payments history card -->
+    <mat-card class="p-4 mb-2" *ngIf="paymentsHistory.length > 0">
+      <p class="heading-md mb-1">Payments</p>
+      <ul>
+        <li *ngFor="let payment of paymentsHistory" class="debt-item payment-item">
+          <span>
+            <mat-icon class="payment-icon">payments</mat-icon>
+            {{ payment.paidBy }} paid ${{ payment.amount | number: '1.2-2' }}
+            — {{ payment.date | date: 'dd/MM/yyyy' }}
+          </span>
+        </li>
+      </ul>
     </mat-card>
 
     <!-- Expenses list card -->

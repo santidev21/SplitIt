@@ -11,6 +11,7 @@ import { LoadingSpinnerComponent } from '../../../../shared/components/loading-s
 import { PositiveNumberDirective } from '../../../../shared/directives/positive-number.directive';
 import { ExpenseParticipant } from '../../../../models/expense.model';
 import { ExpenseService } from '../../services/expense.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-add-expense-dialog',
@@ -23,6 +24,7 @@ export class AddExpenseDialogComponent implements OnInit {
   @ViewChild('picker') picker!: MatDatepicker<Date>;
 
   isLoading: boolean = true;
+  isSaving: boolean = false;
 
   expenseForm!: FormGroup;
   selectedDate: Date = new Date();
@@ -31,63 +33,63 @@ export class AddExpenseDialogComponent implements OnInit {
   members: GroupMember[] = [];
   groupId : number = 0;
   expenseParticipants: ExpenseParticipant[] = [];
-  
+
   constructor(
     private fb: FormBuilder,
     private groupService: GroupService,
     private expenseService: ExpenseService,
     private dialog: MatDialog,
     private dialogRef: MatDialogRef<AddExpenseDialogComponent>,
+    private notifications: NotificationService,
     @Inject(MAT_DIALOG_DATA) public data: { groupId: number }
   ) {
     this.expenseForm = this.fb.group({
-      title: ['', Validators.required],
-      note: [''],
-      amount: [null, Validators.required],
+      title: ['', [Validators.required, Validators.maxLength(100)]],
+      note: ['', Validators.maxLength(500)],
+      amount: [null, [Validators.required, Validators.min(0.01), Validators.max(1000000)]],
       paidById: [null, Validators.required],
     });
     this.groupId = data.groupId;
   }
 
-  // TODO:
-  // At least 1 member select (equally).
-  // ByAmount (Sum of amounts = total amount)
-  // Write Amount First.
-
-
   ngOnInit(): void {
-    this.groupService.getGroupMembers(this.groupId).subscribe((resp : GroupMember[]) =>
-    {
-      this.members = resp;
-      if (this.members.length > 0) {
-        this.expenseForm.patchValue({
-          paidById: this.members[0].id,
-        });
+    this.groupService.getGroupMembers(this.groupId).subscribe({
+      next: (resp : GroupMember[]) =>
+      {
+        this.members = resp;
+        if (this.members.length > 0) {
+          this.expenseForm.patchValue({
+            paidById: this.members[0].id,
+          });
+        }
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+        this.notifications.toast('Could not load group members.', 'error');
       }
-      this.isLoading = false; 
-    }, error => {
-      this.isLoading = false;
-      console.error('Error fetching group members', error);
     });
   }
 
   openSplitMethod(){
-    if (this.expenseForm.value.amount > 0){
-      const dialogRef = this.dialog.open(SplitMethodDialogComponent, {
-        width: '400px',
-        data: {
-          members: this.members,
-          amount: this.expenseForm.value.amount
-        }
-      });
-    
-      dialogRef.afterClosed().subscribe(result => {
-        if (result) {
-          this.expenseParticipants = result.expenseParticipant
-          this.splitMethodLabel = result.method;
-        }
-      });
-    }    
+    if (!this.expenseForm.value.amount || this.expenseForm.value.amount <= 0){
+      this.notifications.toast('Enter an amount greater than 0 before splitting.', 'warning');
+      return;
+    }
+    const dialogRef = this.dialog.open(SplitMethodDialogComponent, {
+      width: '400px',
+      data: {
+        members: this.members,
+        amount: this.expenseForm.value.amount
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.expenseParticipants = result.expenseParticipant
+        this.splitMethodLabel = result.method;
+      }
+    });
   }
 
   openDatepicker() {
@@ -103,7 +105,15 @@ export class AddExpenseDialogComponent implements OnInit {
   }
 
   saveExpense(){
+    this.expenseForm.markAllAsTouched();
     if (this.expenseForm.valid) {
+      if (this.expenseParticipants.length === 0) {
+        this.notifications.toast('Open the split options and confirm how the expense is divided.', 'warning');
+        return;
+      }
+      if (this.isSaving) return;
+      this.isSaving = true;
+
       const result = {
         ...this.expenseForm.value,
         date: this.selectedDate,
@@ -111,10 +121,15 @@ export class AddExpenseDialogComponent implements OnInit {
         participants: this.expenseParticipants
       };
 
-      this.expenseService.addExpense(result).subscribe(resp =>{
-        if (resp){
-          this.dialogRef.close('saved');
-        }
+      this.expenseService.addExpense(result).subscribe({
+        next: (resp) => {
+          this.isSaving = false;
+          if (resp){
+            this.dialogRef.close('saved');
+            this.notifications.success('Expense added successfully.');
+          }
+        },
+        error: () => { this.isSaving = false; }
       });
     }
   }

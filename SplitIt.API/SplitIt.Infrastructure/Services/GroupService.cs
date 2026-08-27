@@ -86,10 +86,14 @@ namespace SplitIt.Infrastructure.Services
                 throw new KeyNotFoundException("Group not found");
 
             return group.GroupMembers
+                .OrderBy(m => m.Role == "creator" ? 0 : m.Role == "admin" ? 1 : 2)
+                .ThenBy(m => m.User.Name)
                 .Select(m => new MemberDto
                 {
                     Id = m.UserId,
-                    Name = m.UserId == currentUserId ? "You" : m.User.Name
+                    Name = m.UserId == currentUserId ? "You" : m.User.Name,
+                    Role = m.Role,
+                    Email = m.User.Email
                 })
                 .ToList();
         }
@@ -167,6 +171,32 @@ namespace SplitIt.Infrastructure.Services
             await _context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Invites a user to an existing group. Only admin/creator can invite and the
+        /// invitee must be an accepted friend of the inviter (validated by the caller).
+        /// </summary>
+        public async Task AddMemberAsync(int groupId, int targetUserId, int requesterId)
+        {
+            if (!await IsUserAdminOrCreatorAsync(groupId, requesterId))
+                throw new UnauthorizedAccessException("Only group creator or admin can invite members.");
+
+            var groupExists = await _context.Groups.AnyAsync(g => g.Id == groupId);
+            if (!groupExists)
+                throw new KeyNotFoundException("Group not found.");
+
+            var alreadyMember = await IsUserMemberAsync(groupId, targetUserId);
+            if (alreadyMember)
+                throw new ArgumentException("User is already a member of this group.");
+
+            _context.GroupMembers.Add(new GroupMember
+            {
+                GroupId = groupId,
+                UserId = targetUserId,
+                Role = "member"
+            });
+            await _context.SaveChangesAsync();
+        }
+
         public async Task DeleteGroupAsync(int groupId, int requesterId)
         {
             var isCreator = await IsUserCreatorAsync(groupId, requesterId);
@@ -193,7 +223,36 @@ namespace SplitIt.Infrastructure.Services
             {
                 Name = group.Name,
                 Description = group.Description,
+                AllowToDeleteExpenses = group.AllowToDeleteExpenses,
+                CurrencyId = group.CurrencyId
             };
+        }
+
+        /// <summary>
+        /// Updates group settings (name, description, AllowToDeleteExpenses).
+        /// Only the creator or group admins can update; only the creator can change AllowToDeleteExpenses.
+        /// </summary>
+        public async Task UpdateGroupAsync(int groupId, string name, string description, bool allowToDeleteExpenses, int requesterId)
+        {
+            if (!await IsUserAdminOrCreatorAsync(groupId, requesterId))
+                throw new UnauthorizedAccessException("Only group creator or admin can edit the group.");
+
+            var group = await _context.Groups.FirstOrDefaultAsync(g => g.Id == groupId);
+            if (group == null)
+                throw new KeyNotFoundException("Group not found");
+
+            group.Name = name.Trim();
+            group.Description = description.Trim();
+
+            // Only the creator may toggle this security-related setting
+            if (group.AllowToDeleteExpenses != allowToDeleteExpenses)
+            {
+                if (!await IsUserCreatorAsync(groupId, requesterId))
+                    throw new UnauthorizedAccessException("Only the group creator can change the delete-expenses permission.");
+                group.AllowToDeleteExpenses = allowToDeleteExpenses;
+            }
+
+            await _context.SaveChangesAsync();
         }
     }
 }

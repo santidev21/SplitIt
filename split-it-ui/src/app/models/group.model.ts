@@ -4,14 +4,17 @@ export interface Group {
     createdBy: string;  // User ID
     members: GroupMember[];
   }
-  
+
   export interface GroupMember {
     id: number,
-    name: string
+    name: string,
+    role?: string,
+    email?: string
   }
 
   export interface GroupDetails{
     name: string,
-    description: string
+    description: string,
+    allowToDeleteExpenses?: boolean,
+    currencyId?: number
   }
-  

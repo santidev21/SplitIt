@@ -1,0 +1,163 @@
+<app-header-bar></app-header-bar>
+
+<div class="admin-container space-y-4">
+  <mat-card class="p-4">
+    <p class="heading-xl m-0 mb-2">Administration panel</p>
+
+    <mat-tab-group [(selectedIndex)]="selectedTab">
+      <!-- Dashboard -->
+      <mat-tab label="Dashboard">
+        <div class="tab-content" *ngIf="stats">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <mat-icon>people</mat-icon>
+              <div class="stat-value">{{ stats.totalUsers }}</div>
+              <div class="stat-label">Total users</div>
+            </div>
+            <div class="stat-card">
+              <mat-icon>person</mat-icon>
+              <div class="stat-value">{{ stats.activeUsers }}</div>
+              <div class="stat-label">Active users</div>
+            </div>
+            <div class="stat-card">
+              <mat-icon>groups</mat-icon>
+              <div class="stat-value">{{ stats.totalGroups }}</div>
+              <div class="stat-label">Groups</div>
+            </div>
+            <div class="stat-card">
+              <mat-icon>receipt_long</mat-icon>
+              <div class="stat-value">{{ stats.totalExpenses }}</div>
+              <div class="stat-label">Expenses</div>
+            </div>
+            <div class="stat-card">
+              <mat-icon>payments</mat-icon>
+              <div class="stat-value">{{ stats.totalPayments }}</div>
+              <div class="stat-label">Payments</div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Users -->
+      <mat-tab label="Users">
+        <div class="tab-content">
+          <div class="toolbar">
+            <mat-form-field appearance="outline" class="search-field">
+              <mat-label>Search users by name or email</mat-label>
+              <input matInput [(ngModel)]="userSearch" (keyup.enter)="onUserSearch()" />
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+            <button mat-flat-button color="primary" (click)="onUserSearch()">Search</button>
+          </div>
+
+          <div class="admin-table">
+            <div class="table-row header-row">
+              <div>Name</div>
+              <div>Email</div>
+              <div>Role</div>
+              <div>Status</div>
+              <div class="text-right">Actions</div>
+            </div>
+            <div class="table-row" *ngFor="let user of users">
+              <div>{{ user.name }}</div>
+              <div class="muted">{{ user.email }}</div>
+              <div>
+                <mat-select [value]="user.roleId" (selectionChange)="changeRole(user, $event)"
+                            [disabled]="!isSuperAdmin" class="role-select">
+                  <mat-option *ngFor="let role of roles" [value]="role.id">{{ role.label }}</mat-option>
+                </mat-select>
+              </div>
+              <div>
+                <span class="status-chip" [class.active]="user.isActive">{{ user.isActive ? 'Active' : 'Inactive' }}</span>
+              </div>
+              <div class="text-right">
+                <button mat-icon-button [color]="user.isActive ? 'warn' : 'primary'"
+                        (click)="toggleActive(user)"
+                        [matTooltip]="user.isActive ? 'Deactivate' : 'Activate'">
+                  <mat-icon>{{ user.isActive ? 'block' : 'check_circle' }}</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="pager">
+            <button mat-button [disabled]="usersPage <= 1" (click)="prevPage()">Previous</button>
+            <span>Page {{ usersPage }} — {{ usersTotal }} users</span>
+            <button mat-button [disabled]="usersPage * usersPageSize >= usersTotal" (click)="nextPage()">Next</button>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Groups -->
+      <mat-tab label="Groups">
+        <div class="tab-content">
+          <div class="toolbar">
+            <mat-form-field appearance="outline" class="search-field">
+              <mat-label>Search groups by name</mat-label>
+              <input matInput [(ngModel)]="groupSearch" (keyup.enter)="loadGroups()" />
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+            <button mat-flat-button color="primary" (click)="loadGroups()">Search</button>
+          </div>
+
+          <div class="admin-table">
+            <div class="table-row header-row">
+              <div>Name</div>
+              <div>Description</div>
+              <div>Members</div>
+              <div>Expenses</div>
+              <div>Created</div>
+            </div>
+            <div class="table-row" *ngFor="let group of groups">
+              <div>{{ group.name }}</div>
+              <div class="muted">{{ group.description }}</div>
+              <div>{{ group.memberCount }}</div>
+              <div>{{ group.expenseCount }}</div>
+              <div>{{ group.createdAt | date: 'dd/MM/yyyy' }}</div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Settings -->
+      <mat-tab label="Settings">
+        <div class="tab-content settings-content">
+          <div class="setting-row">
+            <span>Allow new user registration</span>
+            <mat-slide-toggle [(ngModel)]="registrationEnabled"></mat-slide-toggle>
+          </div>
+
+          <div class="setting-row">
+            <span>Maximum expense amount ($)</span>
+            <mat-form-field appearance="outline">
+              <input matInput type="number" [(ngModel)]="maxExpenseAmount" />
+            </mat-form-field>
+          </div>
+
+          <button mat-flat-button color="primary" (click)="saveSettings()"
+                  [disabled]="!isSuperAdmin" *ngIf="isSuperAdmin; else readOnlySettings">
+            Save settings
+          </button>
+          <ng-template #readOnlySettings>
+            <p class="muted">Only a SuperAdmin can change global settings.</p>
+          </ng-template>
+
+          <mat-divider class="my-3"></mat-divider>
+
+          <p class="heading-md mb-1">Currencies</p>
+          <div class="toolbar">
+            <mat-form-field appearance="outline">
+              <mat-label>Name</mat-label>
+              <input matInput [(ngModel)]="newCurrencyName" placeholder="Euro" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Symbol</mat-label>
+              <input matInput [(ngModel)]="newCurrencySymbol" placeholder="EUR" />
+            </mat-form-field>
+            <button mat-flat-button color="primary" (click)="addCurrency()" [disabled]="!isSuperAdmin">Add currency</button>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card>
+</div>

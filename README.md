@@ -10,10 +10,15 @@
 - Create and manage expense groups
 - Add participants to each group
 - Register shared expenses and specify who paid
-- Automatically split expenses among members
+- Automatically split expenses among members (equal, by amount, or by percentage)
 - See how much each member owes or is owed
-- Settle individual or total debts
+- Settle individual or total debts (including partial payments)
+- Friends system: send/accept/reject friend requests, search users
+- Admin panel: manage users, roles, settings, currencies
+- Group admin: edit group, promote/demote/remove members, invite friends
 - Authentication system with protected routes (JWT)
+- Real-time notifications for friend requests
+- Form validation with inline error messages
 
 ---
 
@@ -80,25 +85,60 @@ cp .env.example .env
 
 ### 3. Run with Docker (recommended)
 ```bash
+# Create the external network first
+docker network create splitit-frontend-net
+
+# Start all services
 docker compose up -d
 ```
 This starts all 5 services. The backend will be at `http://localhost:8080`, frontend at `http://localhost:80`.
 
 ### 4. Run without Docker (manual)
 
+**Requirements:** SQL Server running locally or via Docker.
+
+```bash
+# Option A: Start just SQL Server via Docker
+docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrong!Password123" \
+  -p 1433:1433 --name splitit-sql -d mcr.microsoft.com/mssql/server:2022-latest
+
+# Option B: Use your local SQL Server instance
+```
+
 **Backend:**
 ```bash
 cd SplitIt.API
+
+# Configure appsettings.Development.json with your connection string:
+# "DefaultConnection": "Server=localhost;Database=SplitIt_Dev;Trusted_Connection=True;TrustServerCertificate=True"
+
 dotnet restore
-dotnet ef database update
+dotnet ef database update --project SplitIt.Infrastructure --startup-project SplitIt.API
 dotnet run
 ```
+Backend starts at `http://localhost:5120`. Swagger at `http://localhost:5120/swagger`.
 
 **Frontend:**
 ```bash
 cd split-it-ui
-npm install
-ng serve
+npm install --legacy-peer-deps
+npm start
+```
+Frontend starts at `http://localhost:4200`, auto-proxies API calls to `localhost:5120`.
+
+### 5. Create your first admin user
+
+After registering a user, promote them to SuperAdmin via SQL:
+```sql
+-- Connect to SplitIt_Dev database
+UPDATE Users SET RoleId = 1 WHERE Email = 'your@email.com';
+```
+Or use the admin panel (requires SuperAdmin role):
+```bash
+curl -X POST http://localhost:5120/api/admin/promote \
+  -H "Authorization: Bearer <superadmin_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"userId": 2}'
 ```
 
 ---
@@ -215,7 +255,10 @@ cd /opt/splitit
 ---
 
 ## Future Features
-- [ ] Partial payments functionality
-- [ ] Support alternative split methods (by amount or percentage)
-- [ ] Email validation
-- [ ] Group admin and application admin roles
+- [x] Partial payments functionality
+- [x] Support alternative split methods (by amount or percentage)
+- [x] Email validation
+- [x] Group admin and application admin roles
+- [x] Friends system with requests
+- [x] Admin panel with settings
+- [x] Form validation and error feedback

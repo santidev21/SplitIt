@@ -6,6 +6,8 @@ import { GroupCardComponent } from './components/group-card/group-card.component
 import { MATERIAL_IMPORTS } from '../../../shared/material.imports';
 import { CreateGroupComponent } from './components/create-group/create-group.component';
 import { GroupService } from './services/group.service';
+import { FriendService } from './services/friend.service';
+import { NotificationService } from '../../shared/services/notification.service';
 import { UserGroup } from '../../models/user.model';
 
 @Component({
@@ -21,7 +23,9 @@ export class DashboardComponent implements OnInit{
 
   constructor(
     private dialog: MatDialog,
-    private groupService: GroupService
+    private groupService: GroupService,
+    private friendService: FriendService,
+    private notifications: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -31,10 +35,27 @@ export class DashboardComponent implements OnInit{
         if (resp && resp.length)
         {
           this.userHasGroups = true;
-          this.userGroups = resp;        
+          this.userGroups = resp;
         }
-      })      
+      })
+      this.checkPendingFriendRequests();
     }
+  }
+
+  checkPendingFriendRequests(): void {
+    this.friendService.getRequests().subscribe({
+      next: (resp) => {
+        if (resp.incoming && resp.incoming.length > 0) {
+          const names = resp.incoming.map((r: any) => r.name).join(', ');
+          const msg = resp.incoming.length === 1
+            ? `${names} sent you a friend request.`
+            : `${resp.incoming.length} pending friend requests from: ${names}`;
+          setTimeout(() => {
+            this.notifications.info('Friend Requests', msg);
+          }, 1500);
+        }
+      }
+    });
   }
 
   openCreateGroupDialog() {
@@ -42,5 +63,5 @@ export class DashboardComponent implements OnInit{
       width: '600px'
     });
   }
-  
+
 }

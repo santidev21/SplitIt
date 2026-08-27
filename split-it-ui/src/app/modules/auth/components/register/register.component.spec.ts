@@ -54,11 +54,26 @@ describe('RegisterComponent', () => {
 
   it('register should handle error', () => {
     authServiceSpy.register.and.returnValue(throwError(() => new Error('Duplicate')));
+    component.registerForm.patchValue({ userName: 'Test', email: 'test@test.com', password: 'password123' });
+    const event = new Event('submit');
+    spyOn(event, 'preventDefault');
+    component.register(event);
+    expect(component.isLoading).toBeFalse();
+  });
+
+  it('register should not call service when password is too short', () => {
     component.registerForm.patchValue({ userName: 'Test', email: 'test@test.com', password: 'pass' });
     const event = new Event('submit');
     spyOn(event, 'preventDefault');
-    spyOn(console, 'error');
     component.register(event);
-    expect(component.isLoading).toBeFalse();
+    expect(authServiceSpy.register).not.toHaveBeenCalled();
+  });
+
+  it('register should not call service when email is malformed', () => {
+    component.registerForm.patchValue({ userName: 'Test', email: 'not-an-email', password: 'password123' });
+    const event = new Event('submit');
+    spyOn(event, 'preventDefault');
+    component.register(event);
+    expect(authServiceSpy.register).not.toHaveBeenCalled();
   });
 });

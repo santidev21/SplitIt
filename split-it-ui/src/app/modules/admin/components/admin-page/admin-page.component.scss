@@ -1,0 +1,112 @@
+.admin-container {
+    padding: 1rem 2rem;
+  }
+
+  .tab-content {
+    padding: 1rem 0.5rem;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+  }
+
+  .stat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 16px;
+    border-radius: 8px;
+    background-color: #f5f5f5;
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 600;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: rgba(0, 0, 0, 0.54);
+    }
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+
+    .search-field {
+      width: 320px;
+    }
+  }
+
+  .admin-table {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .table-row {
+    display: grid;
+    grid-template-columns: 1.2fr 1.6fr 1fr 0.8fr 0.8fr;
+    gap: 8px;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &.header-row {
+      background-color: #fafafa;
+      font-weight: 600;
+      font-size: 14px;
+    }
+  }
+
+  .muted {
+    color: rgba(0, 0, 0, 0.54);
+    font-size: 14px;
+  }
+
+  .role-select {
+    width: 130px;
+  }
+
+  .status-chip {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    background-color: #ffebee;
+    color: #c62828;
+
+    &.active {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+  }
+
+  .pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 12px;
+    font-size: 14px;
+  }
+
+  .settings-content {
+    max-width: 520px;
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 16px;
+    }
+  }

@@ -6,16 +6,24 @@
                 <mat-label>Name:</mat-label>
                 <mat-form-field appearance="outline" class="full-width">
                     <input matInput type="text" formControlName="userName" placeholder="Enter your name" required />
+                    <mat-error *ngIf="registerForm.get('userName')?.hasError('required')">Name is required.</mat-error>
+                    <mat-error *ngIf="registerForm.get('userName')?.hasError('minlength')">Name must be at least 2 characters.</mat-error>
                 </mat-form-field>
 
                 <mat-label>Email:</mat-label>
                 <mat-form-field appearance="outline" class="full-width">
                     <input matInput type="email" formControlName="email" placeholder="example@example.com" required />
+                    <mat-error *ngIf="registerForm.get('email')?.hasError('required')">Email is required.</mat-error>
+                    <mat-error *ngIf="registerForm.get('email')?.hasError('email') && !registerForm.get('email')?.hasError('required')">Enter a valid email address.</mat-error>
+                    <mat-error *ngIf="registerForm.get('email')?.hasError('maxlength')">Email must be at most 100 characters.</mat-error>
                 </mat-form-field>
 
                 <mat-label>Password:</mat-label>
                 <mat-form-field appearance="outline" class="full-width">
                     <input matInput type="password" formControlName="password" placeholder="Enter your password" required />
+                    <mat-hint>At least 8 characters</mat-hint>
+                    <mat-error *ngIf="registerForm.get('password')?.hasError('required')">Password is required.</mat-error>
+                    <mat-error *ngIf="registerForm.get('password')?.hasError('minlength')">Password must be at least 8 characters.</mat-error>
                 </mat-form-field>
 
                 <button mat-raised-button color="primary" class="full-width"  type="submit">Register</button>

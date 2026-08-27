@@ -14,17 +14,19 @@ namespace SplitIt.API.Controllers
     {
         private readonly AuthService _authService;
         private readonly GroupService _groupService;
+        private readonly FriendshipsService _friendshipsService;
         private readonly IConfiguration _configuration;
 
 
-        public GroupsController(AuthService authService, GroupService groupService, IConfiguration configuration)
+        public GroupsController(AuthService authService, GroupService groupService, FriendshipsService friendshipsService, IConfiguration configuration)
         {
             _authService = authService;
             _groupService = groupService;
+            _friendshipsService = friendshipsService;
             _configuration = configuration;
         }
 
-        
+
         [HttpPost("create")]
         [Authorize]
         public async Task<IActionResult> CreateGroup([FromBody] CreateGroupDto request)
@@ -37,6 +39,13 @@ namespace SplitIt.API.Controllers
             var distinctMembers = request.Members.Distinct().Where(id => id != userId).ToList();
             if (distinctMembers.Count > 50)
                 return BadRequest(new { message = "Too many members (max 50)." });
+
+            // Members must be accepted friends of the creator (invite flow is friends-only)
+            foreach (var memberId in distinctMembers)
+            {
+                if (!await _friendshipsService.AreFriendsAsync(userId, memberId))
+                    return BadRequest(new { message = "You can only invite friends to a group. Send them a friend request first." });
+            }
 
             string name = request.Name;
             string description = request.Description;
@@ -57,8 +66,8 @@ namespace SplitIt.API.Controllers
             var loggedUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var loggedUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
 
-            // If it's not the same user and not a "super" role, access is not allowed
-            if (loggedUserId != userId.ToString() && loggedUserRole != "1")
+            // If it's not the same user and not a super admin, access is not allowed
+            if (loggedUserId != userId.ToString() && loggedUserRole != nameof(RoleConstants.SuperAdmin))
             {
                 return Forbid();
             }
@@ -141,6 +150,43 @@ namespace SplitIt.API.Controllers
             {
                 await _groupService.RemoveMemberAsync(groupId, userId, requesterId);
                 return Ok(new { message = "Member removed." });
+            }
+            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        }
+
+        [HttpPost("{groupId}/members")]
+        [Authorize]
+        public async Task<IActionResult> InviteMember(int groupId, [FromBody] InviteMemberDto dto)
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(claim) || !int.TryParse(claim, out var requesterId)) return Unauthorized();
+            try
+            {
+                if (!await _friendshipsService.AreFriendsAsync(requesterId, dto.UserId))
+                    return BadRequest(new { message = "You can only invite friends to a group. Send them a friend request first." });
+
+                await _groupService.AddMemberAsync(groupId, dto.UserId, requesterId);
+                return Ok(new { message = "Member invited." });
+            }
+            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        }
+
+        [HttpPut("{groupId}")]
+        [Authorize]
+        public async Task<IActionResult> UpdateGroup(int groupId, [FromBody] UpdateGroupDto dto)
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(claim) || !int.TryParse(claim, out var requesterId)) return Unauthorized();
+            try
+            {
+                await _groupService.UpdateGroupAsync(groupId, dto.Name, dto.Description, dto.AllowToDeleteExpenses, requesterId);
+                return Ok(new { message = "Group updated." });
             }
             catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
             catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }

@@ -1,29 +1,53 @@
 <div class="create-group-form">
     <div class="form-container">
       <form [formGroup]="createGroupForm" class="form-group-container" (ngSubmit)="onSubmit()">
-        
+
         <mat-label>Group Name</mat-label>
         <mat-form-field appearance="fill">
           <input matInput formControlName="name" required />
+          <mat-error *ngIf="createGroupForm.get('name')?.hasError('required')">Group name is required.</mat-error>
+          <mat-error *ngIf="createGroupForm.get('name')?.hasError('minlength')">Name must be at least 2 characters.</mat-error>
         </mat-form-field>
-  
+
         <mat-label>Description</mat-label>
         <mat-form-field appearance="fill">
           <textarea matInput formControlName="description" required></textarea>
+          <mat-error *ngIf="createGroupForm.get('description')?.hasError('required')">Description is required.</mat-error>
         </mat-form-field>
-  
-        <!-- Group Members -->
-      <mat-label>Group Members</mat-label>
-      <mat-form-field appearance="fill">
-        <mat-select formControlName="members" multiple>
-          <mat-option *ngFor="let user of users" [value]="user.id">{{ user.name }}</mat-option>
-        </mat-select>
-      </mat-form-field>
+
+        <!-- Group Members: friends only -->
+      <mat-label>Group Members (your friends)</mat-label>
+      <div class="friends-select" *ngIf="friends.length > 0">
+        <mat-checkbox *ngFor="let friend of friends"
+                      [checked]="selectedFriendIds.has(friend.id)"
+                      (change)="toggleFriend(friend.id)">
+          {{ friend.name }} <span class="friend-email-label">({{ friend.email }})</span>
+        </mat-checkbox>
+      </div>
+      <p class="no-friends-hint" *ngIf="friends.length === 0">
+        You have no friends yet. Search users below to send them a friend request.
+      </p>
+
+      <!-- Inline search to add friends -->
+      <mat-label>Find friends to add</mat-label>
+      <div class="inline-search">
+        <mat-form-field appearance="fill" class="inline-search-field">
+          <mat-label>Search by name or email</mat-label>
+          <input matInput [(ngModel)]="searchTerm" [ngModelOptions]="{standalone: true}" (keyup.enter)="searchUsers()" />
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="button" (click)="searchUsers()" [disabled]="isSearching">Search</button>
+      </div>
+      <div *ngFor="let user of searchResults" class="search-result-row">
+        <span>{{ user.name }} ({{ user.email }})</span>
+        <button mat-button color="primary" type="button" (click)="sendFriendRequest(user)">
+          Send friend request
+        </button>
+      </div>
 
       <!-- Checkbox for deleting expenses -->
        <div class="allow-delete-expenses">
-        <mat-checkbox formControlName="allowToDeleteExpenses" [checked]="false"></mat-checkbox>    
-        <mat-label>Allow All to Delete Expenses</mat-label>    
+        <mat-checkbox formControlName="allowToDeleteExpenses" [checked]="false"></mat-checkbox>
+        <mat-label>Allow All to Delete Expenses</mat-label>
        </div>
 
         <mat-label>Currency</mat-label>
@@ -33,18 +57,18 @@
               {{ currency.name }} ({{ currency.symbol }})
             </mat-option>
           </mat-select>
+          <mat-error *ngIf="createGroupForm.get('currencyId')?.hasError('required')">Currency is required.</mat-error>
         </mat-form-field>
-  
+
         <div class="action-buttons">
           <button mat-icon-button type="button" (click)="close()">
             <mat-icon  class="button-icon-color">cancel</mat-icon>
           </button>
-          <button mat-icon-button type="submit">
+          <button mat-icon-button type="submit" [disabled]="isSaving">
             <mat-icon  class="button-icon-color">save</mat-icon>
           </button>
         </div>
-        
+
     </form>
     </div>
   </div>
-  

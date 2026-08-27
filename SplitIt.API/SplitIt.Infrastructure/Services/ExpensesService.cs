@@ -13,10 +13,12 @@ namespace SplitIt.Infrastructure.Services
     public class ExpensesService
     {
         private readonly AppDbContext _context;
+        private readonly SettingsService? _settingsService;
 
-        public ExpensesService(AppDbContext context)
+        public ExpensesService(AppDbContext context, SettingsService? settingsService = null)
         {
             _context = context;
+            _settingsService = settingsService;
         }
 
         public async Task<Expense> AddExpenseAsync(CreateExpenseDto request, int createdById)
@@ -40,8 +42,12 @@ namespace SplitIt.Infrastructure.Services
                 throw new ArgumentException("At least one participant required.");
             if (request.Participants.Count > 50)
                 throw new ArgumentException("Too many participants.");
-            if (request.Amount <= 0 || request.Amount > 1000000)
-                throw new ArgumentException("Invalid amount.");
+
+            var maxAmount = _settingsService != null
+                ? await _settingsService.GetValueAsync(SettingsService.MaxExpenseAmount, 1000000m)
+                : 1000000m;
+            if (request.Amount <= 0 || request.Amount > maxAmount)
+                throw new ArgumentException($"Invalid amount. Amount must be between 0.01 and {maxAmount:0}.");
 
             // Validate participants are members and amounts >0
             var participantIds = request.Participants.Select(p => p.UserId).Distinct().ToList();
@@ -110,6 +116,7 @@ namespace SplitIt.Infrastructure.Services
                 PaidBy = expense.PaidBy.Name,
                 Date = expense.Date,
                 Note = expense.Note,
+                IsPayment = expense.IsPayment,
                 Participants = expense.Shares.Select(share => new ParticipantDto
                 {
                     Name = share.User.Name,

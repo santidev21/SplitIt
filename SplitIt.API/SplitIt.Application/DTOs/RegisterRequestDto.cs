@@ -8,6 +8,8 @@ namespace SplitIt.Application.DTOs
         public string Name { get; set; } = string.Empty;
 
         [Required, EmailAddress, StringLength(100)]
+        [RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$",
+            ErrorMessage = "Enter a valid email address.")]
         public string Email { get; set; } = string.Empty;
 
         [Required, StringLength(100, MinimumLength = 8)]

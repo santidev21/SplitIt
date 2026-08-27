@@ -16,17 +16,23 @@ namespace SplitIt.API.Controllers
     {
         private readonly AuthService _authService;
         private readonly IConfiguration _configuration;
+        private readonly SettingsService? _settingsService;
 
-        public AuthController(AuthService authService, IConfiguration configuration)
+        public AuthController(AuthService authService, IConfiguration configuration, SettingsService? settingsService = null)
         {
             _authService = authService;
             _configuration = configuration;
+            _settingsService = settingsService;
         }
 
         [HttpPost("register")]
         [EnableRateLimiting("auth")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
+            // Global toggle managed from the admin panel
+            if (_settingsService != null && !await _settingsService.GetValueAsync(SettingsService.RegistrationEnabled, true))
+                return BadRequest(new { message = "Registration is currently disabled. Contact an administrator." });
+
             // Generic response to avoid enumeration timing is handled via constant-time-ish flow
             bool success = await _authService.RegisterUser(request.Name, request.Email, request.Password);
             if (!success)
@@ -53,7 +59,7 @@ namespace SplitIt.API.Controllers
         {
             var user = await _authService.GetUserByEmail(request.Email);
             if (user == null || !await _authService.ValidateUser(request.Email, request.Password))
-                return Unauthorized(new { error = "Invalid credentials" });
+                return Unauthorized(new { message = "Incorrect email or password." });
 
             // Re-fetch to get rehashed password if legacy migrated
             user = await _authService.GetUserByEmail(request.Email);
@@ -75,7 +81,7 @@ namespace SplitIt.API.Controllers
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Role, user.RoleId.ToString())
+                new Claim(ClaimTypes.Role, RoleConstants.GetName(user.RoleId))
             };
 
             var token = new JwtSecurityToken(

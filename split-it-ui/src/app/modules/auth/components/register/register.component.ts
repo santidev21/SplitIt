@@ -14,7 +14,7 @@ import { LoadingSpinnerComponent } from '../../../../shared/components/loading-s
 export class RegisterComponent {
   registerForm: FormGroup;
   isLoading: boolean = false;
-
+  submitAttempted = false;
 
   constructor(
     private authService: AuthService,
@@ -22,18 +22,22 @@ export class RegisterComponent {
     private router: Router,
   ){
     this.registerForm = this.fb.group({
-      userName: ['', [Validators.required, ]],
-      email: ['', [Validators.required, ]], //Validators.email
-      password: ['', [Validators.required, ]] //Validators.minLength(6)
+      userName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
+      password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(100)]]
     });
   }
 
   register(event: Event) {
     event.preventDefault();
-    if (this.registerForm.invalid) return;
+    this.submitAttempted = true;
+    if (this.registerForm.invalid) {
+      this.registerForm.markAllAsTouched();
+      return;
+    }
     this.isLoading = true;
 
-    const { userName, email, password } = this.registerForm.value;    
+    const { userName, email, password } = this.registerForm.value;
     this.authService.register(userName, email, password).subscribe({
       next: (response) => {
         this.isLoading = false;
@@ -41,7 +45,6 @@ export class RegisterComponent {
       },
       error: (err) => {
         this.isLoading = false;
-        console.error('Register failed', err);
       }
     });
   }
