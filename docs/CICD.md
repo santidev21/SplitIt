@@ -59,6 +59,10 @@ SplitIt uses GitHub Actions for continuous integration and deployment. The pipel
 - Artifact upload for test results and coverage reports
 - Trivy fails on HIGH or CRITICAL vulnerabilities
 - No secrets exposed in logs
+
+**E2E tests:**
+- **Mocked E2E** (43 tests): Run in CI against a static SPA served by `npx serve`. No real backend required. Uses `page.route` to mock API calls.
+- **Full-stack E2E** (8 tests): Require a real deployed stack (Nginx, backend, SQL Server). Run manually against the VPS or local Docker deployment via `npm run e2e:fullstack`. Excluded from CI via `testIgnore` in `playwright.config.ts`.
 - **Deploy is gated:** only runs after ALL CI jobs pass on push to main
 - Deploy uses `environment: production` for secret access
 - Emergency manual deploy: SSH to VPS and run `./scripts/deploy.sh deploy`

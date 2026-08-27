@@ -12,6 +12,7 @@
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "e2e:https": "playwright test e2e/fullstack/docker-https-fullstack.spec.ts",
+    "e2e:fullstack": "playwright test --config playwright.fullstack.config.ts",
     "serve:ssr:split-it-ui": "node dist/split-it-ui/server/server.mjs"
   },
   "private": true,
