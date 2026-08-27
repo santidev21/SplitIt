@@ -20,22 +20,21 @@
 ## Architecture
 
 ```
-Internet → :80/:443 → VPS reverse-proxy (nginx:alpine)
-  ├── santidev21.tech → portfolio:4000
-  └── splitit.santidev21.tech
-        ├── /api/* → splitit-backend:8080
-        ├── /health* → splitit-backend:8080
-        └── /* → splitit-frontend:80
+Internet → HTTPS → Reverse Proxy (nginx)
+  └── splitit.yourdomain.com
+        ├── /api/*  → Backend (.NET 8)
+        ├── /health → Backend (.NET 8)
+        └── /*      → Frontend (Angular)
 ```
 
-**5 Docker services:**
+**Docker services:**
 | Service | Description |
 |---|---|
 | `splitit-db` | SQL Server 2022 |
 | `splitit-db-init` | Creates least-privilege DB users on first run |
 | `splitit-migrator` | Runs EF Core migrations then exits |
-| `splitit-backend` | .NET 8 API (port 8080, not exposed publicly) |
-| `splitit-frontend` | Angular 19 static files via nginx (port 80, not exposed publicly) |
+| `splitit-backend` | .NET 8 API (internal, not exposed publicly) |
+| `splitit-frontend` | Angular 19 via nginx (internal, not exposed publicly) |
 
 **Backend Clean Architecture:**
 - **`SplitIt.API`** → Controllers, Middleware, Program.cs
@@ -141,8 +140,8 @@ The GitHub Actions workflow (`.github/workflows/ci.yml`) runs on push to `main`:
 | Secret | Description |
 |---|---|
 | `VPS_SSH_PRIVATE_KEY` | Base64-encoded ED25519 private key for deploy |
-| `VPS_HOST` | VPS IP address (`2.25.112.139`) |
-| `VPS_USER` | SSH user (`santidev21`) |
+| `VPS_HOST` | VPS IP address |
+| `VPS_USER` | SSH user |
 
 ---
 
