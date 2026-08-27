@@ -80,7 +80,7 @@ public class CorsTests : IClassFixture<WebApplicationFactory<Program>>, IDisposa
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         Assert.Equal("https://splitit.yourdomain.com", response.Headers.GetValues("Access-Control-Allow-Origin").FirstOrDefault());
-        Assert.Contains("POST", response.Headers.GetValues("Access-Control-Allow-Methods"));
+        Assert.Contains(response.Headers.GetValues("Access-Control-Allow-Methods"), v => v.Contains("POST"));
     }
 
     [Fact]

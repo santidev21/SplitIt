@@ -19,24 +19,19 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Config validation — fail fast if secrets missing in non-dev (but allow empty in dev for local testing without DB)
+// Config validation — fail fast if secrets missing
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings.GetValue<string>("SecretKey");
 var jwtIssuer = jwtSettings.GetValue<string>("Issuer");
 var jwtAudience = jwtSettings.GetValue<string>("Audience");
 
 if (string.IsNullOrWhiteSpace(secretKey) || secretKey.Length < 32)
-{
-    if (builder.Environment.IsProduction())
-        throw new InvalidOperationException("JwtSettings:SecretKey is missing or too short (min 32 chars). Set via env JwtSettings__SecretKey.");
-    // In Development, allow empty to still build but warn
-    Console.WriteLine("WARNING: JwtSettings:SecretKey is missing/short. Set a 64+ random string for production.");
-}
+    throw new InvalidOperationException("JwtSettings:SecretKey is missing or too short (min 32 chars). Set via env JwtSettings__SecretKey.");
 
 if ((string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience)) && builder.Environment.IsProduction())
     throw new InvalidOperationException("JwtSettings:Issuer/Audience required in Production.");
 
-var effectiveSecret = string.IsNullOrWhiteSpace(secretKey) ? "dev-override-not-for-production-0123456789-ABCDEF-0123456789-64chars_long!!" : secretKey;
+var effectiveSecret = secretKey;
 var effectiveIssuer = string.IsNullOrWhiteSpace(jwtIssuer) ? "https://localhost" : jwtIssuer;
 var effectiveAudience = string.IsNullOrWhiteSpace(jwtAudience) ? "https://localhost" : jwtAudience;
 var keyBytes = Encoding.UTF8.GetBytes(effectiveSecret);
@@ -123,7 +118,7 @@ builder.Services.AddAuthentication(options =>
 }).AddJwtBearer(options =>
 {
     options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
-    options.SaveToken = true;
+    options.SaveToken = false;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
@@ -191,16 +186,16 @@ builder.Services.AddCors(options =>
         if (allowedOrigins.Length > 0)
         {
             policy.WithOrigins(allowedOrigins)
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
+                  .WithHeaders("Authorization", "Content-Type", "Accept")
+                  .WithMethods("GET", "POST", "PUT", "DELETE")
                   .AllowCredentials();
         }
         else if (builder.Environment.IsDevelopment())
         {
             // Dev default — only localhost:4200, not AnyOrigin
             policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
+                  .WithHeaders("Authorization", "Content-Type", "Accept")
+                  .WithMethods("GET", "POST", "PUT", "DELETE")
                   .AllowCredentials();
         }
         else

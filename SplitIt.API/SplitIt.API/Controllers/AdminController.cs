@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SplitIt.Application.DTOs;
+using SplitIt.Domain.Entities;
 using SplitIt.Infrastructure.Services;
 using System.Security.Claims;
 
@@ -21,13 +22,13 @@ namespace SplitIt.API.Controllers
         private bool IsAdmin()
         {
             var role = User.FindFirst(ClaimTypes.Role)?.Value;
-            return role == "1" || role == "2";
+            return role == RoleConstants.SuperAdmin.ToString() || role == RoleConstants.Admin.ToString();
         }
 
         private bool IsSuperAdmin()
         {
             var role = User.FindFirst(ClaimTypes.Role)?.Value;
-            return role == "1";
+            return role == RoleConstants.SuperAdmin.ToString();
         }
 
         [HttpGet("users")]

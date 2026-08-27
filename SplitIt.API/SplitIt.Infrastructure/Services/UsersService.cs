@@ -48,16 +48,16 @@ namespace SplitIt.Infrastructure.Services
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null) return false;
-            return user.RoleId == 1 || user.RoleId == 2; // super or admin
+            return user.RoleId == RoleConstants.SuperAdmin || user.RoleId == RoleConstants.Admin;
         }
 
         public async Task UpdateUserRoleAsync(int targetUserId, int newRoleId, int requesterId)
         {
             var requester = await _context.Users.FirstOrDefaultAsync(u => u.Id == requesterId);
-            if (requester == null || requester.RoleId != 1)
+            if (requester == null || requester.RoleId != RoleConstants.SuperAdmin)
                 throw new UnauthorizedAccessException("Only super admin can change roles.");
 
-            if (newRoleId < 1 || newRoleId > 3)
+            if (newRoleId < RoleConstants.SuperAdmin || newRoleId > RoleConstants.User)
                 throw new ArgumentException("Invalid role.");
 
             var target = await _context.Users.FirstOrDefaultAsync(u => u.Id == targetUserId);

@@ -1,0 +1,6 @@
+# Local development override — loaded automatically by `docker compose up`
+# On VPS (Linux), this file is ignored if user: "0:0" is not needed.
+# On Docker Desktop Windows, the mssql image requires root to access named volumes.
+services:
+  sqlserver:
+    user: "0:0"

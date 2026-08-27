@@ -2,8 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using SplitIt.Domain.Entities;
 using SplitIt.Infrastructure.Persistence;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace SplitIt.Infrastructure.Services
 {
@@ -27,7 +25,7 @@ namespace SplitIt.Infrastructure.Services
             if (await _context.Users.AnyAsync(u => u.Email.ToLower() == normalizedEmail))
                 return false;
 
-            var user = new User { Name = name.Trim(), Email = normalizedEmail, RoleId = 3 };
+            var user = new User { Name = name.Trim(), Email = normalizedEmail, RoleId = RoleConstants.User };
             user.PasswordHash = _passwordHasher.HashPassword(user, password);
 
             _context.Add(user);
@@ -51,14 +49,6 @@ namespace SplitIt.Infrastructure.Services
                 return true;
             }
 
-            // Legacy SHA256 migration path
-            if (IsLegacySha256Hash(user.PasswordHash) && VerifyLegacySha256(password, user.PasswordHash))
-            {
-                user.PasswordHash = _passwordHasher.HashPassword(user, password);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-
             return false;
         }
 
@@ -66,25 +56,6 @@ namespace SplitIt.Infrastructure.Services
         {
             var normalized = email.Trim().ToLowerInvariant();
             return await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalized);
-        }
-
-        // Legacy helpers — kept for migration only, not used for new hashes
-        private static bool IsLegacySha256Hash(string hash)
-        {
-            // Legacy was Base64(SHA256(password)) → 44 chars, no Identity prefix ($)
-            return !string.IsNullOrEmpty(hash) && !hash.StartsWith("AQAAAA") && hash.Length == 44;
-        }
-
-        private static string HashLegacySha256(string password)
-        {
-            using var sha256 = SHA256.Create();
-            byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(bytes);
-        }
-
-        private static bool VerifyLegacySha256(string password, string storedHash)
-        {
-            return HashLegacySha256(password) == storedHash;
         }
     }
 }

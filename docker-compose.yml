@@ -4,12 +4,7 @@ services:
   sqlserver:
     container_name: splitit-db
     image: mcr.microsoft.com/mssql/server:2022-latest
-    # SECURITY EXCEPTION: Official image defaults to USER mssql (non-root, UID 10001) but on Docker Desktop Windows with named volume
-    # `splitit_sqlserver_data:/var/opt/mssql/data` it fails with `BootstrapSystemDataDirectories() 0x80070005 Access is denied`
-    # copying master.mdf (verified via docker logs). This is a known platform limitation — volume created with root ownership blocks mssql.
-    # Mitigations instead of non-root: internal network (internal:true), no host port 1433, no privileged, resource limits, db-init creates least-privilege app user.
-    # If non-root is strictly required, a privileged chown init container or host volume with correct permissions would be needed, but risks stability.
-    user: "0:0"
+    # Uses official default user (mssql, UID 10001). On Docker Desktop Windows, override with user: "0:0" in docker-compose.override.yml.
     restart: unless-stopped
     environment:
       - ACCEPT_EULA=Y
@@ -98,6 +93,7 @@ services:
       - JwtSettings__Issuer=${JWT_ISSUER}
       - JwtSettings__Audience=${JWT_AUDIENCE}
       - Cors__AllowedOrigins=${CORS_ALLOWED_ORIGINS}
+      - AllowedHosts=splitit.santidev21.tech
     volumes:
       - dataprotection_keys:/home/app/.aspnet/DataProtection-Keys
     networks:

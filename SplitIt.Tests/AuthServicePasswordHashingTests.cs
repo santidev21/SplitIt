@@ -44,10 +44,9 @@ public class AuthServicePasswordHashingTests
     }
 
     [Fact]
-    public async Task ValidateUser_LegacyHash_MigratesToNewHash()
+    public async Task ValidateUser_LegacyHash_IsRejected()
     {
         using var ctx = TestDbHelper.CreateInMemoryContext();
-        // Insert legacy user manually
         var legacyPassword = "legacyPass123";
         var legacyHash = LegacyHash(legacyPassword);
         var user = new User { Name = "Legacy", Email = "legacy@test.com", PasswordHash = legacyHash, RoleId = 3 };
@@ -55,12 +54,7 @@ public class AuthServicePasswordHashingTests
         await ctx.SaveChangesAsync();
 
         var svc = new AuthService(ctx, new PasswordHasher<User>());
-        Assert.True(await svc.ValidateUser("legacy@test.com", legacyPassword));
-
-        var updated = await ctx.Users.FirstAsync(u => u.Email == "legacy@test.com");
-        Assert.StartsWith("AQAAAA", updated.PasswordHash);
-        // Now validate again with new hash
-        Assert.True(await svc.ValidateUser("legacy@test.com", legacyPassword));
+        Assert.False(await svc.ValidateUser("legacy@test.com", legacyPassword));
     }
 
     [Fact]
