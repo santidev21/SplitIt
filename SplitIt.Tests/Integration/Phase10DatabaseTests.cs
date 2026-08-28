@@ -28,7 +28,7 @@ public class Phase10DatabaseTests : IClassFixture<SqlServerFixture>
         var pending = (await ctx.Database.GetPendingMigrationsAsync()).ToList();
         Assert.Empty(pending);
         var applied = (await ctx.Database.GetAppliedMigrationsAsync()).ToList();
-        Assert.Equal(8, applied.Count);
+        Assert.Equal(10, applied.Count);
         Assert.Equal("20250524200603_ChangeExpenseDateToDateTime", applied.Last());
 
         // Seed data exists
