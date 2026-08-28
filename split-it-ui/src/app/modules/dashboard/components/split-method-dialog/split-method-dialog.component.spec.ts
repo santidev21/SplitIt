@@ -61,9 +61,12 @@ describe('SplitMethodDialogComponent', () => {
       expect(dialogRefSpy.close).not.toHaveBeenCalled();
       expect(component.validationError).toContain('at least one member');
     });
+  });
+
+  describe('equal split with small amount', () => {
+    beforeEach(() => createComponent({ members, amount: 10 }));
 
     it('sums exactly to the total for awkward amounts', () => {
-      createComponent({ members, amount: 10 });
       component.confirmSplit();
 
       const result = dialogRefSpy.close.calls.mostRecent().args[0];
@@ -145,10 +148,15 @@ describe('SplitMethodDialogComponent', () => {
       expect(dialogRefSpy.close).not.toHaveBeenCalled();
       expect(component.validationError).toContain('between 0 and 100');
     });
+  });
 
-    it('maps percentages proportionally on non-round totals', () => {
+  describe('split by percentage on non-round total', () => {
+    beforeEach(() => {
       createComponent({ members, amount: 90 });
       component.selectedTabIndex = 2;
+    });
+
+    it('maps percentages proportionally on non-round totals', () => {
       component.members[0].amount = 30;
       component.members[1].amount = 70;
       component.confirmSplit();
