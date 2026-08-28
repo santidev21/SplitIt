@@ -14,6 +14,7 @@ describe('SplitMethodDialogComponent', () => {
   ];
 
   function createComponent(data: { members: any[]; amount: number }) {
+    TestBed.resetTestingModule();
     dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
     TestBed.configureTestingModule({
       imports: [SplitMethodDialogComponent],

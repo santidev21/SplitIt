@@ -29,7 +29,7 @@ public class Phase10DatabaseTests : IClassFixture<SqlServerFixture>
         Assert.Empty(pending);
         var applied = (await ctx.Database.GetAppliedMigrationsAsync()).ToList();
         Assert.Equal(10, applied.Count);
-        Assert.Equal("20250524200603_ChangeExpenseDateToDateTime", applied.Last());
+        Assert.Equal("20260827211311_AddUserActiveAndAppSettings", applied.Last());
 
         // Seed data exists
         var currencies = await ctx.Currencies.ToListAsync();
