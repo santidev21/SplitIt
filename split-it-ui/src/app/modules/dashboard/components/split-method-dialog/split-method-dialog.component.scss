@@ -30,17 +30,18 @@
   margin-bottom: var(--space-2);
 
   .member-name {
-    flex: 1;
+    flex: 0 0 30%;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
+    padding-right: var(--space-3);
     height: 56px;
     font-size: var(--font-size-base);
     box-sizing: border-box;
   }
 
   .member-input {
-    flex: 1;
+    flex: 0 0 70%;
     display: flex;
     align-items: center;
   }

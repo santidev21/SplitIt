@@ -4,6 +4,12 @@ mat-dialog-content {
   overflow: hidden;
 }
 
+.expense-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
 .full-width-field {
   width: 100%;
 }

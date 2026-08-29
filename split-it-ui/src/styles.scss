@@ -163,15 +163,15 @@ body {
   letter-spacing: -0.015em;
   line-height: 1.4;
   margin: 0 0 var(--space-2);
-  padding: 0 var(--space-4);
+  padding: 0;
 }
 
 .heading-md {
   font-size: var(--font-size-lg);
   font-weight: 500;
   line-height: 1.4;
-  margin: 0 0 var(--space-2);
-  padding: 0 var(--space-4);
+  margin: 0 var(--space-2) var(--space-2);
+  padding: 0;
 }
 
 // ─── Spacing utilities ───
@@ -229,10 +229,17 @@ body {
 
 .mat-mdc-dialog-container {
   --mdc-dialog-container-shape: var(--radius-xl);
+  max-width: 500px;
+  width: 100%;
 }
 
 .mat-mdc-tab-group {
   --mat-tab-header-active-focus-indicator-color: var(--color-primary);
+}
+
+// ─── SweetAlert2 overrides ───
+.swal2-actions {
+  justify-content: center !important;
 }
 
 // ─── Scrollbar ───

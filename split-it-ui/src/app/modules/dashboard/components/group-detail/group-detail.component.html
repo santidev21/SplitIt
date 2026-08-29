@@ -36,7 +36,7 @@
 
       <div>
         <p class="heading-md mb-1">Summary per participant:</p>
-        <ul>
+        <ul style="margin: 0 var(--space-2); padding-left: var(--space-4);">
           <li *ngFor="let item of debtDetails" class="debt-item"
           [class.text-green-600]="item.amount > 0"
             [class.text-red-600]="item.amount < 0">
