@@ -4,10 +4,11 @@ import { HeaderBarComponent } from '../header-bar/header-bar.component';
 import { FormsModule } from '@angular/forms';
 import { FriendService, Friend, FriendRequest, FriendRequestsResponse, SearchUser } from '../../services/friend.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-friends-page',
-  imports: [MATERIAL_IMPORTS, HeaderBarComponent, FormsModule],
+  imports: [MATERIAL_IMPORTS, HeaderBarComponent, FormsModule, TranslatePipe],
   templateUrl: './friends-page.component.html',
   styleUrls: ['./friends-page.component.scss']
 })
@@ -27,7 +28,8 @@ export class FriendsPageComponent implements OnInit {
 
   constructor(
     private friendService: FriendService,
-    private notifications: NotificationService
+    private notifications: NotificationService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -64,7 +66,7 @@ export class FriendsPageComponent implements OnInit {
   search(): void {
     const term = this.searchTerm.trim();
     if (term.length < 2) {
-      this.notifications.toast('Type at least 2 characters to search.', 'warning');
+      this.notifications.toast(this.translate.instant('FRIENDS.MIN_CHARS'), 'warning');
       return;
     }
     this.isSearching = true;
@@ -73,7 +75,7 @@ export class FriendsPageComponent implements OnInit {
         this.searchResults = results;
         this.isSearching = false;
         if (results.length === 0) {
-          this.notifications.toast('No users found.', 'info');
+          this.notifications.toast(this.translate.instant('FRIENDS.NO_USERS_FOUND'), 'info');
         }
       },
       error: () => {
@@ -87,7 +89,7 @@ export class FriendsPageComponent implements OnInit {
     this.friendService.sendRequest({ userId: user.id }).subscribe({
       next: () => {
         this.pendingSearchUserId = null;
-        this.notifications.toast(`Friend request sent to ${user.name}.`, 'success');
+        this.notifications.toast(this.translate.instant('FRIENDS.REQUEST_SENT_TO', { name: user.name }), 'success');
         this.searchResults = this.searchResults.filter(r => r.id !== user.id);
         this.loadRequests(false);
       },
@@ -100,13 +102,13 @@ export class FriendsPageComponent implements OnInit {
   sendByEmail(): void {
     const email = this.addByEmail.trim();
     if (!email) {
-      this.notifications.toast('Enter an email address.', 'warning');
+      this.notifications.toast(this.translate.instant('FRIENDS.ENTER_EMAIL'), 'warning');
       return;
     }
     this.friendService.sendRequest({ email }).subscribe({
       next: () => {
         this.addByEmail = '';
-        this.notifications.toast('Friend request sent.', 'success');
+        this.notifications.toast(this.translate.instant('FRIENDS.REQUEST_SENT'), 'success');
         this.loadRequests(false);
       },
       error: () => {}
@@ -116,7 +118,7 @@ export class FriendsPageComponent implements OnInit {
   acceptRequest(request: FriendRequest): void {
     this.friendService.respond(request.friendshipId, true).subscribe({
       next: () => {
-        this.notifications.toast(`${request.name} is now your friend.`, 'success');
+        this.notifications.toast(this.translate.instant('FRIENDS.NOW_FRIEND', { name: request.name }), 'success');
         this.loadData();
       },
       error: () => {}
@@ -127,7 +129,7 @@ export class FriendsPageComponent implements OnInit {
     this.friendService.respond(request.friendshipId, false).subscribe({
       next: () => {
         this.incoming = this.incoming.filter(r => r.friendshipId !== request.friendshipId);
-        this.notifications.toast('Request rejected.', 'info');
+        this.notifications.toast(this.translate.instant('FRIENDS.REQUEST_REJECTED'), 'info');
       },
       error: () => {}
     });
@@ -135,15 +137,15 @@ export class FriendsPageComponent implements OnInit {
 
   removeFriend(friend: Friend): void {
     this.notifications.confirm(
-      'Remove friend',
-      `Remove ${friend.name} from your friends? You will not be removed from shared groups.`,
-      'Yes, remove'
+      this.translate.instant('FRIENDS.REMOVE_TITLE'),
+      this.translate.instant('FRIENDS.REMOVE_TEXT', { name: friend.name }),
+      this.translate.instant('COMMON.YES_REMOVE')
     ).then(result => {
       if (result.isConfirmed) {
         this.friendService.removeFriend(friend.id).subscribe({
           next: () => {
             this.friends = this.friends.filter(f => f.id !== friend.id);
-            this.notifications.toast('Friend removed.', 'success');
+            this.notifications.toast(this.translate.instant('FRIENDS.FRIEND_REMOVED'), 'success');
           },
           error: () => {}
         });

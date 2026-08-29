@@ -1,21 +1,26 @@
 <header class="header-bar" role="banner">
-    <a class="logo-link" routerLink="/dashboard/home" aria-label="SplitIt home">
+    <a class="logo-link" routerLink="/dashboard/home" [attr.aria-label]="'HEADER.HOME_LINK' | translate">
       <img src="assets/logo.svg" alt="" class="logo-icon" width="36" height="36" />
       <span class="logo-text">Split<span class="logo-accent">It</span></span>
     </a>
 
-    <nav class="nav-links" [class.open]="menuOpen" role="navigation" aria-label="Main navigation">
-      <a routerLink="/dashboard/home" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
-      <a routerLink="/dashboard/friends" routerLinkActive="active">Friends</a>
-      <a *ngIf="isAdmin" routerLink="/dashboard/admin" routerLinkActive="active">Admin</a>
+    <nav class="nav-links" [class.open]="menuOpen" role="navigation" [attr.aria-label]="'HEADER.MAIN_NAV' | translate">
+      <a routerLink="/dashboard/home" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">{{ 'HEADER.HOME' | translate }}</a>
+      <a routerLink="/dashboard/friends" routerLinkActive="active">{{ 'HEADER.FRIENDS' | translate }}</a>
+      <a *ngIf="isAdmin" routerLink="/dashboard/admin" routerLinkActive="active">{{ 'HEADER.ADMIN' | translate }}</a>
     </nav>
 
     <div class="header-actions">
-      <button class="theme-toggle" (click)="toggleTheme()" [attr.aria-label]="isDark ? 'Switch to light mode' : 'Switch to dark mode'" type="button">
+      <button class="lang-toggle" (click)="toggleLanguage()"
+        [attr.aria-label]="'HEADER.LANG_TOGGLE' | translate: { lang: languageService.currentLang === 'en' ? 'Español' : 'English' }"
+        type="button">
+        <span class="lang-text">{{ languageService.currentLang === 'en' ? 'EN' : 'ES' }}</span>
+      </button>
+      <button class="theme-toggle" (click)="toggleTheme()" [attr.aria-label]="(isDark ? 'HEADER.SWITCH_LIGHT' : 'HEADER.SWITCH_DARK') | translate" type="button">
         <mat-icon>{{ isDark ? 'light_mode' : 'dark_mode' }}</mat-icon>
       </button>
-      <button class="logout-button" (click)="logout()" aria-label="Logout" type="button">Logout</button>
-      <button class="menu-toggle" (click)="menuOpen = !menuOpen" [attr.aria-expanded]="menuOpen" aria-label="Toggle navigation menu" type="button">
+      <button class="logout-button" (click)="logout()" [attr.aria-label]="'HEADER.LOGOUT' | translate" type="button">{{ 'HEADER.LOGOUT' | translate }}</button>
+      <button class="menu-toggle" (click)="menuOpen = !menuOpen" [attr.aria-expanded]="menuOpen" [attr.aria-label]="'HEADER.TOGGLE_MENU' | translate" type="button">
         <mat-icon>{{ menuOpen ? 'close' : 'menu' }}</mat-icon>
       </button>
     </div>

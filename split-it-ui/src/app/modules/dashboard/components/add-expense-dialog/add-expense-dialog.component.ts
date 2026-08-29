@@ -12,11 +12,12 @@ import { PositiveNumberDirective } from '../../../../shared/directives/positive-
 import { ExpenseParticipant } from '../../../../models/expense.model';
 import { ExpenseService } from '../../services/expense.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-add-expense-dialog',
   providers: [provideNativeDateAdapter()],
-  imports: [MATERIAL_IMPORTS, MatDialogModule, LoadingSpinnerComponent, PositiveNumberDirective],
+  imports: [MATERIAL_IMPORTS, MatDialogModule, LoadingSpinnerComponent, PositiveNumberDirective, TranslatePipe],
   templateUrl: './add-expense-dialog.component.html',
   styleUrls: ['./add-expense-dialog.component.scss']
 })
@@ -28,7 +29,7 @@ export class AddExpenseDialogComponent implements OnInit {
 
   expenseForm!: FormGroup;
   selectedDate: Date = new Date();
-  splitMethodLabel: string = "equally"
+  splitMethodLabel: string = 'EXPENSE.EQUALLY'
 
   members: GroupMember[] = [];
   groupId : number = 0;
@@ -41,7 +42,8 @@ export class AddExpenseDialogComponent implements OnInit {
     private dialog: MatDialog,
     private dialogRef: MatDialogRef<AddExpenseDialogComponent>,
     private notifications: NotificationService,
-    @Inject(MAT_DIALOG_DATA) public data: { groupId: number }
+    @Inject(MAT_DIALOG_DATA) public data: { groupId: number },
+    private translate: TranslateService
   ) {
     this.expenseForm = this.fb.group({
       title: ['', [Validators.required, Validators.maxLength(100)]],
@@ -66,14 +68,14 @@ export class AddExpenseDialogComponent implements OnInit {
       },
       error: () => {
         this.isLoading = false;
-        this.notifications.toast('Could not load group members.', 'error');
+        this.notifications.toast(this.translate.instant('NOTIFICATIONS.COULD_NOT_LOAD_MEMBERS'), 'error');
       }
     });
   }
 
   openSplitMethod(){
     if (!this.expenseForm.value.amount || this.expenseForm.value.amount <= 0){
-      this.notifications.toast('Enter an amount greater than 0 before splitting.', 'warning');
+      this.notifications.toast(this.translate.instant('NOTIFICATIONS.AMOUNT_GT_ZERO_SPLIT'), 'warning');
       return;
     }
     const dialogRef = this.dialog.open(SplitMethodDialogComponent, {
@@ -108,7 +110,7 @@ export class AddExpenseDialogComponent implements OnInit {
     this.expenseForm.markAllAsTouched();
     if (this.expenseForm.valid) {
       if (this.expenseParticipants.length === 0) {
-        this.notifications.toast('Open the split options and confirm how the expense is divided.', 'warning');
+        this.notifications.toast(this.translate.instant('NOTIFICATIONS.OPEN_SPLIT_OPTIONS'), 'warning');
         return;
       }
       if (this.isSaving) return;
@@ -126,7 +128,7 @@ export class AddExpenseDialogComponent implements OnInit {
           this.isSaving = false;
           if (resp){
             this.dialogRef.close('saved');
-            this.notifications.success('Expense added successfully.');
+            this.notifications.success(this.translate.instant('NOTIFICATIONS.EXPENSE_ADDED'));
           }
         },
         error: () => { this.isSaving = false; }

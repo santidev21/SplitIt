@@ -3,10 +3,11 @@ import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-forgot-password',
-  imports: [MATERIAL_IMPORTS, RouterModule, ReactiveFormsModule],
+  imports: [MATERIAL_IMPORTS, RouterModule, ReactiveFormsModule, TranslatePipe],
   templateUrl: './forgot-password.component.html',
   styleUrls: ['../../auth.styles.scss']
 })

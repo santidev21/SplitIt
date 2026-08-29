@@ -1,48 +1,48 @@
-<h2 mat-dialog-title class="heading-xl">Group settings</h2>
+<h2 mat-dialog-title class="heading-xl">{{ 'GROUP_SETTINGS.TITLE' | translate }}</h2>
 
 <mat-dialog-content>
   <mat-tab-group [(selectedIndex)]="selectedTabIndex">
-    <mat-tab label="General">
+    <mat-tab [label]="'GROUP_SETTINGS.TAB_GENERAL' | translate">
       <div class="tab-content">
         <form [formGroup]="groupForm">
           <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Name</mat-label>
+            <mat-label>{{ 'GROUP_SETTINGS.NAME' | translate }}</mat-label>
             <input matInput formControlName="name" />
-            <mat-error *ngIf="groupForm.get('name')?.hasError('required')">Name is required.</mat-error>
+            <mat-error *ngIf="groupForm.get('name')?.hasError('required')">{{ 'GROUP_SETTINGS.NAME_REQUIRED' | translate }}</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Description</mat-label>
+            <mat-label>{{ 'GROUP_SETTINGS.DESCRIPTION' | translate }}</mat-label>
             <textarea matInput formControlName="description" rows="3"></textarea>
-            <mat-error *ngIf="groupForm.get('description')?.hasError('required')">Description is required.</mat-error>
+            <mat-error *ngIf="groupForm.get('description')?.hasError('required')">{{ 'GROUP_SETTINGS.DESCRIPTION_REQUIRED' | translate }}</mat-error>
           </mat-form-field>
 
-          <mat-checkbox formControlName="allowToDeleteExpenses" aria-label="Allow all members to delete expenses">Allow all members to delete expenses</mat-checkbox>
+          <mat-checkbox formControlName="allowToDeleteExpenses" [attr.aria-label]="'GROUP_SETTINGS.ALLOW_DELETE' | translate">{{ 'GROUP_SETTINGS.ALLOW_DELETE' | translate }}</mat-checkbox>
         </form>
       </div>
     </mat-tab>
 
-    <mat-tab label="Members">
+    <mat-tab [label]="'GROUP_SETTINGS.TAB_MEMBERS' | translate">
       <div class="tab-content">
         <div *ngFor="let member of members" class="member-row">
           <div class="member-info">
             <mat-icon>{{ member.role === 'creator' ? 'star' : 'person' }}</mat-icon>
             <span>{{ member.name }}</span>
-            <span class="role-chip">{{ member.role || 'member' }}</span>
+            <span class="role-chip">{{ member.role || ('GROUP_SETTINGS.ROLE_MEMBER' | translate) }}</span>
           </div>
           <div class="member-actions" *ngIf="canManageMember(member)">
             <button mat-icon-button color="primary" (click)="promote(member)"
-                    *ngIf="(member.role || 'member') === 'member'" matTooltip="Promote to admin"
-                    [attr.aria-label]="'Promote ' + member.name + ' to admin'">
+                    *ngIf="(member.role || 'member') === 'member'" [matTooltip]="'GROUP_SETTINGS.PROMOTE' | translate"
+                    [attr.aria-label]="'GROUP_SETTINGS.PROMOTE_USER' | translate: { name: member.name }">
               <mat-icon>arrow_upward</mat-icon>
             </button>
             <button mat-icon-button color="accent" (click)="demote(member)"
-                    *ngIf="member.role === 'admin'" matTooltip="Demote to member"
-                    [attr.aria-label]="'Demote ' + member.name + ' to member'">
+                    *ngIf="member.role === 'admin'" [matTooltip]="'GROUP_SETTINGS.DEMOTE' | translate"
+                    [attr.aria-label]="'GROUP_SETTINGS.DEMOTE_USER' | translate: { name: member.name }">
               <mat-icon>arrow_downward</mat-icon>
             </button>
-            <button mat-icon-button color="warn" (click)="remove(member)" matTooltip="Remove from group"
-                    [attr.aria-label]="'Remove ' + member.name + ' from group'">
+            <button mat-icon-button color="warn" (click)="remove(member)" [matTooltip]="'GROUP_SETTINGS.REMOVE' | translate"
+                    [attr.aria-label]="'GROUP_SETTINGS.REMOVE_USER' | translate: { name: member.name }">
               <mat-icon>person_remove</mat-icon>
             </button>
           </div>
@@ -50,10 +50,10 @@
       </div>
     </mat-tab>
 
-    <mat-tab label="Invite">
+    <mat-tab [label]="'GROUP_SETTINGS.TAB_INVITE' | translate">
       <div class="tab-content">
         <div *ngIf="inviteableFriends().length === 0" class="empty-state">
-          <p>All your friends are already in this group.</p>
+          <p>{{ 'GROUP_SETTINGS.ALL_FRIENDS_IN_GROUP' | translate }}</p>
         </div>
         <div *ngFor="let friend of inviteableFriends()" class="member-row">
           <div class="member-info">
@@ -61,7 +61,7 @@
             <span>{{ friend.name }}</span>
             <span class="muted-email">{{ friend.email }}</span>
           </div>
-          <button mat-flat-button color="primary" (click)="invite(friend)" [attr.aria-label]="'Add ' + friend.name + ' to group'">Add</button>
+          <button mat-flat-button color="primary" (click)="invite(friend)" [attr.aria-label]="'GROUP_SETTINGS.ADD_FRIEND' | translate: { name: friend.name }">{{ 'GROUP_SETTINGS.ADD' | translate }}</button>
         </div>
       </div>
     </mat-tab>
@@ -69,6 +69,6 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button (click)="close()">Cancel</button>
-  <button mat-flat-button color="primary" [disabled]="groupForm.invalid" (click)="save()" aria-label="Save group settings">Save</button>
+  <button mat-button (click)="close()">{{ 'COMMON.CANCEL' | translate }}</button>
+  <button mat-flat-button color="primary" [disabled]="groupForm.invalid" (click)="save()" [attr.aria-label]="'COMMON.SAVE_SETTINGS' | translate">{{ 'COMMON.SAVE' | translate }}</button>
 </mat-dialog-actions>

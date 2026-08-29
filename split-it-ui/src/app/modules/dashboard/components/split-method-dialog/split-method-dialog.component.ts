@@ -5,10 +5,11 @@ import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { ExpenseParticipant } from '../../../../models/expense.model';
 import { PositiveNumberDirective } from '../../../../shared/directives/positive-number.directive';
 import { PercentageDirective } from '../../../../shared/directives/percentage.directive';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-split-method-dialog',
-  imports: [MATERIAL_IMPORTS, FormsModule, MatDialogModule, PositiveNumberDirective, PercentageDirective],
+  imports: [MATERIAL_IMPORTS, FormsModule, MatDialogModule, PositiveNumberDirective, PercentageDirective, TranslatePipe],
   templateUrl: './split-method-dialog.component.html',
   styleUrls: ['./split-method-dialog.component.scss']
 })
@@ -24,7 +25,8 @@ export class SplitMethodDialogComponent {
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private dialogRef: MatDialogRef<SplitMethodDialogComponent>
+    private dialogRef: MatDialogRef<SplitMethodDialogComponent>,
+    private translate: TranslateService
   ) {
     this.members = data.members || [];
     this.members.forEach((m) => {
@@ -42,34 +44,34 @@ export class SplitMethodDialogComponent {
 
   validateEqualSplit(): string {
     const selected = this.members.filter(m => this.equalSplitSelection[m.id]);
-    if (selected.length === 0) return 'Select at least one member to split the expense.';
+    if (selected.length === 0) return this.translate.instant('SPLIT.NO_MEMBERS');
     return '';
   }
 
   validateByAmount(): string {
     const entered = this.members.filter(m => m.amount != null && Number(m.amount) > 0);
-    if (entered.length === 0) return 'Enter an amount for at least one member.';
+    if (entered.length === 0) return this.translate.instant('SPLIT.NO_AMOUNTS');
     const sum = entered.reduce((s, m) => s + Number(m.amount), 0);
     if (Math.abs(sum - this.amount) > 0.01) {
       const diff = Math.abs(sum - this.amount);
       if (sum < this.amount) {
-        return `Amounts add up to $${sum.toFixed(2)} — missing $${diff.toFixed(2)} to reach $${this.amount.toFixed(2)}.`;
+        return this.translate.instant('SPLIT.AMOUNTS_UNDER', { sum: sum.toFixed(2), diff: diff.toFixed(2), total: this.amount.toFixed(2) });
       }
-      return `Amounts add up to $${sum.toFixed(2)} — $${diff.toFixed(2)} over the total $${this.amount.toFixed(2)}.`;
+      return this.translate.instant('SPLIT.AMOUNTS_OVER', { sum: sum.toFixed(2), diff: diff.toFixed(2), total: this.amount.toFixed(2) });
     }
     return '';
   }
 
   validateByPercentage(): string {
     const entered = this.members.filter(m => m.amount != null && Number(m.amount) !== 0);
-    if (entered.length === 0) return 'Enter a percentage for at least one member.';
+    if (entered.length === 0) return this.translate.instant('SPLIT.NO_PERCENTAGES');
     for (const m of entered) {
       const pct = Number(m.amount);
-      if (pct < 0 || pct > 100) return `Percentages must be between 0 and 100 (${m.name}: ${pct}).`;
+      if (pct < 0 || pct > 100) return this.translate.instant('SPLIT.PERCENTAGE_INVALID', { name: m.name, pct });
     }
     const sumPct = entered.reduce((s, m) => s + Number(m.amount), 0);
     if (Math.abs(sumPct - 100) > 0.01) {
-      return `Percentages add up to ${sumPct.toFixed(2)}% — they must add up to 100%.`;
+      return this.translate.instant('SPLIT.PERCENTAGE_INVALID_TOTAL', { sum: sumPct.toFixed(2) });
     }
     return '';
   }
@@ -93,17 +95,17 @@ export class SplitMethodDialogComponent {
 
     if (this.selectedTabIndex === 0) {
       result = {
-        method: 'equally',
+        method: 'SPLIT.METHOD_EQUAL',
         expenseParticipant: this.calculateEqualSplit()
       };
     } else if (this.selectedTabIndex === 1) {
       result = {
-        method: 'unequally',
+        method: 'SPLIT.METHOD_UNEQUAL',
         expenseParticipant: this.calculateSplitByAmount()
       };
     } else {
       result = {
-        method: 'percentage',
+        method: 'SPLIT.METHOD_PERCENTAGE',
         expenseParticipant: this.calculateSplitByPercentage()
       };
     }

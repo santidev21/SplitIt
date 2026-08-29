@@ -116,6 +116,38 @@
     }
   }
 
+  .lang-toggle {
+    background: none;
+    border: 1.5px solid rgba(255, 255, 255, 0.5);
+    color: white;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    letter-spacing: 0.05em;
+    min-width: 32px;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.8);
+    }
+
+    &:focus-visible {
+      outline: 2px solid white;
+      outline-offset: -2px;
+    }
+
+    .lang-text {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+    }
+  }
+
   .logout-button {
     background: transparent;
     border: 1.5px solid rgba(255, 255, 255, 0.5);

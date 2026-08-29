@@ -3,6 +3,7 @@ import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PositiveNumberDirective } from '../../../../shared/directives/positive-number.directive';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 export interface SettleDebtDialogData {
   groupId: number;
@@ -15,7 +16,7 @@ export interface SettleDebtDialogData {
 
 @Component({
   selector: 'app-settle-debt-dialog',
-  imports: [MATERIAL_IMPORTS, MatDialogModule, PositiveNumberDirective],
+  imports: [MATERIAL_IMPORTS, MatDialogModule, PositiveNumberDirective, TranslatePipe],
   templateUrl: './settle-debt-dialog.component.html',
   styleUrls: ['./settle-debt-dialog.component.scss']
 })
@@ -27,12 +28,13 @@ export class SettleDebtDialogComponent {
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: SettleDebtDialogData,
     private fb: FormBuilder,
-    private dialogRef: MatDialogRef<SettleDebtDialogComponent>
+    private dialogRef: MatDialogRef<SettleDebtDialogComponent>,
+    private translate: TranslateService
   ) {
     this.maxAmount = Math.max(0, Math.round(data.remainingDebt * 100) / 100);
     this.descriptionText = data.theyPayMe
-      ? `${data.otherUserName} pays you in this group.`
-      : `You pay ${data.otherUserName} in this group.`;
+      ? this.translate.instant('SETTLE.PAYS_YOU', { name: data.otherUserName })
+      : this.translate.instant('SETTLE.YOU_PAY', { name: data.otherUserName });
     this.settleForm = this.fb.group({
       amount: [this.maxAmount, [
         Validators.required,

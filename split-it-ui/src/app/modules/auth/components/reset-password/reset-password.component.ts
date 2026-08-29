@@ -3,10 +3,11 @@ import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-reset-password',
-  imports: [MATERIAL_IMPORTS, RouterModule, ReactiveFormsModule],
+  imports: [MATERIAL_IMPORTS, RouterModule, ReactiveFormsModule, TranslatePipe],
   templateUrl: './reset-password.component.html',
   styleUrls: ['../../auth.styles.scss']
 })

@@ -1,7 +1,6 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
-import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
-import { NotificationService } from '../shared/services/notification.service';
+import Swal from 'sweetalert2';
 
 export function extractBackendMessage(err: HttpErrorResponse): string {
   const body = err.error;
@@ -34,14 +33,22 @@ export function extractBackendMessage(err: HttpErrorResponse): string {
 }
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
-  const notifications = inject(NotificationService);
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      // 401 is handled by authInterceptor (session expiry redirect).
-      // Business errors are surfaced to the user here.
       if (error.status !== 401) {
         const message = extractBackendMessage(error);
-        notifications.toast(message, 'error');
+        Swal.fire({
+          toast: true,
+          position: 'center',
+          icon: 'error',
+          title: message,
+          showConfirmButton: true,
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#005cbb',
+          timer: undefined,
+          timerProgressBar: false,
+          customClass: { popup: 'centered-toast' }
+        });
       }
       return throwError(() => error);
     })

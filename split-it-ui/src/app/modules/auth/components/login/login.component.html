@@ -2,31 +2,31 @@
 
 <div class="auth-container">
     <mat-card class="auth-card" appearance="outlined">
-      <mat-card-title class="auth-text">Login to your account</mat-card-title>
+      <mat-card-title class="auth-text">{{ 'AUTH.LOGIN_TITLE' | translate }}</mat-card-title>
       <mat-card-content>
         <form [formGroup]="loginForm" (ngSubmit)="login($event)">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Email</mat-label>
-            <input matInput type="email" formControlName="email" placeholder="example@example.com" required aria-required="true" />
-            <mat-error *ngIf="loginForm.get('email')?.hasError('required')">Email is required.</mat-error>
-            <mat-error *ngIf="loginForm.get('email')?.hasError('email') && !loginForm.get('email')?.hasError('required')">Enter a valid email address.</mat-error>
+            <mat-label>{{ 'AUTH.EMAIL' | translate }}</mat-label>
+            <input matInput type="email" formControlName="email" [placeholder]="'AUTH.EMAIL_PLACEHOLDER' | translate" required aria-required="true" />
+            <mat-error *ngIf="loginForm.get('email')?.hasError('required')">{{ 'AUTH.EMAIL_REQUIRED' | translate }}</mat-error>
+            <mat-error *ngIf="loginForm.get('email')?.hasError('email') && !loginForm.get('email')?.hasError('required')">{{ 'AUTH.EMAIL_INVALID' | translate }}</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Password</mat-label>
-            <input matInput type="password" formControlName="password" placeholder="Enter your password" required aria-required="true" />
-            <mat-error *ngIf="loginForm.get('password')?.hasError('required')">Password is required.</mat-error>
-            <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">Password must be at least 6 characters.</mat-error>
+            <mat-label>{{ 'AUTH.PASSWORD' | translate }}</mat-label>
+            <input matInput type="password" formControlName="password" [placeholder]="'AUTH.PASSWORD_PLACEHOLDER' | translate" required aria-required="true" />
+            <mat-error *ngIf="loginForm.get('password')?.hasError('required')">{{ 'AUTH.PASSWORD_REQUIRED' | translate }}</mat-error>
+            <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">{{ 'AUTH.PASSWORD_MIN_LENGTH' | translate }}</mat-error>
           </mat-form-field>
 
-          <button mat-raised-button color="primary" class="full-width" type="submit">Login now</button>
+          <button mat-raised-button color="primary" class="full-width" type="submit">{{ 'AUTH.LOGIN_BUTTON' | translate }}</button>
         </form>
         <div class="auth-links-row">
-          <a routerLink="/auth/forgot-password" class="auth-link">Forgot password?</a>
+          <a routerLink="/auth/forgot-password" class="auth-link">{{ 'AUTH.FORGOT_PASSWORD' | translate }}</a>
         </div>
       </mat-card-content>
       <mat-card-actions>
-        <span class="auth-action-text">Don't have an account? <a routerLink="/auth/register" class="auth-link">Create account</a></span>
+        <span class="auth-action-text">{{ 'AUTH.NO_ACCOUNT' | translate }} <a routerLink="/auth/register" class="auth-link">{{ 'AUTH.CREATE_ACCOUNT' | translate }}</a></span>
       </mat-card-actions>
     </mat-card>
   </div>

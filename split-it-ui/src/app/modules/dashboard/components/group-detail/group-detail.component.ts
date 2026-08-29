@@ -15,10 +15,11 @@ import { UserGroupRole } from '../../../../models/enums/user-group-role.enum';
 import { DebtDetails, DebtOwedByUserDto, DebtOwedToUserDto, FullDebtSummaryDto } from '../../../../models/debts-summary';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-group-detail',
-  imports: [MATERIAL_IMPORTS, HeaderBarComponent, RouterModule, FormsModule],
+  imports: [MATERIAL_IMPORTS, HeaderBarComponent, RouterModule, FormsModule, TranslatePipe],
   templateUrl: './group-detail.component.html',
   styleUrls: ['./group-detail.component.scss']
 })
@@ -50,7 +51,8 @@ export class GroupDetailComponent implements OnInit{
     private expenseService: ExpenseService,
     private groupService: GroupService,
     private snackbar: MatSnackBar,
-    private notifications: NotificationService
+    private notifications: NotificationService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -84,7 +86,7 @@ export class GroupDetailComponent implements OnInit{
 
   onEditGroup(){
     if (!this.isAdminOrCreator){
-      this.notifications.toast('Only the group creator or admins can edit the group.', 'warning');
+      this.notifications.toast(this.translate.instant('GROUP_DETAIL.EDIT_ONLY_CREATOR'), 'warning');
       return;
     }
     const dialogRef = this.dialog.open(GroupSettingsDialogComponent, {
@@ -105,14 +107,14 @@ export class GroupDetailComponent implements OnInit{
 
   onDeleteGroup(){
     this.notifications.confirm(
-      'Delete group',
-      'This will permanently delete the group, all its expenses and payments. This action cannot be undone.',
-      'Yes, delete group'
+      this.translate.instant('GROUP_DETAIL.DELETE_TITLE'),
+      this.translate.instant('GROUP_DETAIL.DELETE_TEXT'),
+      this.translate.instant('COMMON.YES_DELETE')
     ).then(result => {
       if (result.isConfirmed) {
         this.groupService.deleteGroup(this.groupId).subscribe({
           next: () => {
-            this.notifications.success('Group deleted.');
+            this.notifications.success(this.translate.instant('GROUP_DETAIL.DELETE_SUCCESS'));
             this.router.navigate(['/dashboard/home']);
           },
           error: () => {}
@@ -150,12 +152,12 @@ export class GroupDetailComponent implements OnInit{
 
       if (this.totalOwedByUser > this.totalOwedToUser) {
         const amount = Math.round(this.totalOwedByUser - this.totalOwedToUser);
-        this.debtMessage = `You owe: $${amount}`;
+        this.debtMessage = this.translate.instant('GROUP_DETAIL.OWE', { amount });
       } else if (this.totalOwedToUser > this.totalOwedByUser) {
         const amount = Math.round(this.totalOwedToUser - this.totalOwedByUser);
-        this.debtMessage = `You are owed: $${amount}`;
+        this.debtMessage = this.translate.instant('GROUP_DETAIL.OWED', { amount });
       } else {
-        this.debtMessage = 'You are all settled up!';
+        this.debtMessage = this.translate.instant('GROUP_DETAIL.ALL_SETTLED');
       }
 
       // Combine debts into a single list with signed values
@@ -225,10 +227,10 @@ export class GroupDetailComponent implements OnInit{
     this.expenseService.settleExpenseWithUser(httpBody).subscribe({
       next: (resp: any) =>{
         this.refreshPage();
-        const remaining = resp.remainingDebt !== undefined && resp.remainingDebt > 0
-          ? ` Remaining: $${resp.remainingDebt}`
+        const remainingText = resp.remainingDebt !== undefined && resp.remainingDebt > 0
+          ? this.translate.instant('GROUP_DETAIL.REMAINING_DEBT', { amount: resp.remainingDebt })
           : '';
-        this.notifications.toast(`Payment of $${amount} registered!${remaining}`, 'success');
+        this.notifications.toast(this.translate.instant('GROUP_DETAIL.PAYMENT_REGISTERED', { amount, remaining: remainingText }), 'success');
       },
       error: () => {
         // Error feedback is handled globally by errorInterceptor

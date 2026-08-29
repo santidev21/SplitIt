@@ -7,6 +7,7 @@ import { GroupService } from '../../services/group.service';
 import { FriendService, Friend } from '../../services/friend.service';
 import { GroupMember } from '../../../../models/group.model';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 export interface GroupSettingsDialogData {
   groupId: number;
@@ -16,7 +17,7 @@ export interface GroupSettingsDialogData {
 
 @Component({
   selector: 'app-group-settings-dialog',
-  imports: [MATERIAL_IMPORTS, MatDialogModule, FormsModule],
+  imports: [MATERIAL_IMPORTS, MatDialogModule, FormsModule, TranslatePipe],
   templateUrl: './group-settings-dialog.component.html',
   styleUrls: ['./group-settings-dialog.component.scss']
 })
@@ -33,7 +34,8 @@ export class GroupSettingsDialogComponent implements OnInit {
     private groupService: GroupService,
     private friendService: FriendService,
     private dialogRef: MatDialogRef<GroupSettingsDialogComponent>,
-    private notifications: NotificationService
+    private notifications: NotificationService,
+    private translate: TranslateService
   ) {
     this.currentUserId = Number(localStorage.getItem('userId'));
     this.groupForm = this.fb.group({
@@ -98,11 +100,11 @@ export class GroupSettingsDialogComponent implements OnInit {
     }
     this.groupService.updateGroup(this.data.groupId, this.groupForm.value).subscribe({
       next: () => {
-        this.notifications.success('Group updated.');
+        this.notifications.success(this.translate.instant('GROUP_SETTINGS.UPDATE_SUCCESS'));
         this.dialogRef.close('saved');
       },
       error: (err: any) => {
-        const msg = err.error?.message || 'Failed to update group.';
+        const msg = err.error?.message || this.translate.instant('GROUP_SETTINGS.UPDATE_FAILED');
         this.notifications.toast(msg, 'error');
       }
     });
@@ -111,7 +113,7 @@ export class GroupSettingsDialogComponent implements OnInit {
   invite(friend: Friend): void {
     this.groupService.inviteMember(this.data.groupId, friend.id).subscribe({
       next: () => {
-        this.notifications.toast(`${friend.name} added to the group.`, 'success');
+        this.notifications.toast(this.translate.instant('GROUP_SETTINGS.ADDED_TO_GROUP', { name: friend.name }), 'success');
         this.loadMembers();
       },
       error: () => {}
@@ -121,7 +123,7 @@ export class GroupSettingsDialogComponent implements OnInit {
   promote(member: GroupMember): void {
     this.groupService.updateMemberRole(this.data.groupId, member.id, 'admin').subscribe({
       next: () => {
-        this.notifications.toast(`${member.name} promoted to admin.`, 'success');
+        this.notifications.toast(this.translate.instant('GROUP_SETTINGS.PROMOTED', { name: member.name }), 'success');
         this.loadMembers();
       },
       error: () => {}
@@ -131,7 +133,7 @@ export class GroupSettingsDialogComponent implements OnInit {
   demote(member: GroupMember): void {
     this.groupService.updateMemberRole(this.data.groupId, member.id, 'member').subscribe({
       next: () => {
-        this.notifications.toast(`${member.name} is now a member.`, 'success');
+        this.notifications.toast(this.translate.instant('GROUP_SETTINGS.DEMOTED', { name: member.name }), 'success');
         this.loadMembers();
       },
       error: () => {}
@@ -140,14 +142,14 @@ export class GroupSettingsDialogComponent implements OnInit {
 
   remove(member: GroupMember): void {
     this.notifications.confirm(
-      'Remove member',
-      `Remove ${member.name} from the group?`,
-      'Yes, remove'
+      this.translate.instant('GROUP_SETTINGS.REMOVE_TITLE'),
+      this.translate.instant('GROUP_SETTINGS.REMOVE_TEXT', { name: member.name }),
+      this.translate.instant('COMMON.YES_REMOVE')
     ).then(result => {
       if (result.isConfirmed) {
         this.groupService.removeMember(this.data.groupId, member.id).subscribe({
           next: () => {
-            this.notifications.toast('Member removed.', 'success');
+            this.notifications.toast(this.translate.instant('GROUP_SETTINGS.REMOVED'), 'success');
             this.loadMembers();
           },
           error: () => {}

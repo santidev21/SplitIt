@@ -1,8 +1,8 @@
 <app-header-bar></app-header-bar>
 <div class="dashboard-container">
-    <span class="user-title">Hi, {{ userName }}!</span>
+    <span class="user-title">{{ 'DASHBOARD.HI' | translate: { name: userName } }}</span>
     <div class="dashboard-section">
-        <span class="my-groups-title">My Groups</span>
+        <span class="my-groups-title">{{ 'DASHBOARD.MY_GROUPS' | translate }}</span>
         <div class="groups-card-container">
                 <mat-card appearance="outlined">
                     <mat-card-content class="groups-card">
@@ -14,9 +14,9 @@
                             </div>
                         </div>
                         <ng-template #elseBlock>
-                            <span class="warning-text">Your user does not have any associated groups. Please request to be added to one or create your own group.</span>
+                            <span class="warning-text">{{ 'DASHBOARD.NO_GROUPS' | translate }}</span>
                         </ng-template>
-                        <button mat-icon-button color="primary" class="button-icon-color" (click)="openCreateGroupDialog()" aria-label="Create new group">
+                        <button mat-icon-button color="primary" class="button-icon-color" (click)="openCreateGroupDialog()" [attr.aria-label]="'DASHBOARD.CREATE_GROUP' | translate">
                             <mat-icon>add_circle_outline</mat-icon>
                         </button>
                     </mat-card-content>

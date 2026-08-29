@@ -2,77 +2,77 @@
 
 <div class="admin-container">
   <mat-card>
-    <p class="heading-xl text-center m-0 mb-2">Administration panel</p>
+    <p class="heading-xl text-center m-0 mb-2">{{ 'ADMIN.TITLE' | translate }}</p>
 
     <mat-tab-group [(selectedIndex)]="selectedTab">
-      <mat-tab label="Dashboard">
+      <mat-tab [label]="'ADMIN.TAB_DASHBOARD' | translate">
         <div class="tab-content" *ngIf="stats">
           <div class="stats-grid">
             <div class="stat-card">
               <mat-icon>people</mat-icon>
               <div class="stat-value">{{ stats.totalUsers }}</div>
-              <div class="stat-label">Total users</div>
+              <div class="stat-label">{{ 'ADMIN.TOTAL_USERS' | translate }}</div>
             </div>
             <div class="stat-card">
               <mat-icon>person</mat-icon>
               <div class="stat-value">{{ stats.activeUsers }}</div>
-              <div class="stat-label">Active users</div>
+              <div class="stat-label">{{ 'ADMIN.ACTIVE_USERS' | translate }}</div>
             </div>
             <div class="stat-card">
               <mat-icon>groups</mat-icon>
               <div class="stat-value">{{ stats.totalGroups }}</div>
-              <div class="stat-label">Groups</div>
+              <div class="stat-label">{{ 'ADMIN.GROUPS' | translate }}</div>
             </div>
             <div class="stat-card">
               <mat-icon>receipt_long</mat-icon>
               <div class="stat-value">{{ stats.totalExpenses }}</div>
-              <div class="stat-label">Expenses</div>
+              <div class="stat-label">{{ 'ADMIN.EXPENSES' | translate }}</div>
             </div>
             <div class="stat-card">
               <mat-icon>payments</mat-icon>
               <div class="stat-value">{{ stats.totalPayments }}</div>
-              <div class="stat-label">Payments</div>
+              <div class="stat-label">{{ 'ADMIN.PAYMENTS' | translate }}</div>
             </div>
           </div>
         </div>
       </mat-tab>
 
-      <mat-tab label="Users">
+      <mat-tab [label]="'ADMIN.TAB_USERS' | translate">
         <div class="tab-content">
           <div class="toolbar">
             <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
-              <mat-label>Search users by name or email</mat-label>
+              <mat-label>{{ 'ADMIN.SEARCH_USERS_PLACEHOLDER' | translate }}</mat-label>
               <input matInput [(ngModel)]="userSearch" (keyup.enter)="onUserSearch()" />
               <mat-icon matSuffix>search</mat-icon>
             </mat-form-field>
-            <button mat-flat-button color="primary" (click)="onUserSearch()" aria-label="Search users">Search</button>
+            <button mat-flat-button color="primary" (click)="onUserSearch()" [attr.aria-label]="'ADMIN.SEARCH_USERS_PLACEHOLDER' | translate">{{ 'COMMON.SEARCH' | translate }}</button>
           </div>
 
-          <div class="admin-table" role="table" aria-label="Users">
+          <div class="admin-table" role="table" [attr.aria-label]="'ADMIN.TAB_USERS' | translate">
             <div class="table-row header-row" role="row">
-              <div role="columnheader">Name</div>
-              <div role="columnheader">Email</div>
-              <div role="columnheader">Role</div>
-              <div role="columnheader">Status</div>
-              <div class="text-right" role="columnheader">Actions</div>
+              <div role="columnheader">{{ 'ADMIN.NAME' | translate }}</div>
+              <div role="columnheader">{{ 'ADMIN.EMAIL' | translate }}</div>
+              <div role="columnheader">{{ 'ADMIN.ROLE' | translate }}</div>
+              <div role="columnheader">{{ 'ADMIN.STATUS' | translate }}</div>
+              <div class="text-right" role="columnheader">{{ 'ADMIN.ACTIONS' | translate }}</div>
             </div>
             <div class="table-row" *ngFor="let user of users" role="row">
               <div role="cell">{{ user.name }}</div>
               <div class="muted" role="cell">{{ user.email }}</div>
               <div role="cell">
                 <mat-select [value]="user.roleId" (selectionChange)="changeRole(user, $event)"
-                            [disabled]="!isSuperAdmin || user.id === currentUserId" class="role-select" [attr.aria-label]="'Role for ' + user.name">
+                            [disabled]="!isSuperAdmin || user.id === currentUserId" class="role-select" [attr.aria-label]="'ADMIN.ROLE_FOR' | translate: { name: user.name }">
                   <mat-option *ngFor="let role of roles" [value]="role.id">{{ role.label }}</mat-option>
                 </mat-select>
               </div>
               <div role="cell">
-                <span class="status-chip" [class.active]="user.isActive" [attr.aria-label]="user.isActive ? 'Active' : 'Inactive'">{{ user.isActive ? 'Active' : 'Inactive' }}</span>
+                <span class="status-chip" [class.active]="user.isActive" [attr.aria-label]="user.isActive ? ('ADMIN.ACTIVE' | translate) : ('ADMIN.INACTIVE' | translate)">{{ user.isActive ? ('ADMIN.ACTIVE' | translate) : ('ADMIN.INACTIVE' | translate) }}</span>
               </div>
               <div class="text-right" role="cell">
                 <button mat-icon-button [color]="user.isActive ? 'warn' : 'primary'"
                         (click)="toggleActive(user)"
-                        [matTooltip]="user.isActive ? 'Deactivate' : 'Activate'"
-                        [attr.aria-label]="user.isActive ? 'Deactivate ' + user.name : 'Activate ' + user.name">
+                        [matTooltip]="user.isActive ? ('ADMIN.DEACTIVATE' | translate) : ('ADMIN.ACTIVATE' | translate)"
+                        [attr.aria-label]="user.isActive ? ('ADMIN.DEACTIVATE' | translate) + ' ' + user.name : ('ADMIN.ACTIVATE' | translate) + ' ' + user.name">
                   <mat-icon>{{ user.isActive ? 'block' : 'check_circle' }}</mat-icon>
                 </button>
               </div>
@@ -80,31 +80,31 @@
           </div>
 
           <div class="pager">
-            <button mat-button [disabled]="usersPage <= 1" (click)="prevPage()" aria-label="Previous page">Previous</button>
-            <span>Page {{ usersPage }} — {{ usersTotal }} users</span>
-            <button mat-button [disabled]="usersPage * usersPageSize >= usersTotal" (click)="nextPage()" aria-label="Next page">Next</button>
+            <button mat-button [disabled]="usersPage <= 1" (click)="prevPage()" [attr.aria-label]="'ADMIN.PREVIOUS' | translate">{{ 'ADMIN.PREVIOUS' | translate }}</button>
+            <span>{{ 'ADMIN.PAGE_INFO' | translate: { page: usersPage, total: usersTotal } }}</span>
+            <button mat-button [disabled]="usersPage * usersPageSize >= usersTotal" (click)="nextPage()" [attr.aria-label]="'ADMIN.NEXT' | translate">{{ 'ADMIN.NEXT' | translate }}</button>
           </div>
         </div>
       </mat-tab>
 
-      <mat-tab label="Groups">
+      <mat-tab [label]="'ADMIN.TAB_GROUPS' | translate">
         <div class="tab-content">
           <div class="toolbar">
             <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
-              <mat-label>Search groups by name</mat-label>
+              <mat-label>{{ 'ADMIN.SEARCH_GROUPS_PLACEHOLDER' | translate }}</mat-label>
               <input matInput [(ngModel)]="groupSearch" (keyup.enter)="loadGroups()" />
               <mat-icon matSuffix>search</mat-icon>
             </mat-form-field>
-            <button mat-flat-button color="primary" (click)="loadGroups()" aria-label="Search groups">Search</button>
+            <button mat-flat-button color="primary" (click)="loadGroups()" [attr.aria-label]="'ADMIN.SEARCH_GROUPS_PLACEHOLDER' | translate">{{ 'COMMON.SEARCH' | translate }}</button>
           </div>
 
-          <div class="admin-table" role="table" aria-label="Groups">
+          <div class="admin-table" role="table" [attr.aria-label]="'ADMIN.TAB_GROUPS' | translate">
             <div class="table-row header-row" role="row">
-              <div role="columnheader">Name</div>
-              <div role="columnheader">Description</div>
-              <div role="columnheader">Members</div>
-              <div role="columnheader">Expenses</div>
-              <div role="columnheader">Created</div>
+              <div role="columnheader">{{ 'ADMIN.NAME' | translate }}</div>
+              <div role="columnheader">{{ 'ADMIN.DESCRIPTION' | translate }}</div>
+              <div role="columnheader">{{ 'ADMIN.MEMBERS' | translate }}</div>
+              <div role="columnheader">{{ 'ADMIN.EXPENSES' | translate }}</div>
+              <div role="columnheader">{{ 'ADMIN.CREATED' | translate }}</div>
             </div>
             <div class="table-row" *ngFor="let group of groups" role="row">
               <div role="cell">{{ group.name }}</div>
@@ -117,63 +117,63 @@
         </div>
       </mat-tab>
 
-      <mat-tab label="Settings">
+      <mat-tab [label]="'ADMIN.TAB_SETTINGS' | translate">
         <div class="tab-content settings-content">
           <div class="setting-row">
-            <span>Allow new user registration</span>
-            <mat-slide-toggle [(ngModel)]="registrationEnabled" aria-label="Allow new user registration"></mat-slide-toggle>
+            <span>{{ 'ADMIN.ALLOW_REGISTRATION' | translate }}</span>
+            <mat-slide-toggle [(ngModel)]="registrationEnabled" [attr.aria-label]="'ADMIN.ALLOW_REGISTRATION' | translate"></mat-slide-toggle>
           </div>
 
           <div class="setting-row">
-            <span>Maximum expense amount ($)</span>
+            <span>{{ 'ADMIN.MAX_EXPENSE' | translate }}</span>
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <input matInput type="number" [(ngModel)]="maxExpenseAmount" aria-label="Maximum expense amount" />
+              <input matInput type="number" [(ngModel)]="maxExpenseAmount" [attr.aria-label]="'ADMIN.MAX_EXPENSE' | translate" />
             </mat-form-field>
           </div>
 
           <button mat-flat-button color="primary" class="save-settings-btn" (click)="saveSettings()"
-                  [disabled]="!isSuperAdmin" *ngIf="isSuperAdmin; else readOnlySettings" aria-label="Save settings">
-            Save settings
+                  [disabled]="!isSuperAdmin" *ngIf="isSuperAdmin; else readOnlySettings" [attr.aria-label]="'COMMON.SAVE_SETTINGS' | translate">
+            {{ 'COMMON.SAVE_SETTINGS' | translate }}
           </button>
           <ng-template #readOnlySettings>
-            <p class="muted">Only a SuperAdmin can change global settings.</p>
+            <p class="muted">{{ 'ADMIN.SUPERADMIN_ONLY' | translate }}</p>
           </ng-template>
 
           <mat-divider></mat-divider>
 
-          <p class="heading-md currencies-title mb-1">Currencies</p>
+          <p class="heading-md currencies-title mb-1">{{ 'ADMIN.CURRENCIES' | translate }}</p>
           <div class="toolbar">
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="currency-field">
-              <mat-label>Name</mat-label>
-              <input matInput [(ngModel)]="newCurrencyName" placeholder="Euro" />
+              <mat-label>{{ 'ADMIN.CURRENCY_NAME' | translate }}</mat-label>
+              <input matInput [(ngModel)]="newCurrencyName" [placeholder]="'ADMIN.CURRENCY_NAME_PLACEHOLDER' | translate" />
             </mat-form-field>
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="currency-field">
-              <mat-label>Symbol</mat-label>
-              <input matInput [(ngModel)]="newCurrencySymbol" placeholder="EUR" />
+              <mat-label>{{ 'ADMIN.CURRENCY_SYMBOL' | translate }}</mat-label>
+              <input matInput [(ngModel)]="newCurrencySymbol" [placeholder]="'ADMIN.CURRENCY_SYMBOL_PLACEHOLDER' | translate" />
             </mat-form-field>
-            <button mat-flat-button color="primary" (click)="addCurrency()" [disabled]="!isSuperAdmin || !newCurrencyName.trim() || !newCurrencySymbol.trim()" aria-label="Add currency">Add currency</button>
+            <button mat-flat-button color="primary" (click)="addCurrency()" [disabled]="!isSuperAdmin || !newCurrencyName.trim() || !newCurrencySymbol.trim()" [attr.aria-label]="'ADMIN.ADD_CURRENCY' | translate">{{ 'ADMIN.ADD_CURRENCY' | translate }}</button>
           </div>
         </div>
       </mat-tab>
 
       <!-- Password Resets -->
-      <mat-tab label="Password Resets" *ngIf="isSuperAdmin">
+      <mat-tab [label]="'ADMIN.TAB_PASSWORD_RESETS' | translate" *ngIf="isSuperAdmin">
         <div class="tab-content">
-          <p class="heading-md mb-1">Pending reset tokens</p>
-          <p class="muted mb-2">Users request a reset from the login page. The token appears here for you to share manually.</p>
+          <p class="heading-md mb-1">{{ 'ADMIN.PENDING_RESET_TOKENS' | translate }}</p>
+          <p class="muted mb-2">{{ 'ADMIN.RESET_TOKENS_DESC' | translate }}</p>
 
           <div *ngIf="resetTokens.length === 0" class="empty-state">
             <mat-icon>lock_open</mat-icon>
-            <p>No pending reset tokens.</p>
+            <p>{{ 'ADMIN.NO_PENDING_TOKENS' | translate }}</p>
           </div>
 
           <div class="admin-table" *ngIf="resetTokens.length > 0">
             <div class="table-row header-row" role="row">
-              <div role="columnheader">User</div>
-              <div role="columnheader">Email</div>
-              <div role="columnheader">Token</div>
-              <div role="columnheader">Expires</div>
-              <div class="text-right" role="columnheader">Actions</div>
+              <div role="columnheader">{{ 'ADMIN.USER' | translate }}</div>
+              <div role="columnheader">{{ 'ADMIN.EMAIL' | translate }}</div>
+              <div role="columnheader">{{ 'ADMIN.TOKEN' | translate }}</div>
+              <div role="columnheader">{{ 'ADMIN.EXPIRES' | translate }}</div>
+              <div class="text-right" role="columnheader">{{ 'ADMIN.ACTIONS' | translate }}</div>
             </div>
             <div class="table-row" *ngFor="let t of resetTokens" role="row">
               <div role="cell">{{ t.userName }}</div>
@@ -183,7 +183,7 @@
               </div>
               <div class="muted" role="cell">{{ t.expiresAt | date:'short' }}</div>
               <div class="text-right" role="cell">
-                <button mat-icon-button color="warn" (click)="deleteResetToken(t)" aria-label="Delete token">
+                <button mat-icon-button color="warn" (click)="deleteResetToken(t)" [attr.aria-label]="'ADMIN.DELETE_TOKEN' | translate">
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>

@@ -1,4 +1,4 @@
-<mat-card class="group-card" [routerLink]="['/dashboard/group', group.id]" appearance="outlined" tabindex="0" role="link" [attr.aria-label]="'Open group ' + group.name">
+<mat-card class="group-card" [routerLink]="['/dashboard/group', group.id]" appearance="outlined" tabindex="0" role="link" [attr.aria-label]="'GROUPS.OPEN_GROUP' | translate: { name: group.name }">
     <mat-card-header>
       <mat-card-title>{{group.name}}</mat-card-title>
     </mat-card-header>

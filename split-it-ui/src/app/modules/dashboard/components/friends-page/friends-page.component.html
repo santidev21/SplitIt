@@ -3,16 +3,16 @@
 <div class="friends-container">
   <mat-card>
     <div class="friends-header">
-      <p class="heading-xl text-center m-0">Friends</p>
-      <span class="badge" *ngIf="incoming.length > 0" aria-live="polite">{{ incoming.length }} pending request(s)</span>
+      <p class="heading-xl text-center m-0">{{ 'FRIENDS.TITLE' | translate }}</p>
+      <span class="badge" *ngIf="incoming.length > 0" aria-live="polite">{{ 'FRIENDS.PENDING_REQUESTS' | translate: { count: incoming.length } }}</span>
     </div>
 
     <mat-tab-group [(selectedIndex)]="selectedTab">
-      <mat-tab label="My friends">
+      <mat-tab [label]="'FRIENDS.TAB_MY_FRIENDS' | translate">
         <div class="tab-content" *ngIf="!isLoading">
           <div *ngIf="friends.length === 0" class="empty-state">
             <mat-icon>person_off</mat-icon>
-            <p>You don't have friends yet. Search users to add them.</p>
+            <p>{{ 'FRIENDS.NO_FRIENDS' | translate }}</p>
           </div>
           <div *ngFor="let friend of friends" class="friend-row">
             <div class="friend-info">
@@ -22,18 +22,18 @@
                 <div class="friend-email">{{ friend.email }}</div>
               </div>
             </div>
-            <button mat-icon-button color="warn" (click)="removeFriend(friend)" matTooltip="Remove friend" [attr.aria-label]="'Remove ' + friend.name + ' from friends'">
+            <button mat-icon-button color="warn" (click)="removeFriend(friend)" [matTooltip]="'FRIENDS.REMOVE_FRIEND' | translate" [attr.aria-label]="'FRIENDS.REMOVE_FROM_FRIENDS' | translate: { name: friend.name }">
               <mat-icon>person_remove</mat-icon>
             </button>
           </div>
         </div>
       </mat-tab>
 
-      <mat-tab label="Requests">
+      <mat-tab [label]="'FRIENDS.TAB_REQUESTS' | translate">
         <div class="tab-content" *ngIf="!isLoading">
-          <p class="heading-md mb-1">Incoming requests</p>
+          <p class="heading-md mb-1">{{ 'FRIENDS.INCOMING_REQUESTS' | translate }}</p>
           <div *ngIf="incoming.length === 0" class="empty-state">
-            <p>No incoming requests.</p>
+            <p>{{ 'FRIENDS.NO_INCOMING' | translate }}</p>
           </div>
           <div *ngFor="let req of incoming" class="friend-row">
             <div class="friend-info">
@@ -44,44 +44,44 @@
               </div>
             </div>
             <div class="request-actions">
-              <button mat-flat-button color="primary" (click)="acceptRequest(req)" [attr.aria-label]="'Accept request from ' + req.name">Accept</button>
-              <button mat-button color="warn" (click)="rejectRequest(req)" [attr.aria-label]="'Reject request from ' + req.name">Reject</button>
+              <button mat-flat-button color="primary" (click)="acceptRequest(req)" [attr.aria-label]="'FRIENDS.ACCEPT_REQUEST' | translate: { name: req.name }">{{ 'FRIENDS.ACCEPT' | translate }}</button>
+              <button mat-button color="warn" (click)="rejectRequest(req)" [attr.aria-label]="'FRIENDS.REJECT_REQUEST' | translate: { name: req.name }">{{ 'FRIENDS.REJECT' | translate }}</button>
             </div>
           </div>
 
-          <p class="heading-md mb-1">Sent requests</p>
+          <p class="heading-md mb-1">{{ 'FRIENDS.SENT_REQUESTS' | translate }}</p>
           <div *ngIf="sent.length === 0" class="empty-state">
-            <p>No sent requests.</p>
+            <p>{{ 'FRIENDS.NO_SENT' | translate }}</p>
           </div>
           <div *ngFor="let req of sent" class="friend-row">
             <div class="friend-info">
               <mat-icon>hourglass_top</mat-icon>
               <div>
                 <div class="friend-name">{{ req.name }}</div>
-                <div class="friend-email">Waiting for response</div>
+                <div class="friend-email">{{ 'FRIENDS.WAITING' | translate }}</div>
               </div>
             </div>
           </div>
         </div>
       </mat-tab>
 
-      <mat-tab label="Find friends">
+      <mat-tab [label]="'FRIENDS.TAB_FIND' | translate">
         <div class="tab-content">
           <div class="search-row">
             <mat-form-field appearance="outline" class="search-field">
-              <mat-label>Search by name or email</mat-label>
-              <input matInput [(ngModel)]="searchTerm" (keyup.enter)="search()" placeholder="e.g. alice@split.com" />
+              <mat-label>{{ 'FRIENDS.SEARCH_PLACEHOLDER' | translate }}</mat-label>
+              <input matInput [(ngModel)]="searchTerm" (keyup.enter)="search()" [placeholder]="'FRIENDS.SEARCH_PLACEHOLDER' | translate" />
               <mat-icon matSuffix>search</mat-icon>
             </mat-form-field>
-            <button mat-flat-button color="primary" (click)="search()" [disabled]="isSearching" aria-label="Search users">Search</button>
+            <button mat-flat-button color="primary" (click)="search()" [disabled]="isSearching" [attr.aria-label]="'COMMON.SEARCH' | translate">{{ 'COMMON.SEARCH' | translate }}</button>
           </div>
 
           <div class="search-row">
             <mat-form-field appearance="outline" class="search-field">
-              <mat-label>Or add by exact email</mat-label>
-              <input matInput [(ngModel)]="addByEmail" (keyup.enter)="sendByEmail()" placeholder="friend@email.com" />
+              <mat-label>{{ 'FRIENDS.ADD_BY_EMAIL' | translate }}</mat-label>
+              <input matInput [(ngModel)]="addByEmail" (keyup.enter)="sendByEmail()" [placeholder]="'FRIENDS.EMAIL_PLACEHOLDER' | translate" />
             </mat-form-field>
-            <button mat-button color="primary" (click)="sendByEmail()" aria-label="Send friend request by email">Send request</button>
+            <button mat-button color="primary" (click)="sendByEmail()" [attr.aria-label]="'FRIENDS.SEND_REQUEST_BY_EMAIL' | translate">{{ 'FRIENDS.SEND_REQUEST' | translate }}</button>
           </div>
 
           <div *ngFor="let user of searchResults" class="friend-row">
@@ -93,7 +93,7 @@
               </div>
             </div>
             <button mat-icon-button color="primary" (click)="addUserToFriends(user)"
-                    [disabled]="pendingSearchUserId === user.id" matTooltip="Send friend request" [attr.aria-label]="'Send friend request to ' + user.name">
+                    [disabled]="pendingSearchUserId === user.id" [matTooltip]="'FRIENDS.SEND_REQUEST' | translate" [attr.aria-label]="'FRIENDS.SEND_REQUEST_TO' | translate: { name: user.name }">
               <mat-icon>person_add</mat-icon>
             </button>
           </div>

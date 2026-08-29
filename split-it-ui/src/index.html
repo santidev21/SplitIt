@@ -20,6 +20,13 @@
         document.documentElement.setAttribute('data-theme', 'dark');
       }
     })();
+    // Apply language before paint to prevent hydration mismatch
+    (function() {
+      var lang = localStorage.getItem('lang');
+      if (lang && (lang === 'en' || lang === 'es')) {
+        document.documentElement.lang = lang;
+      }
+    })();
   </script>
 </head>
 <body class="mat-typography">

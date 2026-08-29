@@ -1,34 +1,34 @@
-<h2 mat-dialog-title class="heading-xl text-center">Split Expense</h2>
+<h2 mat-dialog-title class="heading-xl text-center">{{ 'SPLIT.TITLE' | translate }}</h2>
 
 <mat-dialog-content>
   <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event.index)">
-    <mat-tab label="Equally">
+    <mat-tab [label]="'SPLIT.EQUALLY' | translate">
       <div class="tab-content">
         <mat-checkbox *ngFor="let member of members" [(ngModel)]="equalSplitSelection[member.id]"
-                      [attr.aria-label]="'Include ' + member.name + ' in equal split'">
+                      [attr.aria-label]="'SPLIT.INCLUDE_IN_SPLIT' | translate: { name: member.name }">
           {{ member.name }}
         </mat-checkbox>
       </div>
     </mat-tab>
 
-    <mat-tab label="By Amount">
+    <mat-tab [label]="'SPLIT.BY_AMOUNT' | translate">
       <div class="tab-content">
         <div *ngFor="let member of members" class="split-input-row">
             <span class="member-name">{{ member.name }}</span>
             <mat-form-field class="member-input" appearance="fill">
-              <mat-label>Amount for {{ member.name }}</mat-label>
+              <mat-label>{{ 'SPLIT.AMOUNT_FOR' | translate: { name: member.name } }}</mat-label>
               <input matInput type="number" [(ngModel)]="member.amount" appPositiveNumber/>
             </mat-form-field>
           </div>
       </div>
     </mat-tab>
 
-    <mat-tab label="By Percentage">
+    <mat-tab [label]="'SPLIT.BY_PERCENTAGE' | translate">
       <div class="tab-content">
         <div *ngFor="let member of members" class="split-input-row">
             <span class="member-name">{{ member.name }}</span>
             <mat-form-field class="member-input" appearance="fill">
-              <mat-label>Percentage for {{ member.name }}</mat-label>
+              <mat-label>{{ 'SPLIT.PERCENTAGE_FOR' | translate: { name: member.name } }}</mat-label>
               <input matInput type="number" [(ngModel)]="member.amount" appPercentage/>
             </mat-form-field>
           </div>
@@ -43,6 +43,6 @@
 </div>
 
 <mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close>Cancel</button>
-  <button mat-flat-button color="primary" (click)="confirmSplit()" aria-label="Confirm split method">Done</button>
+  <button mat-button mat-dialog-close>{{ 'COMMON.CANCEL' | translate }}</button>
+  <button mat-flat-button color="primary" (click)="confirmSplit()" [attr.aria-label]="'SPLIT.CONFIRM' | translate">{{ 'COMMON.OK' | translate }}</button>
 </mat-dialog-actions>

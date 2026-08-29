@@ -9,10 +9,11 @@ import { GroupService } from './services/group.service';
 import { FriendService } from './services/friend.service';
 import { NotificationService } from '../../shared/services/notification.service';
 import { UserGroup } from '../../models/user.model';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [MATERIAL_IMPORTS, HeaderBarComponent, GroupCardComponent, RouterModule, ],
+  imports: [MATERIAL_IMPORTS, HeaderBarComponent, GroupCardComponent, RouterModule, TranslatePipe],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -25,7 +26,8 @@ export class DashboardComponent implements OnInit{
     private dialog: MatDialog,
     private groupService: GroupService,
     private friendService: FriendService,
-    private notifications: NotificationService
+    private notifications: NotificationService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -48,10 +50,10 @@ export class DashboardComponent implements OnInit{
         if (resp.incoming && resp.incoming.length > 0) {
           const names = resp.incoming.map((r: any) => r.name).join(', ');
           const msg = resp.incoming.length === 1
-            ? `${names} sent you a friend request.`
-            : `${resp.incoming.length} pending friend requests from: ${names}`;
+            ? this.translate.instant('DASHBOARD.FRIEND_REQUEST_SINGLE', { name: names })
+            : this.translate.instant('DASHBOARD.FRIEND_REQUEST_PLURAL', { count: resp.incoming.length, names });
           setTimeout(() => {
-            this.notifications.info('Friend Requests', msg);
+            this.notifications.info(this.translate.instant('DASHBOARD.FRIEND_REQUESTS'), msg);
           }, 1500);
         }
       }

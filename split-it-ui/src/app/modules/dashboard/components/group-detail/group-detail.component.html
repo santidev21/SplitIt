@@ -9,13 +9,13 @@
       </div>
 
       <div class="group-actions">
-        <button mat-icon-button color="primary" (click)="onAddExpense()" matTooltip="Add expense" aria-label="Add expense">
+        <button mat-icon-button color="primary" (click)="onAddExpense()" [matTooltip]="'GROUP_DETAIL.ADD_EXPENSE' | translate" [attr.aria-label]="'GROUP_DETAIL.ADD_EXPENSE' | translate">
           <mat-icon>add</mat-icon>
         </button>
-        <button mat-icon-button color="primary" (click)="onEditGroup()" matTooltip="Edit group" aria-label="Edit group">
+        <button mat-icon-button color="primary" (click)="onEditGroup()" [matTooltip]="'GROUP_DETAIL.EDIT_GROUP' | translate" [attr.aria-label]="'GROUP_DETAIL.EDIT_GROUP' | translate">
           <mat-icon>settings</mat-icon>
         </button>
-        <button mat-icon-button color="warn" (click)="onDeleteGroup()" matTooltip="Delete group" aria-label="Delete group">
+        <button mat-icon-button color="warn" (click)="onDeleteGroup()" [matTooltip]="'GROUP_DETAIL.DELETE_GROUP' | translate" [attr.aria-label]="'GROUP_DETAIL.DELETE_GROUP' | translate">
           <mat-icon>delete</mat-icon>
         </button>
       </div>
@@ -35,13 +35,13 @@
       </p>
 
       <div>
-        <p class="heading-md mb-1">Summary per participant:</p>
+        <p class="heading-md mb-1">{{ 'GROUP_DETAIL.SUMMARY_PARTICIPANTS' | translate }}</p>
         <ul>
           <li *ngFor="let item of debtDetails" class="debt-item"
           [class.text-green-600]="item.amount > 0"
             [class.text-red-600]="item.amount < 0">
             {{ item.name }}: {{ item.amount > 0 ? '+ $' : '- $' }}{{ item.amount < 0 ? -item.amount : item.amount | number: '1.2-2' }}
-            <button mat-icon-button color="primary" (click)="settleDebt(item)" matTooltip="Settle (supports partial payment)" [attr.aria-label]="'Settle debt for ' + item.name">
+            <button mat-icon-button color="primary" (click)="settleDebt(item)" [matTooltip]="'GROUP_DETAIL.SETTLE_TIP' | translate" [attr.aria-label]="'GROUP_DETAIL.SETTLE_DEBT_FOR' | translate: { name: item.name }">
               <mat-icon>check_circle</mat-icon>
             </button>
           </li>
@@ -51,7 +51,7 @@
 
     <!-- Payments history card -->
     <mat-card *ngIf="paymentsHistory.length > 0">
-      <p class="heading-md mb-1">Payments</p>
+      <p class="heading-md mb-1">{{ 'GROUP_DETAIL.PAYMENTS' | translate }}</p>
       <ul>
         <li *ngFor="let payment of paymentsHistory" class="debt-item payment-item">
           <span class="payment-details">
@@ -66,19 +66,19 @@
     <!-- Expenses list card -->
     <mat-card>
         <div class="expense-list-header">
-          <p class="heading-md">Expenses</p>
-          <mat-slide-toggle (click)="onShowAllExpenses()"[(ngModel)]="showAllExpenses" *ngIf="isAdminOrCreator" aria-label="Show all expenses">
-            Show all
+          <p class="heading-md">{{ 'GROUP_DETAIL.EXPENSES' | translate }}</p>
+          <mat-slide-toggle (click)="onShowAllExpenses()"[(ngModel)]="showAllExpenses" *ngIf="isAdminOrCreator" [attr.aria-label]="'GROUP_DETAIL.SHOW_ALL_EXPENSES' | translate">
+            {{ 'GROUP_DETAIL.SHOW_ALL' | translate }}
           </mat-slide-toggle>
         </div>
 
         <div class="expense-list">
           <div class="expense-row header-row">
-            <div class="date">Date</div>
-            <div class="title-amount">Title / Amount</div>
-            <div class="paid-by">Paid By</div>
-            <div class="participants">Participants</div>
-            <div class="actions text-right">Actions</div>
+            <div class="date">{{ 'GROUP_DETAIL.DATE' | translate }}</div>
+            <div class="title-amount">{{ 'GROUP_DETAIL.TITLE_AMOUNT' | translate }}</div>
+            <div class="paid-by">{{ 'GROUP_DETAIL.PAID_BY' | translate }}</div>
+            <div class="participants">{{ 'GROUP_DETAIL.PARTICIPANTS' | translate }}</div>
+            <div class="actions text-right">{{ 'GROUP_DETAIL.ACTIONS' | translate }}</div>
           </div>
 
           <div *ngFor="let exp of filteredExpenses; let i = index" class="expense-row" [class.alt]="i % 2 !== 0">
@@ -100,10 +100,10 @@
             </div>
 
             <div class="actions">
-              <button mat-icon-button color="primary" (click)="onEdit(exp)" matTooltip="Edit expense" [attr.aria-label]="'Edit expense ' + exp.title">
+              <button mat-icon-button color="primary" (click)="onEdit(exp)" [matTooltip]="'GROUP_DETAIL.EDIT_EXPENSE' | translate: { title: exp.title }" [attr.aria-label]="'GROUP_DETAIL.EDIT_EXPENSE' | translate: { title: exp.title }">
                 <mat-icon>edit</mat-icon>
               </button>
-              <button mat-icon-button color="warn" (click)="onDelete(exp)" matTooltip="Delete expense" [attr.aria-label]="'Delete expense ' + exp.title">
+              <button mat-icon-button color="warn" (click)="onDelete(exp)" [matTooltip]="'GROUP_DETAIL.DELETE_EXPENSE' | translate: { title: exp.title }" [attr.aria-label]="'GROUP_DETAIL.DELETE_EXPENSE' | translate: { title: exp.title }">
                 <mat-icon>delete</mat-icon>
               </button>
             </div>

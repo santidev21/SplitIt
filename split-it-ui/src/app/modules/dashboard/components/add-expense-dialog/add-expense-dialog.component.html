@@ -1,33 +1,33 @@
 <app-loading-spinner [isLoading]="isLoading"></app-loading-spinner>
 
-<h2 mat-dialog-title class="heading-xl text-center">Add Expense</h2>
+<h2 mat-dialog-title class="heading-xl text-center">{{ 'EXPENSE.ADD_TITLE' | translate }}</h2>
 
 <mat-dialog-content>
   <form [formGroup]="expenseForm" class="expense-form">
 
     <mat-form-field appearance="outline" class="full-width-field">
-        <mat-label>Title</mat-label>
+        <mat-label>{{ 'EXPENSE.TITLE_LABEL' | translate }}</mat-label>
         <input matInput formControlName="title" />
-        <mat-error *ngIf="expenseForm.get('title')?.hasError('required')">Title is required.</mat-error>
-        <mat-error *ngIf="expenseForm.get('title')?.hasError('maxlength')">Title must be at most 100 characters.</mat-error>
+        <mat-error *ngIf="expenseForm.get('title')?.hasError('required')">{{ 'EXPENSE.TITLE_REQUIRED' | translate }}</mat-error>
+        <mat-error *ngIf="expenseForm.get('title')?.hasError('maxlength')">{{ 'EXPENSE.TITLE_MAX_LENGTH' | translate }}</mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width-field">
-        <mat-label>Notes</mat-label>
+        <mat-label>{{ 'EXPENSE.NOTES' | translate }}</mat-label>
         <textarea matInput formControlName="note" rows="1"></textarea>
-        <mat-error *ngIf="expenseForm.get('note')?.hasError('maxlength')">Notes must be at most 500 characters.</mat-error>
+        <mat-error *ngIf="expenseForm.get('note')?.hasError('maxlength')">{{ 'EXPENSE.NOTES_MAX_LENGTH' | translate }}</mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width-field">
-      <mat-label>Amount</mat-label>
+      <mat-label>{{ 'EXPENSE.AMOUNT' | translate }}</mat-label>
       <input matInput type="number" formControlName="amount" appPositiveNumber/>
-      <mat-error *ngIf="expenseForm.get('amount')?.hasError('required')">Amount is required.</mat-error>
-      <mat-error *ngIf="expenseForm.get('amount')?.hasError('min')">Amount must be greater than 0.</mat-error>
-      <mat-error *ngIf="expenseForm.get('amount')?.hasError('max')">Amount must be at most 1,000,000.</mat-error>
+      <mat-error *ngIf="expenseForm.get('amount')?.hasError('required')">{{ 'EXPENSE.AMOUNT_REQUIRED' | translate }}</mat-error>
+      <mat-error *ngIf="expenseForm.get('amount')?.hasError('min')">{{ 'EXPENSE.AMOUNT_GT_ZERO' | translate }}</mat-error>
+      <mat-error *ngIf="expenseForm.get('amount')?.hasError('max')">{{ 'EXPENSE.AMOUNT_MAX' | translate }}</mat-error>
     </mat-form-field>
 
     <div class="datepicker-section">
-        <button #dateButton mat-button (click)="openDatepicker()" class="datepicker-btn" type="button" aria-label="Select date">
+        <button #dateButton mat-button (click)="openDatepicker()" class="datepicker-btn" type="button" [attr.aria-label]="'EXPENSE.SELECT_DATE' | translate">
             <mat-icon>calendar_month</mat-icon>
             {{ selectedDate | date: 'mediumDate' }}
           </button>
@@ -46,16 +46,16 @@
     </div>
 
     <div class="split-expense-info" *ngIf="!isLoading && members.length > 0">
-        <span>Paid by</span>
-        <mat-select formControlName="paidById" panelClass="wide-select-panel" aria-label="Paid by">
+        <span>{{ 'EXPENSE.PAID_BY' | translate }}</span>
+        <mat-select formControlName="paidById" panelClass="wide-select-panel" [attr.aria-label]="'EXPENSE.PAID_BY' | translate">
             <mat-option *ngFor="let member of members" [value]="member.id">
                 {{ member.name }}
             </mat-option>
         </mat-select>
 
-        <span>and split</span>
-        <span class="split-method-button" (click)="openSplitMethod()" role="button" tabindex="0" (keydown.enter)="openSplitMethod()" aria-label="Choose split method">
-          {{ splitMethodLabel }}
+        <span>{{ 'EXPENSE.AND_SPLIT' | translate }}</span>
+        <span class="split-method-button" (click)="openSplitMethod()" role="button" tabindex="0" (keydown.enter)="openSplitMethod()" [attr.aria-label]="'EXPENSE.CHOOSE_SPLIT' | translate">
+          {{ splitMethodLabel | translate }}
         </span>
     </div>
 
@@ -63,14 +63,14 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-button mat-dialog-close>{{ 'COMMON.CANCEL' | translate }}</button>
   <button
     mat-flat-button
     color="primary"
     [disabled]="expenseForm.invalid || isSaving"
     (click)="saveExpense()"
-    aria-label="Save expense"
+    [attr.aria-label]="'EXPENSE.SAVE_EXPENSE' | translate"
   >
-    Save
+    {{ 'COMMON.SAVE' | translate }}
   </button>
 </mat-dialog-actions>

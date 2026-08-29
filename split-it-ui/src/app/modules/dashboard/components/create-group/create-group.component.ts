@@ -8,10 +8,11 @@ import { FriendService, Friend, SearchUser } from '../../services/friend.service
 import { Currency } from '../../../../models/currency.model';
 import { GroupService } from '../../services/group.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-create-group',
-  imports: [MATERIAL_IMPORTS, RouterModule, FormsModule],
+  imports: [MATERIAL_IMPORTS, RouterModule, FormsModule, TranslatePipe],
   templateUrl: './create-group.component.html',
   styleUrls: ['./create-group.component.scss']
 })
@@ -33,7 +34,8 @@ export class CreateGroupComponent implements OnInit{
     private friendService: FriendService,
     private groupService: GroupService,
     private router: Router,
-    private notifications: NotificationService
+    private notifications: NotificationService,
+    private translate: TranslateService
   ) {
     this.createGroupForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]],
@@ -46,7 +48,7 @@ export class CreateGroupComponent implements OnInit{
   ngOnInit(): void {
     this.currencyService.getCurrencies().subscribe({
       next: (currencies) => { this.currencies = currencies; },
-      error: () => this.notifications.toast('Could not load currencies.', 'error')
+      error: () => this.notifications.toast(this.translate.instant('NOTIFICATIONS.COULD_NOT_LOAD_CURRENCIES'), 'error')
     });
     this.loadFriends();
   }
@@ -54,7 +56,7 @@ export class CreateGroupComponent implements OnInit{
   loadFriends(): void {
     this.friendService.getFriends().subscribe({
       next: (friends) => { this.friends = friends; },
-      error: () => this.notifications.toast('Could not load your friends.', 'error')
+      error: () => this.notifications.toast(this.translate.instant('NOTIFICATIONS.COULD_NOT_LOAD_FRIENDS'), 'error')
     });
   }
 
@@ -82,7 +84,7 @@ export class CreateGroupComponent implements OnInit{
   sendFriendRequest(user: SearchUser): void {
     this.friendService.sendRequest({ userId: user.id }).subscribe({
       next: () => {
-        this.notifications.toast(`Friend request sent to ${user.name}. They need to accept it before you can add them.`, 'success');
+        this.notifications.toast(this.translate.instant('NOTIFICATIONS.FRIEND_REQUEST_SENT_TO', { name: user.name }), 'success');
         this.searchResults = this.searchResults.filter(r => r.id !== user.id);
       },
       error: () => {}
@@ -105,7 +107,7 @@ export class CreateGroupComponent implements OnInit{
       next: (resp) => {
         this.isSaving = false;
         this.dialogRef.close();
-        this.notifications.success('Group created successfully.');
+        this.notifications.success(this.translate.instant('NOTIFICATIONS.GROUP_CREATED'));
         this.router.navigate(['/dashboard/group', resp.groupId]);
       },
       error: () => { this.isSaving = false; }
