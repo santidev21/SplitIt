@@ -227,7 +227,18 @@ if (args.Contains("--migrate"))
     {
         var pending = db.Database.GetPendingMigrations().ToList();
         Console.WriteLine($"Pending migrations: {(pending.Count == 0 ? "(none)" : string.Join(", ", pending))}");
-        db.Database.Migrate();
+
+        if (pending.Count > 0)
+        {
+            db.Database.Migrate();
+        }
+        else
+        {
+            // EnsureCreated is idempotent — creates tables from snapshot if missing, no-op if they exist
+            Console.WriteLine("No pending migrations — ensuring database schema is up to date...");
+            db.Database.EnsureCreated();
+        }
+
         var applied = db.Database.GetAppliedMigrations().ToList();
         Console.WriteLine($"Applied migrations count: {applied.Count} — last: {applied.LastOrDefault()}");
         Console.WriteLine("Migrations applied successfully — exiting migrator");
