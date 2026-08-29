@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { HeaderBarComponent } from '../../../dashboard/components/header-bar/header-bar.component';
 import { FormsModule } from '@angular/forms';
-import { AdminService, AdminStats, UserAdmin, UsersPage, GroupAdmin } from '../../services/admin.service';
+import { AdminService, AdminStats, UserAdmin, UsersPage, GroupAdmin, PasswordResetToken } from '../../services/admin.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 
 @Component({
@@ -36,6 +36,8 @@ export class AdminPageComponent implements OnInit {
   newCurrencyName = '';
   newCurrencySymbol = '';
 
+  resetTokens: PasswordResetToken[] = [];
+
   constructor(
     private adminService: AdminService,
     private notifications: NotificationService
@@ -47,6 +49,7 @@ export class AdminPageComponent implements OnInit {
     this.loadUsers();
     this.loadGroups();
     this.loadSettings();
+    this.loadResetTokens();
   }
 
   private readRole(): string | null {
@@ -159,6 +162,23 @@ export class AdminPageComponent implements OnInit {
         this.notifications.toast(`Currency ${name} created.`, 'success');
         this.newCurrencyName = '';
         this.newCurrencySymbol = '';
+      },
+      error: () => {}
+    });
+  }
+
+  loadResetTokens(): void {
+    this.adminService.getResetTokens().subscribe({
+      next: (tokens) => { this.resetTokens = tokens; },
+      error: () => {}
+    });
+  }
+
+  deleteResetToken(token: PasswordResetToken): void {
+    this.adminService.deleteResetToken(token.id).subscribe({
+      next: () => {
+        this.resetTokens = this.resetTokens.filter(t => t.id !== token.id);
+        this.notifications.toast('Token deleted.', 'success');
       },
       error: () => {}
     });

@@ -217,5 +217,39 @@ namespace SplitIt.API.Controllers
             await _context.SaveChangesAsync();
             return Ok(new { message = "Currency deleted." });
         }
+
+        [HttpGet("password-reset-tokens")]
+        [Authorize(Roles = "SuperAdmin")]
+        public async Task<IActionResult> GetPasswordResetTokens()
+        {
+            var tokens = await _context.PasswordResetTokens
+                .Include(t => t.User)
+                .Where(t => !t.Used && t.ExpiresAt > DateTime.UtcNow)
+                .OrderByDescending(t => t.CreatedAt)
+                .Select(t => new
+                {
+                    t.Id,
+                    t.Token,
+                    UserName = t.User.Name,
+                    UserEmail = t.User.Email,
+                    t.ExpiresAt,
+                    t.CreatedAt
+                })
+                .ToListAsync();
+
+            return Ok(tokens);
+        }
+
+        [HttpDelete("password-reset-tokens/{tokenId}")]
+        [Authorize(Roles = "SuperAdmin")]
+        public async Task<IActionResult> DeletePasswordResetToken(int tokenId)
+        {
+            var token = await _context.PasswordResetTokens.FindAsync(tokenId);
+            if (token == null) return NotFound();
+
+            _context.PasswordResetTokens.Remove(token);
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Token deleted." });
+        }
     }
 }

@@ -58,4 +58,12 @@ export class AuthService {
       return payload.exp && payload.exp > Math.floor(Date.now() / 1000);
     } catch { return false; }
   }
+
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post(`${this.API_URL}/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.API_URL}/reset-password`, { token, newPassword });
+  }
 }

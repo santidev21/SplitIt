@@ -159,3 +159,23 @@
     gap: var(--space-4);
   }
 }
+
+.token-display {
+  font-family: 'Courier New', monospace;
+  font-size: var(--font-size-xs);
+  background: var(--color-surface-variant);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-outline);
+  word-break: break-all;
+  display: inline-block;
+  max-width: 200px;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-on-surface-variant);
+  padding: var(--space-4) 0;
+}

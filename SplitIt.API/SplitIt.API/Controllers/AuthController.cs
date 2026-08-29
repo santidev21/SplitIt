@@ -67,6 +67,32 @@ namespace SplitIt.API.Controllers
             return Ok(new {message = "Login successful.", token, userName = user!.Name, userId = user.Id});
         }
 
+        [HttpPost("forgot-password")]
+        [EnableRateLimiting("auth")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto request)
+        {
+            var token = await _authService.GenerateResetTokenAsync(request.Email);
+            // Always return success to prevent email enumeration
+            return Ok(new { message = "If the email exists, a reset token has been generated. Contact your administrator." });
+        }
+
+        [HttpPost("reset-password")]
+        [EnableRateLimiting("auth")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.NewPassword))
+                return BadRequest(new { message = "Token and new password are required." });
+
+            if (request.NewPassword.Length < 8)
+                return BadRequest(new { message = "Password must be at least 8 characters." });
+
+            var success = await _authService.ResetPasswordAsync(request.Token, request.NewPassword);
+            if (!success)
+                return BadRequest(new { message = "Invalid or expired token." });
+
+            return Ok(new { message = "Password has been reset successfully. You can now log in." });
+        }
+
         private string GenerateJwtToken(User user)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");

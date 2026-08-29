@@ -43,6 +43,15 @@ export interface PublicSettings {
   maxExpenseAmount: number;
 }
 
+export interface PasswordResetToken {
+  id: number;
+  token: string;
+  userName: string;
+  userEmail: string;
+  expiresAt: string;
+  createdAt: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -87,5 +96,13 @@ export class AdminService {
 
   deleteCurrency(currencyId: number): Observable<any> {
     return this.http.delete(`${this.API_URL}/currencies/${currencyId}`);
+  }
+
+  getResetTokens(): Observable<PasswordResetToken[]> {
+    return this.http.get<PasswordResetToken[]>(`${this.API_URL}/password-reset-tokens`);
+  }
+
+  deleteResetToken(tokenId: number): Observable<any> {
+    return this.http.delete(`${this.API_URL}/password-reset-tokens/${tokenId}`);
   }
 }

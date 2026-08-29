@@ -78,3 +78,26 @@
   font-size: var(--font-size-sm);
   color: var(--color-on-surface-variant);
 }
+
+.auth-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-on-surface-variant);
+  line-height: 1.5;
+  margin-bottom: var(--space-4);
+  text-align: center;
+}
+
+.auth-links-row {
+  text-align: center;
+  margin-top: var(--space-3);
+}
+
+.success-text {
+  color: var(--color-success);
+  font-weight: 500;
+}
+
+.error-text {
+  color: var(--color-danger);
+  font-weight: 500;
+}

@@ -58,5 +58,53 @@ namespace SplitIt.Infrastructure.Services
             var normalized = email.Trim().ToLowerInvariant();
             return await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalized);
         }
+
+        public async Task<string?> GenerateResetTokenAsync(string email)
+        {
+            var user = await GetUserByEmail(email);
+            if (user == null || !user.IsActive) return null;
+
+            // Invalidate any existing unused tokens for this user
+            var existingTokens = await _context.PasswordResetTokens
+                .Where(t => t.UserId == user.Id && !t.Used)
+                .ToListAsync();
+            _context.PasswordResetTokens.RemoveRange(existingTokens);
+
+            var tokenBytes = new byte[32];
+            using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(tokenBytes);
+            }
+            var token = Convert.ToHexString(tokenBytes).ToLowerInvariant();
+            var resetToken = new PasswordResetToken
+            {
+                UserId = user.Id,
+                Token = token,
+                ExpiresAt = DateTime.UtcNow.AddHours(24),
+                Used = false
+            };
+
+            _context.PasswordResetTokens.Add(resetToken);
+            await _context.SaveChangesAsync();
+
+            return token;
+        }
+
+        public async Task<bool> ResetPasswordAsync(string token, string newPassword)
+        {
+            var resetToken = await _context.PasswordResetTokens
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.Token == token && !t.Used);
+
+            if (resetToken == null) return false;
+            if (resetToken.ExpiresAt < DateTime.UtcNow) return false;
+
+            var user = resetToken.User;
+            user.PasswordHash = _passwordHasher.HashPassword(user, newPassword);
+            resetToken.Used = true;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

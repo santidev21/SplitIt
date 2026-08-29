@@ -23,6 +23,7 @@ namespace SplitIt.Infrastructure.Persistence
         public DbSet<ExpenseShare> ExpenseShare{get; set;}
         public DbSet<Friendship> Friendships { get; set; }
         public DbSet<AppSetting> AppSettings { get; set; }
+        public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
 protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -117,6 +118,18 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
                 entity.HasIndex(s => s.Key).IsUnique();
                 entity.Property(s => s.Key).IsRequired().HasMaxLength(100);
                 entity.Property(s => s.Value).IsRequired().HasMaxLength(500);
+            });
+
+            // PasswordResetToken table configuration
+            modelBuilder.Entity<PasswordResetToken>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+                entity.Property(p => p.Token).IsRequired().HasMaxLength(64);
+                entity.Property(p => p.ExpiresAt).IsRequired();
+                entity.Property(p => p.Used).IsRequired().HasDefaultValue(false);
+                entity.Property(p => p.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.HasOne(p => p.User).WithMany().HasForeignKey(p => p.UserId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(p => new { p.UserId, p.Token });
             });
 
             SeedRoles(modelBuilder);
