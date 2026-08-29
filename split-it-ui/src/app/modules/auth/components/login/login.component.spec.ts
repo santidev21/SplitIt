@@ -7,6 +7,8 @@ import { AuthService } from '../../services/auth.service';
 import { of, throwError } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
+import { provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -23,7 +25,9 @@ describe('LoginComponent', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: AuthService, useValue: authServiceSpy }
+        { provide: AuthService, useValue: authServiceSpy },
+        provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
+        provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' })
       ]
     }).compileComponents();
 

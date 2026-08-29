@@ -9,6 +9,8 @@ import { CurrencyService } from '../../services/currency.service';
 import { FriendService } from '../../services/friend.service';
 import { GroupService } from '../../services/group.service';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 
 describe('CreateGroupComponent', () => {
   let component: CreateGroupComponent;
@@ -36,7 +38,9 @@ describe('CreateGroupComponent', () => {
         { provide: CurrencyService, useValue: currencySpy },
         { provide: FriendService, useValue: friendSpy },
         { provide: GroupService, useValue: groupSpy },
-        { provide: Router, useValue: jasmine.createSpyObj('Router', ['navigate']) }
+        { provide: Router, useValue: jasmine.createSpyObj('Router', ['navigate']) },
+        provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
+        provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' })
       ]
     }).compileComponents();
 
