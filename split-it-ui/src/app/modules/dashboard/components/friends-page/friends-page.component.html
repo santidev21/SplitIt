@@ -1,14 +1,13 @@
 <app-header-bar></app-header-bar>
 
-<div class="friends-container space-y-4">
-  <mat-card class="p-4">
-    <div class="flex justify-between items-center mb-2">
+<div class="friends-container">
+  <mat-card>
+    <div class="friends-header">
       <p class="heading-xl m-0">Friends</p>
-      <span class="badge" *ngIf="incoming.length > 0">{{ incoming.length }} pending request(s)</span>
+      <span class="badge" *ngIf="incoming.length > 0" aria-live="polite">{{ incoming.length }} pending request(s)</span>
     </div>
 
     <mat-tab-group [(selectedIndex)]="selectedTab">
-      <!-- My friends -->
       <mat-tab label="My friends">
         <div class="tab-content" *ngIf="!isLoading">
           <div *ngIf="friends.length === 0" class="empty-state">
@@ -23,14 +22,13 @@
                 <div class="friend-email">{{ friend.email }}</div>
               </div>
             </div>
-            <button mat-icon-button color="warn" (click)="removeFriend(friend)" matTooltip="Remove friend">
+            <button mat-icon-button color="warn" (click)="removeFriend(friend)" matTooltip="Remove friend" [attr.aria-label]="'Remove ' + friend.name + ' from friends'">
               <mat-icon>person_remove</mat-icon>
             </button>
           </div>
         </div>
       </mat-tab>
 
-      <!-- Requests -->
       <mat-tab label="Requests">
         <div class="tab-content" *ngIf="!isLoading">
           <p class="heading-md mb-1">Incoming requests</p>
@@ -46,8 +44,8 @@
               </div>
             </div>
             <div class="request-actions">
-              <button mat-flat-button color="primary" (click)="acceptRequest(req)">Accept</button>
-              <button mat-button color="warn" (click)="rejectRequest(req)">Reject</button>
+              <button mat-flat-button color="primary" (click)="acceptRequest(req)" [attr.aria-label]="'Accept request from ' + req.name">Accept</button>
+              <button mat-button color="warn" (click)="rejectRequest(req)" [attr.aria-label]="'Reject request from ' + req.name">Reject</button>
             </div>
           </div>
 
@@ -67,7 +65,6 @@
         </div>
       </mat-tab>
 
-      <!-- Search -->
       <mat-tab label="Find friends">
         <div class="tab-content">
           <div class="search-row">
@@ -76,17 +73,17 @@
               <input matInput [(ngModel)]="searchTerm" (keyup.enter)="search()" placeholder="e.g. alice@split.com" />
               <mat-icon matSuffix>search</mat-icon>
             </mat-form-field>
-            <button mat-flat-button color="primary" (click)="search()" [disabled]="isSearching">Search</button>
+            <button mat-flat-button color="primary" (click)="search()" [disabled]="isSearching" aria-label="Search users">Search</button>
           </div>
 
-          <mat-divider class="my-3"></mat-divider>
+          <mat-divider></mat-divider>
 
           <div class="search-row">
             <mat-form-field appearance="outline" class="search-field">
               <mat-label>Or add by exact email</mat-label>
               <input matInput [(ngModel)]="addByEmail" (keyup.enter)="sendByEmail()" placeholder="friend@email.com" />
             </mat-form-field>
-            <button mat-button color="primary" (click)="sendByEmail()">Send request</button>
+            <button mat-button color="primary" (click)="sendByEmail()" aria-label="Send friend request by email">Send request</button>
           </div>
 
           <div *ngFor="let user of searchResults" class="friend-row">
@@ -98,7 +95,7 @@
               </div>
             </div>
             <button mat-icon-button color="primary" (click)="addUserToFriends(user)"
-                    [disabled]="pendingSearchUserId === user.id" matTooltip="Send friend request">
+                    [disabled]="pendingSearchUserId === user.id" matTooltip="Send friend request" [attr.aria-label]="'Send friend request to ' + user.name">
               <mat-icon>person_add</mat-icon>
             </button>
           </div>

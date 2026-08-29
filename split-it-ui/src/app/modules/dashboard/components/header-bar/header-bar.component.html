@@ -1,14 +1,22 @@
-<header class="header-bar">
-    <div class="logo">SplitIt</div>
-    
-    <nav class="nav-links">
-      <a routerLink="/dashboard/home">Home</a>
-      <a routerLink="/dashboard/friends">Friends</a>
-      <!-- Temporaly return -->
-      <a routerLink="/dashboard/home">Expenses</a>
-      <a routerLink="/dashboard/home">Settings</a>
-      <a *ngIf="isAdmin" routerLink="/admin" class="admin-link">Admin</a>
+<header class="header-bar" role="banner">
+    <a class="logo-link" routerLink="/dashboard/home" aria-label="SplitIt home">
+      <img src="assets/logo.svg" alt="" class="logo-icon" width="36" height="36" />
+      <span class="logo-text">Split<span class="logo-accent">It</span></span>
+    </a>
+
+    <nav class="nav-links" [class.open]="menuOpen" role="navigation" aria-label="Main navigation">
+      <a routerLink="/dashboard/home" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
+      <a routerLink="/dashboard/friends" routerLinkActive="active">Friends</a>
+      <a *ngIf="isAdmin" routerLink="/admin" routerLinkActive="active">Admin</a>
     </nav>
-  
-    <button class="logout-button" (click)="logout()">Logout</button>
+
+    <div class="header-actions">
+      <button class="theme-toggle" (click)="toggleTheme()" [attr.aria-label]="isDark ? 'Switch to light mode' : 'Switch to dark mode'" type="button">
+        <mat-icon>{{ isDark ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+      <button class="logout-button" (click)="logout()" aria-label="Logout" type="button">Logout</button>
+      <button class="menu-toggle" (click)="menuOpen = !menuOpen" [attr.aria-expanded]="menuOpen" aria-label="Toggle navigation menu" type="button">
+        <mat-icon>{{ menuOpen ? 'close' : 'menu' }}</mat-icon>
+      </button>
+    </div>
   </header>

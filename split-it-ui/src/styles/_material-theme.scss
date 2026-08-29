@@ -1,0 +1,111 @@
+@use '@angular/material' as mat;
+
+// ─── Brand palettes ───
+
+$brand-primary: (
+  50:  #e3f0fb,
+  100: #b8d9f4,
+  200: #8ec1ec,
+  300: #5da5e1,
+  400: #2e8cd6,
+  500: #005cbb,
+  600: #004a99,
+  700: #003d80,
+  800: #003066,
+  900: #001f3f,
+  A100: #3399ff,
+  A200: #0077e6,
+  A400: #005cbb,
+  A700: #004a99,
+  contrast: (
+    50: #000000,
+    100: #000000,
+    200: #000000,
+    300: #000000,
+    400: #ffffff,
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+    A100: #000000,
+    A200: #ffffff,
+    A400: #ffffff,
+    A700: #ffffff,
+  ),
+);
+
+$brand-secondary: (
+  50:  #e6e9ef,
+  100: #b3bcc8,
+  200: #808fa1,
+  300: #4d627a,
+  400: #26405d,
+  500: #001f3f,
+  600: #001933,
+  700: #001020,
+  800: #000d1a,
+  900: #00080f,
+  A100: #003d80,
+  A200: #002d60,
+  A400: #001f3f,
+  A700: #001933,
+  contrast: (
+    50: #000000,
+    100: #000000,
+    200: #000000,
+    300: #ffffff,
+    400: #ffffff,
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+    A100: #ffffff,
+    A200: #ffffff,
+    A400: #ffffff,
+    A700: #ffffff,
+  ),
+);
+
+$brand-danger: (
+  50:  #fee2e2,
+  100: #fecaca,
+  200: #fca5a5,
+  300: #f87171,
+  400: #ef4444,
+  500: #dc2626,
+  600: #b91c1c,
+  700: #991b1b,
+  800: #7f1d1d,
+  900: #450a0a,
+  A100: #ff6659,
+  A200: #ff3d33,
+  A400: #dc2626,
+  A700: #b91c1c,
+  contrast: (
+    50: #000000, 100: #000000, 200: #000000, 300: #000000,
+    400: #ffffff, 500: #ffffff, 600: #ffffff, 700: #ffffff,
+    800: #ffffff, 900: #ffffff,
+    A100: #000000, A200: #ffffff, A400: #ffffff, A700: #ffffff,
+  ),
+);
+
+// ─── Theme definition ───
+$light-theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$blue-palette,
+    tertiary: $brand-danger,
+  ),
+  density: (scale: 0),
+));
+
+$dark-theme: mat.define-theme((
+  color: (
+    theme-type: dark,
+    primary: mat.$blue-palette,
+    tertiary: $brand-danger,
+  ),
+  density: (scale: 0),
+));

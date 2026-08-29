@@ -1,34 +1,49 @@
-@import '../../../styles/variables';
+@use '../../../styles/variables' as v;
+@use '../../../styles/breakpoints' as bp;
 
-.dashboard-container{
-    width: 100%;
-    display: flex;
-    text-align: center;
-    justify-content: center;
-    flex-direction: column;
-    margin-top: 50px;
+.dashboard-container {
+  width: 100%;
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: var(--space-8) var(--space-6);
+
+  @include bp.md {
+    padding: var(--space-10) var(--space-8);
+  }
+
+  @include bp.lg {
+    padding: var(--space-12) var(--space-12);
+  }
 }
 
-.groups-card-container{
-    margin-top: 20px auto;
-    align-self: center;
-    width: 70%;
+.groups-card-container {
+  margin: var(--space-4) auto;
+  width: 100%;
+  max-width: 900px;
+
+  @include bp.md {
+    max-width: 1000px;
+  }
 }
 
-.groups-card{
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+.groups-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-4);
 }
 
-.user-groups-container{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: row;
-    flex-wrap: wrap;
-    margin: 10px;
-    gap: 16px;   
-    
+.user-groups-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-4);
+  padding: var(--space-4);
+  width: 100%;
+
+  @include bp.sm {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
 }

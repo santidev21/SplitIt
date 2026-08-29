@@ -1,54 +1,63 @@
-@import '../../../../../styles/variables';
+@use '../../../../../styles/variables' as v;
 
-mat-dialog-content{
-    overflow: hidden;
+mat-dialog-content {
+  overflow: hidden;
+}
+
+.full-width-field {
+  width: 100%;
 }
 
 textarea {
-    resize: none;
+  resize: none;
+}
+
+.datepicker-section {
+  margin-bottom: var(--space-4);
 }
 
 .datepicker-wrapper {
-    position: relative;
+  position: relative;
 }
-  
+
 .hidden-datepicker-input {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-150px); 
-    width: 300px;
-    height: 0;
-    opacity: 0;
-    pointer-events: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-150px);
+  width: 300px;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
 }
-  
 
-.split-expense-info{
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    font-size: 16px;
-    color: black;
+.split-expense-info {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  font-size: var(--font-size-base);
+  color: var(--color-on-surface);
 
-    mat-select{
-        text-align: center;
-        width: 50px;
-        color: $primary-color;
-        font-weight: bold;
+  mat-select {
+    text-align: center;
+    width: 50px;
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+
+  .split-method-button {
+    color: var(--color-primary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: var(--color-primary-hover);
     }
-      
-    .split-method-button{
-        color: $primary-color;
-        font-weight: bold;
-
-        &:hover{
-            cursor: pointer;
-        }
-    }
+  }
 }
 
 ::ng-deep .wide-select-panel {
-    min-width: 200px;
+  min-width: 200px;
 }

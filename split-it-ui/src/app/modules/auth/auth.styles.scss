@@ -1,41 +1,80 @@
-@import '../../../styles/variables';
+@use '../../../styles/variables' as v;
 
 .auth-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background: $background-gradient;
-  }
-  
-  .auth-card {
-    width: 450px;
-    padding: 20px;
-    background: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .auth-text{
-    font-weight: bold;
-    padding-bottom: 10px;
-    color: $secondary-color;
-  }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: var(--space-6);
+  background: linear-gradient(135deg, v.$secondary-500 0%, v.$primary-500 50%, v.$primary-600 100%);
+  position: relative;
+  overflow: hidden;
 
-  .full-width {
-    width: 100%;
-    margin-bottom: 16px;
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+    pointer-events: none;
   }
+}
 
-  .auth-link {
-    padding-left: 5px;
-    color: $primary-color;
-    text-decoration: none;
-    font-weight: bold;
-    cursor: pointer;
-    
-    &:hover {
-      text-decoration: underline;
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  padding: var(--space-10);
+  background: var(--color-surface);
+  border-radius: var(--radius-xl) !important;
+  box-shadow: var(--shadow-xl) !important;
+  border: none !important;
+  position: relative;
+  z-index: 1;
+  animation: fadeInUp 0.4s ease-out;
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
+}
+
+.auth-text {
+  font-weight: 700;
+  font-size: var(--font-size-2xl);
+  padding-bottom: var(--space-2);
+  color: var(--color-secondary);
+  text-align: center;
+  letter-spacing: -0.025em;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: var(--space-4);
+}
+
+.auth-link {
+  padding-left: var(--space-1);
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: var(--color-primary-hover);
+    text-decoration: underline;
+  }
+}
+
+.auth-action-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-on-surface-variant);
+}

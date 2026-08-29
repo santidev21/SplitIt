@@ -1,8 +1,7 @@
-<h2 mat-dialog-title class="text-center">Group settings</h2>
+<h2 mat-dialog-title>Group settings</h2>
 
 <mat-dialog-content>
   <mat-tab-group [(selectedIndex)]="selectedTabIndex">
-    <!-- General -->
     <mat-tab label="General">
       <div class="tab-content">
         <form [formGroup]="groupForm">
@@ -18,12 +17,11 @@
             <mat-error *ngIf="groupForm.get('description')?.hasError('required')">Description is required.</mat-error>
           </mat-form-field>
 
-          <mat-checkbox formControlName="allowToDeleteExpenses">Allow all members to delete expenses</mat-checkbox>
+          <mat-checkbox formControlName="allowToDeleteExpenses" aria-label="Allow all members to delete expenses">Allow all members to delete expenses</mat-checkbox>
         </form>
       </div>
     </mat-tab>
 
-    <!-- Members -->
     <mat-tab label="Members">
       <div class="tab-content">
         <div *ngFor="let member of members" class="member-row">
@@ -34,14 +32,17 @@
           </div>
           <div class="member-actions" *ngIf="canManageMember(member)">
             <button mat-icon-button color="primary" (click)="promote(member)"
-                    *ngIf="(member.role || 'member') === 'member'" matTooltip="Promote to admin">
+                    *ngIf="(member.role || 'member') === 'member'" matTooltip="Promote to admin"
+                    [attr.aria-label]="'Promote ' + member.name + ' to admin'">
               <mat-icon>arrow_upward</mat-icon>
             </button>
             <button mat-icon-button color="accent" (click)="demote(member)"
-                    *ngIf="member.role === 'admin'" matTooltip="Demote to member">
+                    *ngIf="member.role === 'admin'" matTooltip="Demote to member"
+                    [attr.aria-label]="'Demote ' + member.name + ' to member'">
               <mat-icon>arrow_downward</mat-icon>
             </button>
-            <button mat-icon-button color="warn" (click)="remove(member)" matTooltip="Remove from group">
+            <button mat-icon-button color="warn" (click)="remove(member)" matTooltip="Remove from group"
+                    [attr.aria-label]="'Remove ' + member.name + ' from group'">
               <mat-icon>person_remove</mat-icon>
             </button>
           </div>
@@ -49,7 +50,6 @@
       </div>
     </mat-tab>
 
-    <!-- Invite friends -->
     <mat-tab label="Invite">
       <div class="tab-content">
         <div *ngIf="inviteableFriends().length === 0" class="empty-state">
@@ -61,7 +61,7 @@
             <span>{{ friend.name }}</span>
             <span class="muted-email">{{ friend.email }}</span>
           </div>
-          <button mat-flat-button color="primary" (click)="invite(friend)">Add</button>
+          <button mat-flat-button color="primary" (click)="invite(friend)" [attr.aria-label]="'Add ' + friend.name + ' to group'">Add</button>
         </div>
       </div>
     </mat-tab>
@@ -70,5 +70,5 @@
 
 <mat-dialog-actions align="end">
   <button mat-button (click)="close()">Cancel</button>
-  <button mat-flat-button color="primary" [disabled]="groupForm.invalid" (click)="save()">Save</button>
+  <button mat-flat-button color="primary" [disabled]="groupForm.invalid" (click)="save()" aria-label="Save group settings">Save</button>
 </mat-dialog-actions>

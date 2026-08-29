@@ -1,13 +1,32 @@
-.group-card{
-    text-align: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 250px;
-    min-width: 150px;
-    
-    mat-card-title{
-        font-weight: bold;
-        font-size: 20px;
+.group-card {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 120px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  mat-card-title {
+    font-weight: 700;
+    font-size: var(--font-size-xl);
+    letter-spacing: -0.025em;
+  }
+
+  mat-card-content {
+    p {
+      color: var(--color-on-surface-variant);
+      font-size: var(--font-size-sm);
+      margin: var(--space-1) 0;
     }
+  }
 }

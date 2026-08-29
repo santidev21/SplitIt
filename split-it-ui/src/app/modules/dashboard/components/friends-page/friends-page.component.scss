@@ -1,63 +1,89 @@
+@use '../../../../../styles/variables' as v;
+@use '../../../../../styles/breakpoints' as bp;
+
 .friends-container {
-    padding: 1rem 2rem;
+  padding: var(--space-6);
+  max-width: 960px;
+  margin: 0 auto;
+
+  @include bp.md {
+    padding: var(--space-8) var(--space-10);
   }
 
-  .badge {
-    background-color: #e8eaf6;
-    color: #3f51b5;
-    border-radius: 12px;
-    padding: 4px 12px;
-    font-size: 13px;
+  @include bp.lg {
+    padding: var(--space-8) var(--space-12);
+  }
+}
+
+.friends-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.badge {
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.tab-content {
+  padding: var(--space-4) var(--space-3);
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.friend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--color-outline);
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--color-surface-variant);
   }
 
-  .tab-content {
-    padding: 1rem 0.5rem;
-    max-height: 60vh;
-    overflow-y: auto;
-  }
-
-  .friend-row {
+  .friend-info {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 10px 8px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-
-    .friend-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .friend-name {
-      font-weight: 500;
-    }
-
-    .friend-email {
-      font-size: 13px;
-      color: rgba(0, 0, 0, 0.54);
-    }
-
-    .request-actions {
-      display: flex;
-      gap: 8px;
-    }
+    gap: var(--space-3);
   }
 
-  .empty-state {
+  .friend-name {
+    font-weight: 500;
+  }
+
+  .friend-email {
+    font-size: var(--font-size-xs);
+    color: var(--color-on-surface-variant);
+  }
+
+  .request-actions {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    color: rgba(0, 0, 0, 0.45);
-    padding: 1rem 0;
+    gap: var(--space-2);
   }
+}
 
-  .search-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+.empty-state {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-on-surface-variant);
+  padding: var(--space-4) 0;
+}
 
-    .search-field {
-      flex: 1;
-    }
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  .search-field {
+    flex: 1;
   }
+}

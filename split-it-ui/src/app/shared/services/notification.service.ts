@@ -20,7 +20,7 @@ export class NotificationService {
       title,
       text,
       confirmButtonText: 'OK',
-      confirmButtonColor: '#3f51b5'
+      confirmButtonColor: '#005cbb'
     } as SweetAlertOptions);
   }
 
@@ -30,7 +30,7 @@ export class NotificationService {
       title,
       text,
       confirmButtonText: 'OK',
-      confirmButtonColor: '#3f51b5'
+      confirmButtonColor: '#005cbb'
     } as SweetAlertOptions);
   }
 
@@ -43,7 +43,7 @@ export class NotificationService {
       confirmButtonText: confirmText,
       confirmButtonColor: '#d33',
       cancelButtonText: 'Cancel',
-      cancelButtonColor: '#3f51b5'
+      cancelButtonColor: '#005cbb'
     } as SweetAlertOptions);
   }
 
@@ -55,7 +55,7 @@ export class NotificationService {
       title: message,
       showConfirmButton: true,
       confirmButtonText: 'OK',
-      confirmButtonColor: '#3f51b5',
+      confirmButtonColor: '#005cbb',
       timer: undefined,
       timerProgressBar: false,
       customClass: {

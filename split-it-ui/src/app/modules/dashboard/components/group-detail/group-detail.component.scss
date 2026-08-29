@@ -1,88 +1,136 @@
-.group-detail-container{
-    
-    height: calc(100vh - 70px);
-    overflow-y: auto;
-    padding: 1rem;
+@use '../../../../../styles/variables' as v;
+@use '../../../../../styles/breakpoints' as bp;
 
+.group-detail-container {
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+  padding: var(--space-6);
+  max-width: 960px;
+  margin: 0 auto;
+
+  @include bp.md {
+    padding: var(--space-8) var(--space-10);
+  }
+
+  @include bp.lg {
+    padding: var(--space-8) var(--space-12);
+  }
 }
 
 .group-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap; // for responsive behavior
-    gap: 1rem;
-  }
-  
-  .group-title {
-    flex: 1;
-  }
-  
-  .group-actions {
-    display: flex;
-    gap: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.group-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.group-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.group-description {
+  color: var(--color-on-surface-variant);
+  margin: var(--space-2) 0 var(--space-4);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.expense-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+.debt-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+
+  button {
+    transition: transform 0.15s ease;
   }
 
-  .debt-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  button:hover {
+    transform: scale(1.1);
   }
-  
-  .debt-item button {
-    transition: transform 0.2s ease;
-  }
-  
-  .debt-item button:hover {
-    transform: scale(1.2);
-  }
-  
+}
+
 .expense-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  
-    .expense-row {
-      display: grid;
-      grid-template-columns: 1fr 2fr 1.5fr 2fr auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  .expense-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1.5fr 2fr auto;
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    background-color: var(--color-surface-variant);
+    transition: background-color 0.15s ease;
+
+    &.alt {
+      background-color: var(--color-outline-variant);
+    }
+
+    &.header-row {
+      font-weight: 600;
+      background-color: var(--color-outline);
+      color: var(--color-on-surface);
+      font-size: var(--font-size-sm);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .date,
+    .title-amount,
+    .participants,
+    .actions {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      font-size: var(--font-size-sm);
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
       align-items: center;
-      padding: 0.75rem 1rem;
-      border-radius: 0.5rem;
-      background-color: #f9fafb;
-  
-      &.alt {
-        background-color: #f1f5f9;
-      }
-  
-      &.header-row {
-        font-weight: bold;
-        background-color: #e2e8f0; 
-        color: #1f2937;
-      }
-  
-      .date,
-      .title-amount,
-      .participants,
-      .actions {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
-  
-      .actions {
-        display: flex;
-        flex-direction: row;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 0.5rem;
-      }
+      gap: var(--space-2);
     }
   }
 
+  @include bp.mobile-only {
+    .expense-row {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-2);
+
+      &.header-row {
+        display: none;
+      }
+
+      .date::before { content: ''; }
+      .date { font-size: var(--font-size-xs); color: var(--color-on-surface-variant); }
+      .title-amount .title { font-weight: 600; }
+      .title-amount .amount { color: var(--color-primary); font-weight: 600; }
+    }
+  }
+}
+
 .text-green-600 {
-  color: #16a34a; 
+  color: var(--color-success);
 }
 
 .text-red-600 {
-  color: #dc2626;
+  color: var(--color-danger);
 }

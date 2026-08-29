@@ -1,10 +1,10 @@
-<h2 mat-dialog-title class="text-center">Register Payment</h2>
+<h2 mat-dialog-title>Register Payment</h2>
 
 <mat-dialog-content>
   <p class="settle-description">{{ descriptionText }}</p>
   <p class="settle-remaining">Remaining debt: <strong>${{ data.remainingDebt | number: '1.2-2' }}</strong></p>
 
-  <form [formGroup]="settleForm" class="mt-2">
+  <form [formGroup]="settleForm">
     <mat-form-field appearance="outline" class="w-100">
       <mat-label>Amount</mat-label>
       <input matInput type="number" formControlName="amount" appPositiveNumber />
@@ -13,7 +13,7 @@
       <mat-error *ngIf="settleForm.get('amount')?.hasError('max')">Amount cannot exceed the remaining debt (${{ data.remainingDebt | number: '1.2-2' }}).</mat-error>
     </mat-form-field>
 
-    <button mat-button type="button" color="primary" (click)="useFullAmount()">
+    <button mat-button type="button" color="primary" (click)="useFullAmount()" type="button">
       Use full remaining amount
     </button>
   </form>
@@ -21,7 +21,7 @@
 
 <mat-dialog-actions align="end">
   <button mat-button (click)="cancel()">Cancel</button>
-  <button mat-flat-button color="primary" [disabled]="settleForm.invalid" (click)="confirm()">
+  <button mat-flat-button color="primary" [disabled]="settleForm.invalid" (click)="confirm()" aria-label="Register payment">
     Register payment
   </button>
 </mat-dialog-actions>

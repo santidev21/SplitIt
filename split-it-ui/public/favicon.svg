@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4ade80"/>
+      <stop offset="100%" stop-color="#16a34a"/>
+    </linearGradient>
+    <linearGradient id="b" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#005cbb"/>
+    </linearGradient>
+  </defs>
+  <path d="M3 3h11v20l-2-1.5l-2 1.5l-2-1.5l-2 1.5l-2-1.5V3z" fill="url(#g)" rx="1.5"/>
+  <rect x="6" y="9" width="6" height="1.2" rx="0.5" fill="#0a3d1f"/>
+  <rect x="6" y="12" width="6" height="1.2" rx="0.5" fill="#0a3d1f"/>
+  <text x="9" y="18" text-anchor="middle" font-size="5.5" font-weight="bold" fill="#0a3d1f">$</text>
+  <ellipse cx="22" cy="20" rx="7" ry="3" fill="url(#b)" opacity="0.7"/>
+  <ellipse cx="22" cy="17.5" rx="7" ry="3" fill="url(#b)" opacity="0.85"/>
+  <ellipse cx="22" cy="15" rx="7" ry="3" fill="url(#b)"/>
+  <text x="22" y="17" text-anchor="middle" font-size="5.5" font-weight="bold" fill="white">$</text>
+</svg>
