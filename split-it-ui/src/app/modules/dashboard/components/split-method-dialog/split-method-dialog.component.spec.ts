@@ -49,7 +49,7 @@ describe('SplitMethodDialogComponent', () => {
 
       expect(dialogRefSpy.close).toHaveBeenCalled();
       const result = dialogRefSpy.close.calls.mostRecent().args[0];
-      expect(result.method).toBe('equally');
+      expect(result.method).toBe('SPLIT.METHOD_EQUAL');
       expect(result.expenseParticipant.map((p: any) => p.amountOwed)).toEqual([33.34, 33.33, 33.33]);
     });
 
@@ -97,7 +97,7 @@ describe('SplitMethodDialogComponent', () => {
       component.confirmSplit();
 
       const result = dialogRefSpy.close.calls.mostRecent().args[0];
-      expect(result.method).toBe('unequally');
+      expect(result.method).toBe('SPLIT.METHOD_UNEQUAL');
       expect(result.expenseParticipant.map((p: any) => p.amountOwed)).toEqual([50, 30, 20]);
     });
 
@@ -135,7 +135,7 @@ describe('SplitMethodDialogComponent', () => {
       component.confirmSplit();
 
       const result = dialogRefSpy.close.calls.mostRecent().args[0];
-      expect(result.method).toBe('percentage');
+      expect(result.method).toBe('SPLIT.METHOD_PERCENTAGE');
       expect(result.expenseParticipant.map((p: any) => p.amountOwed)).toEqual([50, 30, 20]);
     });
 
