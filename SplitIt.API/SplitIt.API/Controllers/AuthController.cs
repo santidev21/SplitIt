@@ -71,9 +71,15 @@ namespace SplitIt.API.Controllers
         [EnableRateLimiting("auth")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto request)
         {
-            var token = await _authService.GenerateResetTokenAsync(request.Email);
-            // Always return success to prevent email enumeration
-            return Ok(new { message = "If the email exists, a reset token has been generated. Contact your administrator." });
+            try
+            {
+                await _authService.GenerateResetTokenAsync(request.Email);
+            }
+            catch
+            {
+                // Ignore errors — always return success to prevent enumeration
+            }
+            return Ok(new { message = "If the email exists, a reset code has been generated. Contact your administrator." });
         }
 
         [HttpPost("reset-password")]
