@@ -15,6 +15,15 @@
   @include bp.lg {
     padding: var(--space-8) var(--space-12);
   }
+
+  ul{
+    margin: var(--space-2);
+    padding: 0;
+
+    li{
+      padding:0 var(--space-1);
+    }
+  }
 }
 
 .group-header {
@@ -28,7 +37,7 @@
 .group-title {
   flex: 1;
   min-width: 0;
-
+  
   p {
     padding: 15px var(--space-4);
     margin: 0;
@@ -68,6 +77,12 @@
   button:hover {
     transform: scale(1.1);
   }
+}
+
+.payment-details{
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .expense-list {

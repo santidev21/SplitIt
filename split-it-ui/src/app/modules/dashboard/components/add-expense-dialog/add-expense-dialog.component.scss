@@ -8,6 +8,7 @@ mat-dialog-content {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  margin-top: var(--space-2);
 }
 
 .full-width-field {
@@ -20,6 +21,7 @@ textarea {
 
 .datepicker-section {
   margin-bottom: var(--space-4);
+  text-align: center;
 }
 
 .datepicker-wrapper {
@@ -39,17 +41,24 @@ textarea {
 
 .split-expense-info {
   display: flex;
-  flex-direction: row;
+  flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
+  gap: var(--space-2);
   font-size: var(--font-size-base);
   color: var(--color-on-surface);
+  white-space: nowrap;
 
   mat-select {
-    text-align: center;
-    width: 50px;
     color: var(--color-primary);
     font-weight: 600;
+    min-width: 0;
+    flex: 0 1 auto;
+    width: auto;
+  }
+
+  mat-form-field {
+    width: auto;
   }
 
   .split-method-button {
@@ -57,6 +66,8 @@ textarea {
     font-weight: 600;
     cursor: pointer;
     transition: color 0.15s ease;
+    margin-left: var(--space-1);
+    flex-shrink: 0;
 
     &:hover {
       color: var(--color-primary-hover);
@@ -66,4 +77,9 @@ textarea {
 
 ::ng-deep .wide-select-panel {
   min-width: 200px;
+}
+
+::ng-deep .split-expense-info .mat-mdc-select-trigger {
+  min-width: auto;
+  width: auto;
 }

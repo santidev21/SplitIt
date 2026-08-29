@@ -77,7 +77,7 @@ export class AddExpenseDialogComponent implements OnInit {
       return;
     }
     const dialogRef = this.dialog.open(SplitMethodDialogComponent, {
-      width: '400px',
+      width: '450px',
       data: {
         members: this.members,
         amount: this.expenseForm.value.amount

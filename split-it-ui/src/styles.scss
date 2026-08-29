@@ -163,12 +163,12 @@ body {
   letter-spacing: -0.015em;
   line-height: 1.4;
   margin: 0 0 var(--space-2);
-  padding: 0;
+  padding: 0 var(--space-1);
 }
 
 .heading-md {
   font-size: var(--font-size-lg);
-  font-weight: 500;
+  font-weight: bold;
   line-height: 1.4;
   margin: 0 var(--space-2) var(--space-2);
   padding: 0;
@@ -217,6 +217,8 @@ body {
   box-shadow: var(--shadow-sm) !important;
   border: 1px solid var(--color-outline) !important;
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  margin: var(--space-2) !important;
+  padding: var(--space-2) !important;
 
   &:hover {
     box-shadow: var(--shadow-md) !important;
@@ -231,6 +233,15 @@ body {
   --mdc-dialog-container-shape: var(--radius-xl);
   max-width: 500px;
   width: 100%;
+}
+
+.mat-mdc-dialog-title.heading-xl {
+  font-size: var(--font-size-2xl) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.3 !important;
+  margin: 0 !important;
+  padding: var(--space-5) var(--space-6) var(--space-2) !important;
 }
 
 .mat-mdc-tab-group {
@@ -258,4 +269,13 @@ body {
   &:hover {
     background: var(--color-on-surface-variant);
   }
+}
+
+form{
+    margin-top: var(--space-6);
+}
+
+mat-card-actions{
+    align-items: center;
+    justify-content: center;
 }
