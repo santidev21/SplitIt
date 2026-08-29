@@ -225,22 +225,39 @@ if (args.Contains("--migrate"))
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     try
     {
+        var canConnect = await db.Database.CanConnectAsync();
+        Console.WriteLine($"Database reachable: {canConnect}");
+        if (!canConnect)
+        {
+            Console.WriteLine("ERROR: Cannot connect to database. Check connection string.");
+            Environment.Exit(1);
+            return;
+        }
+
         var pending = db.Database.GetPendingMigrations().ToList();
         Console.WriteLine($"Pending migrations: {(pending.Count == 0 ? "(none)" : string.Join(", ", pending))}");
 
         if (pending.Count > 0)
         {
+            Console.WriteLine("Applying pending migrations via Migrate()...");
             db.Database.Migrate();
+            Console.WriteLine("Migrate() completed.");
         }
         else
         {
-            // EnsureCreated is idempotent — creates tables from snapshot if missing, no-op if they exist
-            Console.WriteLine("No pending migrations — ensuring database schema is up to date...");
-            db.Database.EnsureCreated();
+            Console.WriteLine("No pending migrations detected by EF — using EnsureCreated() as fallback...");
+            var created = db.Database.EnsureCreated();
+            Console.WriteLine($"EnsureCreated() returned: {created} (true = tables were created, false = already exist)");
         }
 
         var applied = db.Database.GetAppliedMigrations().ToList();
         Console.WriteLine($"Applied migrations count: {applied.Count} — last: {applied.LastOrDefault()}");
+
+        // Verify critical table exists
+        var tableExists = db.Database.ExecuteSqlRaw(
+            "SELECT CASE WHEN OBJECT_ID(N'[PasswordResetTokens]') IS NULL THEN 0 ELSE 1 END") == 1;
+        Console.WriteLine($"PasswordResetTokens table exists: {tableExists}");
+
         Console.WriteLine("Migrations applied successfully — exiting migrator");
         return;
     }

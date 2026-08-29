@@ -35,21 +35,19 @@ export function extractBackendMessage(err: HttpErrorResponse): string {
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status !== 401) {
-        const message = extractBackendMessage(error);
-        Swal.fire({
-          toast: true,
-          position: 'center',
-          icon: 'error',
-          title: message,
-          showConfirmButton: true,
-          confirmButtonText: 'OK',
-          confirmButtonColor: '#005cbb',
-          timer: undefined,
-          timerProgressBar: false,
-          customClass: { popup: 'centered-toast' }
-        });
-      }
+      const message = extractBackendMessage(error);
+      Swal.fire({
+        toast: true,
+        position: 'center',
+        icon: 'error',
+        title: message,
+        showConfirmButton: true,
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#005cbb',
+        timer: undefined,
+        timerProgressBar: false,
+        customClass: { popup: 'centered-toast' }
+      });
       return throwError(() => error);
     })
   );

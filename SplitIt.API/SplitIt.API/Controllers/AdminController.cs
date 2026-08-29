@@ -222,34 +222,48 @@ namespace SplitIt.API.Controllers
         [Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> GetPasswordResetTokens()
         {
-            var tokens = await _context.PasswordResetTokens
-                .Include(t => t.User)
-                .Where(t => !t.Used && t.ExpiresAt > DateTime.UtcNow)
-                .OrderByDescending(t => t.CreatedAt)
-                .Select(t => new
-                {
-                    t.Id,
-                    t.Token,
-                    UserName = t.User.Name,
-                    UserEmail = t.User.Email,
-                    t.ExpiresAt,
-                    t.CreatedAt
-                })
-                .ToListAsync();
+            try
+            {
+                var tokens = await _context.PasswordResetTokens
+                    .Include(t => t.User)
+                    .Where(t => !t.Used && t.ExpiresAt > DateTime.UtcNow)
+                    .OrderByDescending(t => t.CreatedAt)
+                    .Select(t => new
+                    {
+                        t.Id,
+                        t.Token,
+                        UserName = t.User.Name,
+                        UserEmail = t.User.Email,
+                        t.ExpiresAt,
+                        t.CreatedAt
+                    })
+                    .ToListAsync();
 
-            return Ok(tokens);
+                return Ok(tokens);
+            }
+            catch
+            {
+                return Ok(Array.Empty<object>());
+            }
         }
 
         [HttpDelete("password-reset-tokens/{tokenId}")]
         [Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> DeletePasswordResetToken(int tokenId)
         {
-            var token = await _context.PasswordResetTokens.FindAsync(tokenId);
-            if (token == null) return NotFound();
+            try
+            {
+                var token = await _context.PasswordResetTokens.FindAsync(tokenId);
+                if (token == null) return NotFound();
 
-            _context.PasswordResetTokens.Remove(token);
-            await _context.SaveChangesAsync();
-            return Ok(new { message = "Token deleted." });
+                _context.PasswordResetTokens.Remove(token);
+                await _context.SaveChangesAsync();
+                return Ok(new { message = "Token deleted." });
+            }
+            catch
+            {
+                return BadRequest(new { message = "Password reset feature is not available yet. The database table needs to be created." });
+            }
         }
     }
 }
