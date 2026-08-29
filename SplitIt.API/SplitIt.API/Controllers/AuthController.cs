@@ -93,6 +93,20 @@ namespace SplitIt.API.Controllers
             return Ok(new { message = "Password has been reset successfully. You can now log in." });
         }
 
+        [HttpPost("verify-reset-code")]
+        [EnableRateLimiting("auth")]
+        public async Task<IActionResult> VerifyResetCode([FromBody] VerifyResetCodeDto request)
+        {
+            if (request.NewPassword.Length < 8)
+                return BadRequest(new { message = "Password must be at least 8 characters." });
+
+            var success = await _authService.ResetPasswordAsync(request.Code, request.NewPassword);
+            if (!success)
+                return BadRequest(new { message = "Invalid or expired code." });
+
+            return Ok(new { message = "Password has been reset successfully. You can now log in." });
+        }
+
         private string GenerateJwtToken(User user)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");

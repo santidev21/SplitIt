@@ -40,7 +40,7 @@
       <mat-tab label="Users">
         <div class="tab-content">
           <div class="toolbar">
-            <mat-form-field appearance="outline" class="search-field">
+            <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
               <mat-label>Search users by name or email</mat-label>
               <input matInput [(ngModel)]="userSearch" (keyup.enter)="onUserSearch()" />
               <mat-icon matSuffix>search</mat-icon>
@@ -61,7 +61,7 @@
               <div class="muted" role="cell">{{ user.email }}</div>
               <div role="cell">
                 <mat-select [value]="user.roleId" (selectionChange)="changeRole(user, $event)"
-                            [disabled]="!isSuperAdmin" class="role-select" [attr.aria-label]="'Role for ' + user.name">
+                            [disabled]="!isSuperAdmin || user.id === currentUserId" class="role-select" [attr.aria-label]="'Role for ' + user.name">
                   <mat-option *ngFor="let role of roles" [value]="role.id">{{ role.label }}</mat-option>
                 </mat-select>
               </div>
@@ -90,7 +90,7 @@
       <mat-tab label="Groups">
         <div class="tab-content">
           <div class="toolbar">
-            <mat-form-field appearance="outline" class="search-field">
+            <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
               <mat-label>Search groups by name</mat-label>
               <input matInput [(ngModel)]="groupSearch" (keyup.enter)="loadGroups()" />
               <mat-icon matSuffix>search</mat-icon>
@@ -126,12 +126,12 @@
 
           <div class="setting-row">
             <span>Maximum expense amount ($)</span>
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
               <input matInput type="number" [(ngModel)]="maxExpenseAmount" aria-label="Maximum expense amount" />
             </mat-form-field>
           </div>
 
-          <button mat-flat-button color="primary" (click)="saveSettings()"
+          <button mat-flat-button color="primary" class="save-settings-btn" (click)="saveSettings()"
                   [disabled]="!isSuperAdmin" *ngIf="isSuperAdmin; else readOnlySettings" aria-label="Save settings">
             Save settings
           </button>
@@ -141,17 +141,17 @@
 
           <mat-divider></mat-divider>
 
-          <p class="heading-md mb-1">Currencies</p>
+          <p class="heading-md currencies-title mb-1">Currencies</p>
           <div class="toolbar">
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="currency-field">
               <mat-label>Name</mat-label>
               <input matInput [(ngModel)]="newCurrencyName" placeholder="Euro" />
             </mat-form-field>
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="currency-field">
               <mat-label>Symbol</mat-label>
               <input matInput [(ngModel)]="newCurrencySymbol" placeholder="EUR" />
             </mat-form-field>
-            <button mat-flat-button color="primary" (click)="addCurrency()" [disabled]="!isSuperAdmin" aria-label="Add currency">Add currency</button>
+            <button mat-flat-button color="primary" (click)="addCurrency()" [disabled]="!isSuperAdmin || !newCurrencyName.trim() || !newCurrencySymbol.trim()" aria-label="Add currency">Add currency</button>
           </div>
         </div>
       </mat-tab>

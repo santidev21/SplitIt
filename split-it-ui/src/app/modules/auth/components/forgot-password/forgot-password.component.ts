@@ -11,34 +11,69 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['../../auth.styles.scss']
 })
 export class ForgotPasswordComponent {
-  forgotForm: FormGroup;
+  step = 1;
+  emailForm: FormGroup;
+  codeForm: FormGroup;
   isLoading = false;
-  submitted = false;
+  errorMessage = '';
 
   constructor(
     private authService: AuthService,
     private fb: FormBuilder,
     private router: Router,
   ) {
-    this.forgotForm = this.fb.group({
+    this.emailForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]]
+    });
+    this.codeForm = this.fb.group({
+      code: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
+      newPassword: ['', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['', [Validators.required]]
     });
   }
 
-  submit() {
-    if (this.forgotForm.invalid) {
-      this.forgotForm.markAllAsTouched();
+  submitEmail() {
+    if (this.emailForm.invalid) {
+      this.emailForm.markAllAsTouched();
       return;
     }
     this.isLoading = true;
-    this.authService.forgotPassword(this.forgotForm.value.email).subscribe({
+    this.errorMessage = '';
+    this.authService.forgotPassword(this.emailForm.value.email).subscribe({
       next: () => {
         this.isLoading = false;
-        this.submitted = true;
+        this.step = 2;
       },
       error: () => {
         this.isLoading = false;
-        this.submitted = true;
+        this.step = 2;
+      }
+    });
+  }
+
+  submitCode() {
+    if (this.codeForm.invalid) {
+      this.codeForm.markAllAsTouched();
+      return;
+    }
+    if (this.codeForm.value.newPassword !== this.codeForm.value.confirmPassword) {
+      this.codeForm.get('confirmPassword')?.setErrors({ mismatch: true });
+      return;
+    }
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.authService.verifyResetCode(
+      this.emailForm.value.email,
+      this.codeForm.value.code,
+      this.codeForm.value.newPassword
+    ).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.step = 3;
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = err.error?.message || 'Invalid or expired code.';
       }
     });
   }

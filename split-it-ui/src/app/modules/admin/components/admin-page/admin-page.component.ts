@@ -4,6 +4,7 @@ import { HeaderBarComponent } from '../../../dashboard/components/header-bar/hea
 import { FormsModule } from '@angular/forms';
 import { AdminService, AdminStats, UserAdmin, UsersPage, GroupAdmin, PasswordResetToken } from '../../services/admin.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { getCurrentUserId, isSuperAdminRole } from '../../../../shared/utils/jwt.util';
 
 @Component({
   selector: 'app-admin-page',
@@ -27,6 +28,7 @@ export class AdminPageComponent implements OnInit {
     { id: 3, label: 'User' }
   ];
   isSuperAdmin = false;
+  currentUserId = 0;
 
   groups: GroupAdmin[] = [];
   groupSearch = '';
@@ -44,22 +46,14 @@ export class AdminPageComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.isSuperAdmin = this.readRole() === 'SuperAdmin';
+    this.isSuperAdmin = isSuperAdminRole();
+    this.currentUserId = getCurrentUserId();
     this.loadStats();
     this.loadUsers();
     this.loadGroups();
     this.loadSettings();
-    this.loadResetTokens();
-  }
-
-  private readRole(): string | null {
-    const token = localStorage.getItem('token');
-    if (!token) return null;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || payload.role || null;
-    } catch {
-      return null;
+    if (this.isSuperAdmin) {
+      this.loadResetTokens();
     }
   }
 

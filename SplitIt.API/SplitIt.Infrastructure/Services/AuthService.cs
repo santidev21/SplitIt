@@ -64,30 +64,24 @@ namespace SplitIt.Infrastructure.Services
             var user = await GetUserByEmail(email);
             if (user == null || !user.IsActive) return null;
 
-            // Invalidate any existing unused tokens for this user
             var existingTokens = await _context.PasswordResetTokens
                 .Where(t => t.UserId == user.Id && !t.Used)
                 .ToListAsync();
             _context.PasswordResetTokens.RemoveRange(existingTokens);
 
-            var tokenBytes = new byte[32];
-            using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(tokenBytes);
-            }
-            var token = Convert.ToHexString(tokenBytes).ToLowerInvariant();
+            var code = Random.Shared.Next(100000, 999999).ToString();
             var resetToken = new PasswordResetToken
             {
                 UserId = user.Id,
-                Token = token,
-                ExpiresAt = DateTime.UtcNow.AddHours(24),
+                Token = code,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(15),
                 Used = false
             };
 
             _context.PasswordResetTokens.Add(resetToken);
             await _context.SaveChangesAsync();
 
-            return token;
+            return code;
         }
 
         public async Task<bool> ResetPasswordAsync(string token, string newPassword)

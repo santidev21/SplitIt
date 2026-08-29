@@ -66,4 +66,8 @@ export class AuthService {
   resetPassword(token: string, newPassword: string): Observable<any> {
     return this.http.post(`${this.API_URL}/reset-password`, { token, newPassword });
   }
+
+  verifyResetCode(email: string, code: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.API_URL}/verify-reset-code`, { email, code, newPassword });
+  }
 }

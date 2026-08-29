@@ -7,7 +7,7 @@
     <nav class="nav-links" [class.open]="menuOpen" role="navigation" aria-label="Main navigation">
       <a routerLink="/dashboard/home" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
       <a routerLink="/dashboard/friends" routerLinkActive="active">Friends</a>
-      <a *ngIf="isAdmin" routerLink="/admin" routerLinkActive="active">Admin</a>
+      <a *ngIf="isAdmin" routerLink="/dashboard/admin" routerLinkActive="active">Admin</a>
     </nav>
 
     <div class="header-actions">

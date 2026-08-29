@@ -1,11 +1,13 @@
 import { Component, OnInit } from '@angular/core';
+import { NgIf } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
 import { MatIconModule } from '@angular/material/icon';
+import { isAdminRole } from '../../../../shared/utils/jwt.util';
 
 @Component({
   selector: 'app-header-bar',
-  imports: [RouterModule, MatIconModule],
+  imports: [RouterModule, MatIconModule, NgIf],
   templateUrl: './header-bar.component.html',
   styleUrls: ['./header-bar.component.scss']
 })
@@ -18,7 +20,7 @@ export class HeaderBarComponent implements OnInit {
     private router: Router,
     private authService: AuthService
   ){
-    this.isAdmin = this.readRole() === 'SuperAdmin' || this.readRole() === 'Admin';
+    this.isAdmin = isAdminRole();
   }
 
   ngOnInit(): void {
@@ -29,17 +31,6 @@ export class HeaderBarComponent implements OnInit {
     this.isDark = !this.isDark;
     document.documentElement.setAttribute('data-theme', this.isDark ? 'dark' : 'light');
     localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
-  }
-
-  private readRole(): string | null {
-    const token = localStorage.getItem('token');
-    if (!token) return null;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || payload.role || null;
-    } catch {
-      return null;
-    }
   }
 
   logout(){
