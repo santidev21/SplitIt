@@ -229,34 +229,52 @@ if (args.Contains("--migrate"))
         Console.WriteLine($"Database reachable: {canConnect}");
         if (!canConnect)
         {
-            Console.WriteLine("ERROR: Cannot connect to database. Check connection string.");
+            Console.WriteLine("ERROR: Cannot connect to database.");
             Environment.Exit(1);
             return;
         }
 
+        // Apply EF Core migrations if any are pending
         var pending = db.Database.GetPendingMigrations().ToList();
-        Console.WriteLine($"Pending migrations: {(pending.Count == 0 ? "(none)" : string.Join(", ", pending))}");
-
+        Console.WriteLine($"Pending EF migrations: {(pending.Count == 0 ? "(none)" : string.Join(", ", pending))}");
         if (pending.Count > 0)
         {
             Console.WriteLine("Applying pending migrations via Migrate()...");
             db.Database.Migrate();
-            Console.WriteLine("Migrate() completed.");
         }
-        else
-        {
-            Console.WriteLine("No pending migrations detected by EF — using EnsureCreated() as fallback...");
-            var created = db.Database.EnsureCreated();
-            Console.WriteLine($"EnsureCreated() returned: {created} (true = tables were created, false = already exist)");
-        }
+
+        // Ensure all tables exist — handles cases where EF can't discover migrations
+        Console.WriteLine("Ensuring database schema is up to date via raw SQL...");
+        await db.Database.ExecuteSqlRawAsync(@"
+            IF OBJECT_ID(N'[PasswordResetTokens]') IS NULL
+            BEGIN
+                CREATE TABLE [PasswordResetTokens] (
+                    [Id] int NOT NULL IDENTITY(1,1),
+                    [UserId] int NOT NULL,
+                    [Token] nvarchar(64) NOT NULL,
+                    [ExpiresAt] datetime2 NOT NULL,
+                    [Used] bit NOT NULL DEFAULT 0,
+                    [CreatedAt] datetime2 NOT NULL DEFAULT GETUTCDATE(),
+                    CONSTRAINT [PK_PasswordResetTokens] PRIMARY KEY ([Id]),
+                    CONSTRAINT [FK_PasswordResetTokens_Users_UserId] FOREIGN KEY ([UserId]) REFERENCES [Users]([Id]) ON DELETE CASCADE
+                );
+                CREATE INDEX [IX_PasswordResetTokens_UserId_Token] ON [PasswordResetTokens] ([UserId], [Token]);
+                PRINT 'Created PasswordResetTokens table';
+            END
+            ELSE
+                PRINT 'PasswordResetTokens table already exists';
+        ");
+        await db.Database.ExecuteSqlRawAsync(@"
+            IF NOT EXISTS (SELECT 1 FROM [__EFMigrationsHistory] WHERE [MigrationId] = '20260828220000_AddPasswordResetTokens')
+                INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion]) VALUES ('20260828220000_AddPasswordResetTokens', '9.0.3');
+        ");
 
         var applied = db.Database.GetAppliedMigrations().ToList();
         Console.WriteLine($"Applied migrations count: {applied.Count} — last: {applied.LastOrDefault()}");
 
-        // Verify critical table exists
-        var tableExists = db.Database.ExecuteSqlRaw(
-            "SELECT CASE WHEN OBJECT_ID(N'[PasswordResetTokens]') IS NULL THEN 0 ELSE 1 END") == 1;
-        Console.WriteLine($"PasswordResetTokens table exists: {tableExists}");
+        var tableCheck = await db.Database.ExecuteSqlRawAsync(
+            "SELECT CASE WHEN OBJECT_ID(N'[PasswordResetTokens]') IS NULL THEN 0 ELSE 1 END");
+        Console.WriteLine($"PasswordResetTokens table exists: {tableCheck == 1}");
 
         Console.WriteLine("Migrations applied successfully — exiting migrator");
         return;
