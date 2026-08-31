@@ -28,8 +28,8 @@ public class Phase10DatabaseTests : IClassFixture<SqlServerFixture>
         var pending = (await ctx.Database.GetPendingMigrationsAsync()).ToList();
         Assert.Empty(pending);
         var applied = (await ctx.Database.GetAppliedMigrationsAsync()).ToList();
-        Assert.Equal(10, applied.Count);
-        Assert.Equal("20260827211311_AddUserActiveAndAppSettings", applied.Last());
+        Assert.Equal(11, applied.Count);
+        Assert.Equal("20260831155957_AddRefreshTokens", applied.Last());
 
         // Seed data exists
         var currencies = await ctx.Currencies.ToListAsync();

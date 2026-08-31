@@ -65,7 +65,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
       return;
     }
     google.accounts.id.initialize({
-      client_id: environment.googleClientId,
+      client_id: (environment as any).googleClientId || '',
       callback: (response: any) => this.handleGoogleCredential(response),
     });
     google.accounts.id.renderButton(

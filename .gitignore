@@ -24,7 +24,6 @@ yarn-error.log
 .env.local
 .env.*.local
 !.env.example
-split-it-ui/src/environments/environment.ts
 
 # TLS certificates and private keys — NEVER commit
 certs/

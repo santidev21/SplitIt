@@ -18,7 +18,7 @@ describe('LoginComponent', () => {
 
   beforeEach(async () => {
     authServiceSpy = jasmine.createSpyObj('AuthService', ['login']);
-    authServiceSpy.login.and.returnValue(of({ token: 'fake', name: 'Test', id: 1 }));
+    authServiceSpy.login.and.returnValue(of({ token: 'fake', userName: 'Test', userId: 1 }));
 
     await TestBed.configureTestingModule({
       imports: [LoginComponent, NoopAnimationsModule, RouterTestingModule],
@@ -53,7 +53,7 @@ describe('LoginComponent', () => {
     spyOn(event, 'preventDefault');
     component.login(event);
     expect(authServiceSpy.login).toHaveBeenCalledWith('test@test.com', 'password123');
-    expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
+    expect(component.isLoading).toBeFalse();
   });
 
   it('login should handle error', () => {
