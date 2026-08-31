@@ -6,6 +6,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslatePipe } from '@ngx-translate/core';
 import { environment } from '../../../../../environments/environment';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 declare var google: any;
 
@@ -27,6 +28,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
     private fb: FormBuilder,
     private router: Router,
     private ngZone: NgZone,
+    private snackBar: MatSnackBar,
   ){
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -64,8 +66,12 @@ export class LoginComponent implements OnInit, AfterViewInit {
       setTimeout(() => this.initGoogleButton(), 200);
       return;
     }
+    if (!(environment as any).googleClientId) {
+      console.warn('Google Client ID not configured');
+      return;
+    }
     google.accounts.id.initialize({
-      client_id: (environment as any).googleClientId || '',
+      client_id: (environment as any).googleClientId,
       callback: (response: any) => this.handleGoogleCredential(response),
     });
     google.accounts.id.renderButton(
@@ -82,8 +88,10 @@ export class LoginComponent implements OnInit, AfterViewInit {
         next: () => {
           this.isLoading = false;
         },
-        error: () => {
+        error: (err) => {
           this.isLoading = false;
+          const msg = err?.error?.message || 'Google login failed. Please try again.';
+          this.snackBar.open(msg, 'OK', { duration: 5000 });
         }
       });
     });

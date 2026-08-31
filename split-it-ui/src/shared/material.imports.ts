@@ -15,6 +15,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import {MatDatepickerModule} from '@angular/material/datepicker';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDividerModule } from '@angular/material/divider';
 
 export const MATERIAL_IMPORTS = [
   CommonModule,
@@ -34,5 +35,6 @@ export const MATERIAL_IMPORTS = [
   MatSlideToggleModule,
   MatTabsModule,
   MatDatepickerModule,
-  MatSnackBarModule
+  MatSnackBarModule,
+  MatDividerModule
 ];
