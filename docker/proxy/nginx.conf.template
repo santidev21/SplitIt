@@ -55,26 +55,66 @@ http {
         server ${FRONTEND_HOST}:80;
     }
 
-    # HTTP server: ACME HTTP-01 challenge + permanent HTTPS redirect.
+    # =================================================================
+    # DEFAULT: catch-all for unknown hostnames (fail-closed)
+    # =================================================================
+
+    # HTTP default: serve ACME challenges, close everything else.
     server {
-        listen ${HTTP_LISTEN_PORT};
-        server_name ${DOMAIN};
+        listen ${HTTP_LISTEN_PORT} default_server;
+        server_name _;
         server_tokens off;
 
-        # Let's Encrypt HTTP-01 challenge webroot.
+        # Let's Encrypt HTTP-01 challenge webroot (shared for all sites).
         location /.well-known/acme-challenge/ {
             root /var/www/certbot;
             default_type "text/plain";
             try_files $uri =404;
         }
 
-        # All other HTTP traffic is redirected to HTTPS with a permanent redirect.
+        location / {
+            return 444;
+        }
+    }
+
+    # HTTPS default: handshake with SplitIt cert, close everything else.
+    server {
+        listen ${HTTPS_LISTEN_PORT} ssl default_server;
+        http2 on;
+        server_name _;
+        server_tokens off;
+
+        ssl_certificate ${SSL_CERTIFICATE};
+        ssl_certificate_key ${SSL_CERTIFICATE_KEY};
+        include /etc/nginx/snippets/ssl-params.conf;
+
+        location / {
+            return 444;
+        }
+    }
+
+    # =================================================================
+    # SPLITIT — ${DOMAIN}
+    # =================================================================
+
+    # HTTP: ACME challenge + redirect to HTTPS
+    server {
+        listen ${HTTP_LISTEN_PORT};
+        server_name ${DOMAIN};
+        server_tokens off;
+
+        location /.well-known/acme-challenge/ {
+            root /var/www/certbot;
+            default_type "text/plain";
+            try_files $uri =404;
+        }
+
         location / {
             return 301 https://$host$request_uri;
         }
     }
 
-    # HTTPS server: terminates TLS and routes to backend or frontend.
+    # HTTPS: terminates TLS and routes to backend or frontend.
     server {
         listen ${HTTPS_LISTEN_PORT} ssl;
         http2 on;
@@ -178,4 +218,9 @@ http {
             proxy_buffering off;
         }
     }
+
+    # =================================================================
+    # SITES-ENABLED: per-project server blocks (drop files here)
+    # =================================================================
+    include /etc/nginx/sites-enabled/*.conf;
 }

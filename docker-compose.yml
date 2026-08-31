@@ -64,7 +64,7 @@ services:
       - JwtSettings__Issuer=${JWT_ISSUER}
       - JwtSettings__Audience=${JWT_AUDIENCE}
       - JwtSettings__ExpirationInMinutes=${JWT_ACCESS_EXPIRATION_MINUTES:-15}
-      - JwtSettings__RefreshTokenExpirationInDays=${JWT_REFRESH_EXPIRATION_DAYS:-30}
+      - JwtSettings__RefreshTokenExpirationInDays=${JWT_REFRESH_TOKEN_EXPIRATION_DAYS:-30}
       - Google__ClientId=${GOOGLE_CLIENT_ID}
     networks:
       - splitit-frontend-net
@@ -166,11 +166,13 @@ services:
       - HTTPS_LISTEN_PORT=8443
     volumes:
       - nginx_certs:/etc/nginx/ssl
-      - /opt/splitit/certs/letsencrypt:/etc/letsencrypt:ro
-      - certbot_www:/var/www/certbot
+      - /opt/gateway/certbot:/etc/letsencrypt:ro
+      - /opt/gateway/sites-enabled:/etc/nginx/sites-enabled:ro
+      - /opt/gateway/www:/var/www/certbot
     networks:
       - splitit-frontend-net
       - splitit-backend-net
+      - portfolio_default
     deploy:
       resources:
         limits:
@@ -185,6 +187,9 @@ networks:
     name: splitit-backend-net
     driver: bridge
     internal: true
+  portfolio_default:
+    name: portfolio_default
+    external: true
 
 volumes:
   sqlserver_data:
@@ -193,5 +198,3 @@ volumes:
     name: splitit_dataprotection_keys
   nginx_certs:
     name: splitit_nginx_certs
-  certbot_www:
-    name: splitit_certbot_www
