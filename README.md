@@ -243,6 +243,9 @@ cd /opt/splitit
 
 ## Screenshots
 
+### Login view
+![Login view](docs/images/login.png)
+
 ### Add Group
 ![Add group](docs/images/add-group.png)
 
