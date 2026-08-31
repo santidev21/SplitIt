@@ -48,6 +48,8 @@ describe('AuthService', () => {
 
   it('logout should clear session and navigate to login', () => {
     service.logout();
+    const req = httpMock.expectOne(req => req.url.includes('/api/auth/logout'));
+    req.flush({});
     expect(service.getToken()).toBeNull();
     expect(routerSpy.navigate).toHaveBeenCalledWith(['auth/login']);
   });

@@ -17,7 +17,8 @@ describe('LoginComponent', () => {
   let router: Router;
 
   beforeEach(async () => {
-    authServiceSpy = jasmine.createSpyObj('AuthService', ['login']);
+    authServiceSpy = jasmine.createSpyObj('AuthService', ['login', 'isAuthenticated']);
+    authServiceSpy.isAuthenticated.and.returnValue(false);
     authServiceSpy.login.and.returnValue(of({ token: 'fake', userName: 'Test', userId: 1 }));
 
     await TestBed.configureTestingModule({
