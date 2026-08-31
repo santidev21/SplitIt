@@ -1,11 +1,12 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
-import { isAdminRole } from '../../../shared/utils/jwt.util';
+import { AuthService } from '../services/auth.service';
 
 export const adminGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
+  const authService = inject(AuthService);
 
-  if (isAdminRole()) {
+  if (authService.isAdminRole()) {
     return true;
   }
   router.navigate(['/dashboard/home']);

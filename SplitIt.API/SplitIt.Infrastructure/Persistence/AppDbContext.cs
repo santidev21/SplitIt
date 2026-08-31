@@ -24,6 +24,7 @@ namespace SplitIt.Infrastructure.Persistence
         public DbSet<Friendship> Friendships { get; set; }
         public DbSet<AppSetting> AppSettings { get; set; }
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
 protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -130,6 +131,16 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
                 entity.Property(p => p.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
                 entity.HasOne(p => p.User).WithMany().HasForeignKey(p => p.UserId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasIndex(p => new { p.UserId, p.Token });
+            });
+
+            // RefreshToken table configuration
+            modelBuilder.Entity<RefreshToken>(entity =>
+            {
+                entity.HasKey(r => r.Id);
+                entity.HasIndex(r => r.TokenHash).IsUnique();
+                entity.Property(r => r.TokenHash).IsRequired().HasMaxLength(64);
+                entity.HasOne(r => r.User).WithMany().HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Cascade);
+                entity.Property(r => r.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             });
 
             SeedRoles(modelBuilder);

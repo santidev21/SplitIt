@@ -4,7 +4,7 @@ import { HeaderBarComponent } from '../../../dashboard/components/header-bar/hea
 import { FormsModule } from '@angular/forms';
 import { AdminService, AdminStats, UserAdmin, UsersPage, GroupAdmin, PasswordResetToken } from '../../services/admin.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
-import { getCurrentUserId, isSuperAdminRole } from '../../../../shared/utils/jwt.util';
+import { AuthService } from '../../../auth/services/auth.service';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
@@ -44,12 +44,13 @@ export class AdminPageComponent implements OnInit {
   constructor(
     private adminService: AdminService,
     private notifications: NotificationService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    this.isSuperAdmin = isSuperAdminRole();
-    this.currentUserId = getCurrentUserId();
+    this.isSuperAdmin = this.authService.isSuperAdminRole();
+    this.currentUserId = this.authService.getCurrentUserId();
     this.loadStats();
     this.loadUsers();
     this.loadGroups();

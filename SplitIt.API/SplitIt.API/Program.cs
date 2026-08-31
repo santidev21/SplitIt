@@ -77,6 +77,7 @@ builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 // App services
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<GroupService>();
 builder.Services.AddScoped<CurrenciesService>();
 builder.Services.AddScoped<UsersService>();

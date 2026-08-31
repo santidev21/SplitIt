@@ -5,7 +5,6 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../../auth/services/auth.service';
 import { LanguageService } from '../../../../shared/services/language.service';
 import { MatIconModule } from '@angular/material/icon';
-import { isAdminRole } from '../../../../shared/utils/jwt.util';
 
 @Component({
   selector: 'app-header-bar',
@@ -23,7 +22,7 @@ export class HeaderBarComponent implements OnInit {
     private authService: AuthService,
     public languageService: LanguageService
   ){
-    this.isAdmin = isAdminRole();
+    this.isAdmin = this.authService.isAdminRole();
   }
 
   ngOnInit(): void {

@@ -63,7 +63,11 @@ services:
       - JwtSettings__SecretKey=${JWT_SECRET}
       - JwtSettings__Issuer=${JWT_ISSUER}
       - JwtSettings__Audience=${JWT_AUDIENCE}
+      - JwtSettings__ExpirationInMinutes=${JWT_ACCESS_EXPIRATION_MINUTES:-15}
+      - JwtSettings__RefreshTokenExpirationInDays=${JWT_REFRESH_EXPIRATION_DAYS:-30}
+      - Google__ClientId=${GOOGLE_CLIENT_ID}
     networks:
+      - splitit-frontend-net
       - splitit-backend-net
     volumes:
       - dataprotection_keys:/home/app/.aspnet/DataProtection-Keys

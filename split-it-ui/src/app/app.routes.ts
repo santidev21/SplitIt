@@ -1,8 +1,11 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './modules/auth/guards/auth.guard';
+import { inject } from '@angular/core';
+import { AuthService } from './modules/auth/services/auth.service';
 
 function authAwareRedirect() {
-  const token = localStorage.getItem('token');
+  const authService = inject(AuthService);
+  const token = authService.getToken();
   if (!token) return '/auth/login';
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));

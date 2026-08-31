@@ -28,6 +28,7 @@
   "DASHBOARD.FRIEND_REQUEST_PLURAL": "{{count}} pending friend requests from: {{names}}",
 
   "AUTH.LOGIN_TITLE": "Login to your account",
+  "AUTH.OR": "or",
   "AUTH.EMAIL": "Email",
   "AUTH.EMAIL_PLACEHOLDER": "example@example.com",
   "AUTH.EMAIL_REQUIRED": "Email is required.",

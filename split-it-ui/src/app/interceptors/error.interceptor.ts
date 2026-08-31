@@ -35,6 +35,9 @@ export function extractBackendMessage(err: HttpErrorResponse): string {
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
+      if (req.url.includes('/auth/refresh') || req.url.includes('/auth/logout')) {
+        return throwError(() => error);
+      }
       const message = extractBackendMessage(error);
       Swal.fire({
         toast: true,

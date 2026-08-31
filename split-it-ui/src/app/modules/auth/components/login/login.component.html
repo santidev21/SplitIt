@@ -24,6 +24,12 @@
         <div class="auth-links-row">
           <a routerLink="/auth/forgot-password" class="auth-link">{{ 'AUTH.FORGOT_PASSWORD' | translate }}</a>
         </div>
+
+        <div class="auth-divider">
+          <span class="auth-divider-text">{{ 'AUTH.OR' | translate }}</span>
+        </div>
+
+        <div id="google-signin-button" class="google-btn-wrapper"></div>
       </mat-card-content>
       <mat-card-actions>
         <span class="auth-action-text">{{ 'AUTH.NO_ACCOUNT' | translate }} <a routerLink="/auth/register" class="auth-link">{{ 'AUTH.CREATE_ACCOUNT' | translate }}</a></span>

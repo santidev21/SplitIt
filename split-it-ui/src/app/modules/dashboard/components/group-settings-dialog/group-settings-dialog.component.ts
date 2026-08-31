@@ -8,6 +8,7 @@ import { FriendService, Friend } from '../../services/friend.service';
 import { GroupMember } from '../../../../models/group.model';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { AuthService } from '../../../auth/services/auth.service';
 
 export interface GroupSettingsDialogData {
   groupId: number;
@@ -35,9 +36,10 @@ export class GroupSettingsDialogComponent implements OnInit {
     private friendService: FriendService,
     private dialogRef: MatDialogRef<GroupSettingsDialogComponent>,
     private notifications: NotificationService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    authService: AuthService
   ) {
-    this.currentUserId = Number(localStorage.getItem('userId'));
+    this.currentUserId = authService.getCurrentUserId();
     this.groupForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]],
       description: ['', [Validators.required, Validators.maxLength(500)]],

@@ -10,6 +10,7 @@ import { FriendService } from './services/friend.service';
 import { NotificationService } from '../../shared/services/notification.service';
 import { UserGroup } from '../../models/user.model';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { AuthService } from '../auth/services/auth.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -18,7 +19,7 @@ import { TranslateService, TranslatePipe } from '@ngx-translate/core';
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit{
-  userName: string | null = localStorage.getItem('userName');
+  userName: string | null = null;
   userHasGroups: boolean = false;
   userGroups: UserGroup[] = [];
 
@@ -27,13 +28,15 @@ export class DashboardComponent implements OnInit{
     private groupService: GroupService,
     private friendService: FriendService,
     private notifications: NotificationService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    let userId : string | null = localStorage.getItem('userId');
-    if (userId){
-      this.groupService.getUserGroups(parseInt(userId)).subscribe((resp : UserGroup[]) =>{
+    this.userName = this.authService.getUserName();
+    const userId = this.authService.getCurrentUserId();
+    if (userId) {
+      this.groupService.getUserGroups(userId).subscribe((resp : UserGroup[]) => {
         if (resp && resp.length)
         {
           this.userHasGroups = true;

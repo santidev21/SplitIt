@@ -1,12 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Google.Apis.Auth;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using SplitIt.Application.DTOs;
 using SplitIt.Domain.Entities;
 using SplitIt.Infrastructure.Services;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace SplitIt.API.Controllers
 {
@@ -15,12 +13,14 @@ namespace SplitIt.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
+        private readonly TokenService _tokenService;
         private readonly IConfiguration _configuration;
         private readonly SettingsService? _settingsService;
 
-        public AuthController(AuthService authService, IConfiguration configuration, SettingsService? settingsService = null)
+        public AuthController(AuthService authService, TokenService tokenService, IConfiguration configuration, SettingsService? settingsService = null)
         {
             _authService = authService;
+            _tokenService = tokenService;
             _configuration = configuration;
             _settingsService = settingsService;
         }
@@ -29,11 +29,9 @@ namespace SplitIt.API.Controllers
         [EnableRateLimiting("auth")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
-            // Global toggle managed from the admin panel
             if (_settingsService != null && !await _settingsService.GetValueAsync(SettingsService.RegistrationEnabled, true))
                 return BadRequest(new { message = "Registration is currently disabled. Contact an administrator." });
 
-            // Generic response to avoid enumeration timing is handled via constant-time-ish flow
             bool success = await _authService.RegisterUser(request.Name, request.Email, request.Password);
             if (!success)
                 return Conflict(new { message = "Unable to register. If the email is already registered, try logging in." });
@@ -42,12 +40,14 @@ namespace SplitIt.API.Controllers
             if (user == null)
                 return StatusCode(500, new { message = "An error occurred while retrieving the user." });
 
-            var token = GenerateJwtToken(user);
+            var accessToken = _tokenService.GenerateAccessToken(user);
+            var refreshResult = await _tokenService.IssueRefreshTokenAsync(user);
+            SetRefreshTokenCookie(refreshResult.TokenHash);
 
             return Ok(new
             {
                 message = "Registration successful.",
-                token,
+                token = accessToken,
                 userName = user.Name,
                 userId = user.Id
             });
@@ -61,10 +61,91 @@ namespace SplitIt.API.Controllers
             if (user == null || !await _authService.ValidateUser(request.Email, request.Password))
                 return Unauthorized(new { message = "Incorrect email or password." });
 
-            // Re-fetch to get rehashed password if legacy migrated
             user = await _authService.GetUserByEmail(request.Email);
-            var token = GenerateJwtToken(user!);
-            return Ok(new {message = "Login successful.", token, userName = user!.Name, userId = user.Id});
+            var accessToken = _tokenService.GenerateAccessToken(user!);
+            var refreshResult = await _tokenService.IssueRefreshTokenAsync(user!);
+            SetRefreshTokenCookie(refreshResult.TokenHash);
+
+            return Ok(new { message = "Login successful.", token = accessToken, userName = user!.Name, userId = user.Id });
+        }
+
+        [HttpPost("google")]
+        [EnableRateLimiting("auth")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginDto request)
+        {
+            if (_settingsService != null && !await _settingsService.GetValueAsync(SettingsService.RegistrationEnabled, true))
+                return BadRequest(new { message = "Registration is currently disabled. Contact an administrator." });
+
+            var googleClientId = _configuration["Google:ClientId"];
+            if (string.IsNullOrWhiteSpace(googleClientId))
+                return StatusCode(500, new { message = "Google sign-in is not configured." });
+
+            GoogleJsonWebSignature.Payload payload;
+            try
+            {
+                var settings = new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[] { googleClientId }
+                };
+                payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken, settings);
+            }
+            catch (InvalidJwtException)
+            {
+                return Unauthorized(new { message = "Invalid Google token." });
+            }
+
+            if (payload.EmailVerified != true)
+                return Unauthorized(new { message = "Google email is not verified." });
+
+            var email = payload.Email.Trim().ToLowerInvariant();
+            var user = await _authService.GetUserByEmail(email);
+
+            if (user == null)
+            {
+                var randomPassword = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+                var registered = await _authService.RegisterUser(payload.Name ?? email, email, randomPassword);
+                if (!registered)
+                    return Conflict(new { message = "Unable to create account." });
+
+                user = await _authService.GetUserByEmail(email);
+                if (user == null)
+                    return StatusCode(500, new { message = "An error occurred while retrieving the user." });
+            }
+
+            var accessToken = _tokenService.GenerateAccessToken(user);
+            var refreshResult = await _tokenService.IssueRefreshTokenAsync(user);
+            SetRefreshTokenCookie(refreshResult.TokenHash);
+
+            return Ok(new { message = "Google login successful.", token = accessToken, userName = user.Name, userId = user.Id });
+        }
+
+        [HttpPost("refresh")]
+        [EnableRateLimiting("auth")]
+        public async Task<IActionResult> Refresh()
+        {
+            var rawToken = Request.Cookies["refresh_token"];
+            if (string.IsNullOrEmpty(rawToken))
+                return Unauthorized(new { message = "No refresh token." });
+
+            var result = await _tokenService.RotateRefreshTokenAsync(rawToken);
+            if (result == null)
+                return Unauthorized(new { message = "Invalid or expired refresh token." });
+
+            var accessToken = _tokenService.GenerateAccessToken(result.Value.user);
+            SetRefreshTokenCookie(result.Value.newRefreshToken.TokenHash);
+
+            return Ok(new { token = accessToken });
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var rawToken = Request.Cookies["refresh_token"];
+            if (!string.IsNullOrEmpty(rawToken))
+                await _tokenService.RevokeRefreshTokenAsync(rawToken);
+
+            ClearRefreshTokenCookie();
+            return Ok(new { message = "Logged out." });
         }
 
         [HttpPost("forgot-password")]
@@ -77,7 +158,6 @@ namespace SplitIt.API.Controllers
             }
             catch
             {
-                // Ignore errors — always return success to prevent enumeration
             }
             return Ok(new { message = "If the email exists, a reset code has been generated. Contact your administrator." });
         }
@@ -113,32 +193,31 @@ namespace SplitIt.API.Controllers
             return Ok(new { message = "Password has been reset successfully. You can now log in." });
         }
 
-        private string GenerateJwtToken(User user)
+        private void SetRefreshTokenCookie(string token)
         {
-            var jwtSettings = _configuration.GetSection("JwtSettings");
-            var secret = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JwtSettings:SecretKey missing");
-            var key = Encoding.UTF8.GetBytes(secret);
-            var expirationStr = jwtSettings["ExpirationInMinutes"];
-            var expiration = int.TryParse(expirationStr, out var exp) ? exp : 60;
+            var expirationDays = _configuration.GetValue<int>("JwtSettings:RefreshTokenExpirationInDays");
+            if (expirationDays <= 0) expirationDays = 30;
 
-            var claims = new List<Claim>
+            var cookieOptions = new CookieOptions
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Role, RoleConstants.GetName(user.RoleId))
+                HttpOnly = true,
+                Secure = !HttpContext.Request.Host.Host.Contains("localhost"),
+                SameSite = SameSiteMode.Lax,
+                Path = "/",
+                MaxAge = TimeSpan.FromDays(expirationDays),
             };
+            Response.Cookies.Append("refresh_token", token, cookieOptions);
+        }
 
-            var token = new JwtSecurityToken(
-                issuer: jwtSettings["Issuer"],
-                audience: jwtSettings["Audience"],
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(expiration),
-                signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
+        private void ClearRefreshTokenCookie()
+        {
+            Response.Cookies.Delete("refresh_token", new CookieOptions
+            {
+                Path = "/",
+                HttpOnly = true,
+                Secure = !HttpContext.Request.Host.Host.Contains("localhost"),
+                SameSite = SameSiteMode.Lax,
+            });
         }
     }
 }
