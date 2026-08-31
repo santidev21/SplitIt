@@ -1,4 +1,4 @@
-import { test, expect, fakeJwt } from '../fixtures/api';
+import { test, expect, fakeJwt, loginViaStorage, mockRefreshEndpoint } from '../fixtures/api';
 
 test.describe('Phase 8 — Application Admin', () => {
   const userToken = fakeJwt({ sub: '3' }); // RoleId 3 user
@@ -7,6 +7,7 @@ test.describe('Phase 8 — Application Admin', () => {
 
   test('User cannot access admin endpoint → 403', async ({ page }) => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), userToken);
+    await loginViaStorage(page, userToken);
     await page.goto('/auth/login');
     await page.route('**/api/admin/users', async route => route.fulfill({ status: 403 }));
     const status = await page.evaluate(async () => {
@@ -18,6 +19,7 @@ test.describe('Phase 8 — Application Admin', () => {
 
   test('Admin can access admin endpoint → 200', async ({ page }) => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), adminToken);
+    await loginViaStorage(page, adminToken);
     await page.goto('/auth/login');
     await page.route('**/api/admin/users', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id: 1, name: 'User' }]) }));
     const status = await page.evaluate(async () => {
@@ -29,6 +31,7 @@ test.describe('Phase 8 — Application Admin', () => {
 
   test('User cannot promote own role → 403', async ({ page }) => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), userToken);
+    await loginViaStorage(page, userToken);
     await page.goto('/auth/login');
     await page.route('**/api/admin/users/3/role', async route => route.fulfill({ status: 403 }));
     const status = await page.evaluate(async () => {
@@ -44,6 +47,7 @@ test.describe('Phase 8 — Application Admin', () => {
 
   test('Super admin can promote user', async ({ page }) => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), superToken);
+    await loginViaStorage(page, superToken);
     await page.goto('/auth/login');
     await page.route('**/api/admin/users/3/role', async route => {
       expect(route.request().postDataJSON().roleId).toBe(2);

@@ -1,16 +1,11 @@
-import { test, expect, fakeJwt } from '../fixtures/api';
+import { test, expect, fakeJwt, loginViaStorage, mockRefreshEndpoint } from '../fixtures/api';
 
 test.describe('Groups E2E', () => {
   const token = fakeJwt({ sub: '1' });
 
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript((t: string) => {
-      localStorage.setItem('token', t);
-      localStorage.setItem('userName', 'Alice');
-      localStorage.setItem('userId', '1');
-    }, token);
+    await loginViaStorage(page, token);
 
-    // Mock currencies & users for create-group dialog
     await page.route('**/api/currencies', async route => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id: 1, name: 'USD', symbol: '$' }, { id: 2, name: 'COP', symbol: 'COP' }]) });
     });
@@ -29,7 +24,6 @@ test.describe('Groups E2E', () => {
       expect(body.currencyId).toBe(1);
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ message: 'Group created correctly.', groupId: 99 }) });
     });
-    // Mock detail & members for redirect target
     await page.route('**/api/groups/99/details', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ name: 'New Group', description: 'Desc' }) }));
     await page.route('**/api/groups/99/members', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id: 1, name: 'You' }, { id: 2, name: 'Bob' }]) }));
     await page.route('**/api/groups/99/userrole', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ role: 'creator' }) }));
@@ -37,12 +31,11 @@ test.describe('Groups E2E', () => {
     await page.route('**/api/expenses/debt-summary*', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ debtsOwedByUser: [], debtsOwedToUser: [] }) }));
 
     await page.goto('/dashboard/home');
-    // Create group UI: assume button text "Create Group" or similar. Fallback to direct API call verification via route.
-    // If UI button not found, just verify API mock is correctly set up by calling fetch via page.evaluate
+    await page.waitForTimeout(500);
     const result = await page.evaluate(async () => {
-      const res = await fetch('http://localhost:5120/api/groups/create', {
+      const res = await fetch('/api/groups/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('token')! },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'New Group', description: 'Desc', members: [2], allowToDeleteExpenses: false, currencyId: 1 })
       });
       return res.ok;
@@ -68,11 +61,11 @@ test.describe('Groups E2E', () => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ groupId: 100 }) });
     });
     await page.goto('/dashboard/home');
-    // Direct API call to verify members array handling (dedup + limit 50)
+    await page.waitForTimeout(500);
     await page.evaluate(async () => {
-      await fetch('http://localhost:5120/api/groups/create', {
+      await fetch('/api/groups/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + localStorage.getItem('token')! },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'Group X', description: 'Desc X', members: [2,3,2], allowToDeleteExpenses: false, currencyId: 1 })
       });
     });

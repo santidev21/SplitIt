@@ -1,4 +1,4 @@
-import { test, expect, fakeJwt } from '../fixtures/api';
+import { test, expect, fakeJwt, loginViaStorage, mockRefreshEndpoint } from '../fixtures/api';
 
 test.describe('Phase 8 — Partial Payments', () => {
   const token = fakeJwt({ sub: '1' });
@@ -6,8 +6,8 @@ test.describe('Phase 8 — Partial Payments', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript((t: string) => {
       localStorage.setItem('token', t);
-      localStorage.setItem('userId', '1');
     }, token);
+    await loginViaStorage(page, token);
     await page.goto('/auth/login');
   });
 

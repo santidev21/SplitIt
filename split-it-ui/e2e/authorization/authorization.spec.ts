@@ -1,4 +1,4 @@
-import { test, expect, fakeJwt } from '../fixtures/api';
+import { test, expect, fakeJwt, loginViaStorage, mockRefreshEndpoint } from '../fixtures/api';
 
 test.describe('Authorization E2E — User A vs User B isolation', () => {
   const tokenA = fakeJwt({ sub: '1', exp: Math.floor(Date.now()/1000)+3600 });
@@ -10,6 +10,7 @@ test.describe('Authorization E2E — User A vs User B isolation', () => {
       localStorage.setItem('userName', 'Alice');
       localStorage.setItem('userId', '1');
     }, tokenA);
+    await mockRefreshEndpoint(page, tokenA);
 
     await page.route('**/api/groups/2/details', async route => route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ message: 'Forbidden' }) }));
     await page.route('**/api/groups/2/members', async route => route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({}) }));
@@ -28,6 +29,7 @@ test.describe('Authorization E2E — User A vs User B isolation', () => {
       localStorage.setItem('userName', 'Bob');
       localStorage.setItem('userId', '2');
     }, tokenB);
+    await mockRefreshEndpoint(page, tokenB);
     await page.route('**/api/groups/1/details', async route => route.fulfill({ status: 403 }));
     await page.goto('/auth/login');
     const status = await page.evaluate(async () => {
@@ -40,8 +42,10 @@ test.describe('Authorization E2E — User A vs User B isolation', () => {
   test('User A cannot modify Expense in Group B', async ({ page }) => {
     await page.addInitScript((t: string) => {
       localStorage.setItem('token', t);
+      localStorage.setItem('userName', 'Alice');
       localStorage.setItem('userId', '1');
     }, tokenA);
+    await mockRefreshEndpoint(page, tokenA);
     await page.route('**/api/expenses/add', async route => route.fulfill({ status: 403 }));
     await page.goto('/auth/login');
     const status = await page.evaluate(async () => {
@@ -58,8 +62,10 @@ test.describe('Authorization E2E — User A vs User B isolation', () => {
   test('User B cannot settle Expense in Group A', async ({ page }) => {
     await page.addInitScript((t: string) => {
       localStorage.setItem('token', t);
+      localStorage.setItem('userName', 'Bob');
       localStorage.setItem('userId', '2');
     }, tokenB);
+    await mockRefreshEndpoint(page, tokenB);
     await page.route('**/api/expenses/settle', async route => route.fulfill({ status: 403 }));
     await page.goto('/auth/login');
     const status = await page.evaluate(async () => {
@@ -76,8 +82,10 @@ test.describe('Authorization E2E — User A vs User B isolation', () => {
   test('User A cannot enumerate User B groups via /groups/user/2', async ({ page }) => {
     await page.addInitScript((t: string) => {
       localStorage.setItem('token', t);
+      localStorage.setItem('userName', 'Alice');
       localStorage.setItem('userId', '1');
     }, tokenA);
+    await mockRefreshEndpoint(page, tokenA);
     await page.route('**/api/groups/user/2', async route => route.fulfill({ status: 403 }));
     await page.goto('/auth/login');
     const status = await page.evaluate(async () => {
@@ -90,8 +98,10 @@ test.describe('Authorization E2E — User A vs User B isolation', () => {
   test('User A can access own Group A', async ({ page }) => {
     await page.addInitScript((t: string) => {
       localStorage.setItem('token', t);
+      localStorage.setItem('userName', 'Alice');
       localStorage.setItem('userId', '1');
     }, tokenA);
+    await mockRefreshEndpoint(page, tokenA);
     await page.route('**/api/groups/1/details', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ name: 'Group A', description: 'Desc' }) }));
     await page.goto('/auth/login');
     const status = await page.evaluate(async () => {

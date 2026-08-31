@@ -1,4 +1,4 @@
-import { test, expect, fakeJwt } from '../fixtures/api';
+import { test, expect, fakeJwt, loginViaStorage, mockRefreshEndpoint } from '../fixtures/api';
 
 test.describe('Phase 8 — Group Admin', () => {
   const creatorToken = fakeJwt({ sub: '1' });
@@ -7,6 +7,7 @@ test.describe('Phase 8 — Group Admin', () => {
 
   test('Creator can promote member to admin', async ({ page }) => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), creatorToken);
+    await loginViaStorage(page, creatorToken);
     await page.goto('/auth/login');
     await page.route('**/api/groups/1/members/3/role', async route => {
       const body = route.request().postDataJSON();
@@ -26,6 +27,7 @@ test.describe('Phase 8 — Group Admin', () => {
 
   test('Member cannot promote self', async ({ page }) => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), memberToken);
+    await loginViaStorage(page, memberToken);
     await page.goto('/auth/login');
     await page.route('**/api/groups/1/members/3/role', async route => route.fulfill({ status: 403 }));
     const status = await page.evaluate(async () => {
@@ -41,6 +43,7 @@ test.describe('Phase 8 — Group Admin', () => {
 
   test('Admin cannot promote to admin (only creator)', async ({ page }) => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), adminToken);
+    await loginViaStorage(page, adminToken);
     await page.goto('/auth/login');
     await page.route('**/api/groups/1/members/3/role', async route => route.fulfill({ status: 403 }));
     const status = await page.evaluate(async () => {
@@ -56,6 +59,7 @@ test.describe('Phase 8 — Group Admin', () => {
 
   test('Creator can remove member, member cannot remove admin', async ({ page }) => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), creatorToken);
+    await loginViaStorage(page, creatorToken);
     await page.goto('/auth/login');
     await page.route('**/api/groups/1/members/3', async route => {
       expect(route.request().method()).toBe('DELETE');
@@ -69,6 +73,7 @@ test.describe('Phase 8 — Group Admin', () => {
 
     // Member trying to remove admin → 403
     await page.addInitScript((t: string) => localStorage.setItem('token', t), memberToken);
+    await loginViaStorage(page, memberToken);
     await page.goto('/auth/login');
     await page.route('**/api/groups/1/members/2', async route => route.fulfill({ status: 403 }));
     status = await page.evaluate(async () => {
@@ -80,6 +85,7 @@ test.describe('Phase 8 — Group Admin', () => {
 
   test('Only creator can delete group', async ({ page }) => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), memberToken);
+    await loginViaStorage(page, memberToken);
     await page.goto('/auth/login');
     await page.route('**/api/groups/1', async route => route.fulfill({ status: 403 }));
     let status = await page.evaluate(async () => {
@@ -89,6 +95,7 @@ test.describe('Phase 8 — Group Admin', () => {
     expect(status).toBe(403);
 
     await page.addInitScript((t: string) => localStorage.setItem('token', t), creatorToken);
+    await loginViaStorage(page, creatorToken);
     await page.goto('/auth/login');
     await page.route('**/api/groups/1', async route => route.fulfill({ status: 200 }));
     status = await page.evaluate(async () => {

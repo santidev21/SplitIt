@@ -1,6 +1,5 @@
-import { test as base } from '@playwright/test';
+import { test as base, Page } from '@playwright/test';
 
-// Helper to generate a fake JWT (alg HS256, no signature verification in mocked E2E)
 function b64url(obj: any) {
   return Buffer.from(JSON.stringify(obj)).toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
 }
@@ -14,13 +13,25 @@ export function expiredJwt() {
   return fakeJwt({ exp: Math.floor(Date.now() / 1000) - 3600 });
 }
 
-// Storage helpers
-export async function loginViaStorage(page: any, token: string = fakeJwt()) {
+export async function mockRefreshEndpoint(page: Page, token: string) {
+  await page.route('**/api/auth/refresh', async route => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ token }),
+    });
+  });
+  await page.route('**/api/auth/logout', async route => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ message: 'Logged out.' }) });
+  });
+}
+
+export async function loginViaStorage(page: Page, token: string = fakeJwt()) {
   await page.addInitScript((t: string) => {
-    localStorage.setItem('token', t);
     localStorage.setItem('userName', 'Test User');
     localStorage.setItem('userId', '1');
   }, token);
+  await mockRefreshEndpoint(page, token);
 }
 
 export const test = base;

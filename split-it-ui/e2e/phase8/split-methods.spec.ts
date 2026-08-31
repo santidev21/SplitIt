@@ -1,9 +1,10 @@
-import { test, expect, fakeJwt } from '../fixtures/api';
+import { test, expect, fakeJwt, loginViaStorage, mockRefreshEndpoint } from '../fixtures/api';
 
 test.describe('Phase 8 — Alternative Split Methods', () => {
   const token = fakeJwt({ sub: '1' });
   test.beforeEach(async ({ page }) => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), token);
+    await loginViaStorage(page, token);
     await page.goto('/auth/login');
   });
 
