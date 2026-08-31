@@ -97,6 +97,7 @@ services:
       - JwtSettings__Issuer=${JWT_ISSUER}
       - JwtSettings__Audience=${JWT_AUDIENCE}
       - Cors__AllowedOrigins=${CORS_ALLOWED_ORIGINS}
+      - Google__ClientId=${GOOGLE_CLIENT_ID}
       - AllowedHosts=*
     volumes:
       - dataprotection_keys:/home/app/.aspnet/DataProtection-Keys
