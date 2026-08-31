@@ -28,7 +28,7 @@
   "DASHBOARD.FRIEND_REQUEST_PLURAL": "{{count}} solicitudes de amistad pendientes de: {{names}}",
 
   "AUTH.LOGIN_TITLE": "Inicia sesión en tu cuenta",
-  "AUTH.OR": "o",
+  "AUTH.DIVIDER": "o",
   "AUTH.EMAIL": "Correo electrónico",
   "AUTH.EMAIL_PLACEHOLDER": "ejemplo@ejemplo.com",
   "AUTH.EMAIL_REQUIRED": "El correo electrónico es obligatorio.",
