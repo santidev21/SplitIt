@@ -21,17 +21,20 @@ function parseEnvFile(file) {
 }
 
 const envPath = path.resolve(__dirname, '..', '..', '.env');
-const envFile = path.resolve(__dirname, '..', 'src', 'environments', 'environment.ts');
-
 const fileEnv = parseEnvFile(envPath);
 const googleClientId = process.env.GOOGLE_CLIENT_ID || fileEnv.GOOGLE_CLIENT_ID || '';
 
-const content = `export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:5120/api',
+function writeEnv(file, apiUrl, production) {
+  const content = `export const environment = {
+  production: ${production},
+  apiUrl: '${apiUrl}',
   googleClientId: '${googleClientId}',
 };
 `;
+  fs.writeFileSync(file, content);
+}
 
-fs.writeFileSync(envFile, content);
-console.log('environment.ts generated from .env');
+const envDir = path.resolve(__dirname, '..', 'src', 'environments');
+writeEnv(path.join(envDir, 'environment.ts'), 'http://localhost:5120/api', false);
+writeEnv(path.join(envDir, 'environment.prod.ts'), '/api', true);
+console.log('environment.ts and environment.prod.ts generated');
