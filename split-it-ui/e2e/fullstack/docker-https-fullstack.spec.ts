@@ -31,16 +31,12 @@ test.describe.serial('Docker HTTPS Full-Stack E2E (through Nginx)', () => {
 
   test('2. ACME challenge path stays on HTTP (no redirect)', async ({ request }) => {
     const resp = await request.get(`${httpBaseUrl}/.well-known/acme-challenge/test-token`, { maxRedirects: 0 });
-    // With no certbot serving the file, the response should be 404 — NOT a 301 redirect.
     expect(resp.status()).toBe(404);
   });
 
   test('3. HTTPS Angular SPA loads and has security headers', async ({ page }) => {
     await page.goto(`${baseUrl}/`);
     await expect(page).toHaveURL(/\/(auth\/login)?$/);
-
-    const csp = await page.evaluate(() => document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.getAttribute('content'));
-    // Nginx sends CSP as a response header; the browser enforces it. We verify via headers below.
   });
 
   test('4. Health endpoints return text/plain (not index.html)', async ({ request }) => {
@@ -73,15 +69,22 @@ test.describe.serial('Docker HTTPS Full-Stack E2E (through Nginx)', () => {
 
   test('6. User A registration via UI', async ({ page }) => {
     await page.goto(`${baseUrl}/auth/register`);
+
+    const respPromise = page.waitForResponse(r =>
+      r.url().includes('/api/auth/register') && r.request().method() === 'POST'
+    );
+
     await page.getByPlaceholder('Enter your name').fill(userA.name);
     await page.getByPlaceholder('example@example.com').fill(userA.email);
     await page.getByPlaceholder('Enter your password').fill(userA.password);
     await page.getByRole('button', { name: 'Register' }).click();
 
-    await expect(page).toHaveURL(/\/dashboard\/home/, { timeout: 10000 });
+    const resp = await respPromise;
+    const body = await resp.json();
+    tokenA = body.token;
+    userAId = body.userId;
 
-    tokenA = (await page.evaluate(() => localStorage.getItem('token'))) || '';
-    userAId = parseInt((await page.evaluate(() => localStorage.getItem('userId'))) || '0', 10);
+    await expect(page).toHaveURL(/\/dashboard\/home/, { timeout: 10000 });
     expect(tokenA).toBeTruthy();
     expect(userAId).toBeGreaterThan(0);
   });
@@ -189,11 +192,11 @@ test.describe.serial('Docker HTTPS Full-Stack E2E (through Nginx)', () => {
 
   test('14. Logout via UI clears session', async ({ page }) => {
     await page.goto(`${baseUrl}/dashboard/home`);
-    await page.evaluate(() => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('userName');
-      localStorage.removeItem('userId');
-    });
+    await expect(page.getByRole('banner')).toBeVisible({ timeout: 5000 });
+
+    await page.getByRole('button', { name: 'Logout' }).click();
+    await expect(page).toHaveURL(/\/auth\/login/, { timeout: 5000 });
+
     await page.goto(`${baseUrl}/dashboard/home`);
     await expect(page).toHaveURL(/\/auth\/login/);
   });

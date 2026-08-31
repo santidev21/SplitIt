@@ -1,18 +1,8 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
+import { isTokenExpired } from '../../../shared/utils/jwt.util';
 import { map, catchError, of } from 'rxjs';
-
-function isTokenExpired(token: string): boolean {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    if (!payload.exp) return true;
-    const now = Math.floor(Date.now() / 1000);
-    return payload.exp < now - 30;
-  } catch {
-    return true;
-  }
-}
 
 export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);

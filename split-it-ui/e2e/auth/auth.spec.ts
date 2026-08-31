@@ -1,4 +1,4 @@
-import { test, expect, fakeJwt, expiredJwt, mockRefreshEndpoint, loginViaStorage } from '../fixtures/api';
+import { test, expect, fakeJwt, mockRefreshEndpoint, loginViaStorage } from '../fixtures/api';
 
 test.describe('Auth E2E', () => {
   test.beforeEach(async ({ page }) => {
@@ -65,8 +65,9 @@ test.describe('Auth E2E', () => {
   });
 
   test('Expired session → redirect to /auth/login', async ({ page }) => {
-    const expired = expiredJwt();
-    await mockRefreshEndpoint(page, expired);
+    await page.route('**/api/auth/refresh', async route => {
+      await route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ message: 'Invalid or expired refresh token.' }) });
+    });
     await page.goto('/dashboard/home');
     await expect(page).toHaveURL(/\/auth\/login/, { timeout: 5000 });
   });

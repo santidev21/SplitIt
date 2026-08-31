@@ -2,8 +2,9 @@ import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, BehaviorSubject, catchError, of } from 'rxjs';
+import { Observable, tap, BehaviorSubject, catchError, of, switchMap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
+import { isTokenExpired } from '../../../shared/utils/jwt.util';
 
 export interface AuthUser {
   token: string;
@@ -70,7 +71,10 @@ export class AuthService {
   refreshSession(): Observable<{ token: string } | null> {
     if (!this.isBrowser) return of(null);
     return this.http.post<{ token: string }>(`${this.API_URL}/refresh`, {}, { withCredentials: true }).pipe(
-      tap(response => {
+      switchMap(response => {
+        if (!response?.token || isTokenExpired(response.token)) {
+          return throwError(() => new Error('Invalid refresh token'));
+        }
         const current = this.currentUserSubject.value;
         if (current) {
           this.currentUserSubject.next({ ...current, token: response.token });
@@ -81,6 +85,7 @@ export class AuthService {
             userId: parseInt(localStorage.getItem('userId') || '0', 10),
           });
         }
+        return of(response);
       }),
       catchError(() => {
         this.clearSession();
@@ -94,6 +99,12 @@ export class AuthService {
     return new Observable<boolean>(observer => {
       this.http.post<{ token: string }>(`${this.API_URL}/refresh`, {}, { withCredentials: true }).subscribe({
         next: (response) => {
+          if (!response?.token || isTokenExpired(response.token)) {
+            this.clearSession();
+            observer.next(false);
+            observer.complete();
+            return;
+          }
           this.currentUserSubject.next({
             token: response.token,
             userName: localStorage.getItem('userName') || '',

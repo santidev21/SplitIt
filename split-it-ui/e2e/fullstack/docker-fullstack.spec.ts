@@ -23,15 +23,22 @@ test.describe.serial('Real Docker Full-Stack E2E through Nginx HTTPS (No Mocks)'
 
   test('2. Real User A Registration via UI', async ({ page }) => {
     await page.goto(`${baseUrl}/auth/register`);
+
+    const respPromise = page.waitForResponse(r =>
+      r.url().includes('/api/auth/register') && r.request().method() === 'POST'
+    );
+
     await page.getByPlaceholder('Enter your name').fill(userA.name);
     await page.getByPlaceholder('example@example.com').fill(userA.email);
     await page.getByPlaceholder('Enter your password').fill(userA.password);
     await page.getByRole('button', { name: 'Register' }).click();
 
+    const resp = await respPromise;
+    const body = await resp.json();
+    tokenA = body.token;
+    userAId = body.userId;
+
     await expect(page).toHaveURL(/\/dashboard\/home/, { timeout: 10000 });
-    
-    tokenA = (await page.evaluate(() => localStorage.getItem('token'))) || '';
-    userAId = parseInt((await page.evaluate(() => localStorage.getItem('userId'))) || '0', 10);
     expect(tokenA).toBeTruthy();
     expect(userAId).toBeGreaterThan(0);
   });
@@ -94,7 +101,6 @@ test.describe.serial('Real Docker Full-Stack E2E through Nginx HTTPS (No Mocks)'
     expenseId = expBody.id;
     expect(expenseId).toBeGreaterThan(0);
 
-    // Verify debt summary endpoint
     const debtRes = await request.get(`${baseUrl}/api/expenses/debt-summary?groupId=${groupId}`, {
       headers: { Authorization: `Bearer ${tokenA}` }
     });
@@ -142,7 +148,6 @@ test.describe.serial('Real Docker Full-Stack E2E through Nginx HTTPS (No Mocks)'
     expect(isoGroupRes.ok()).toBeTruthy();
     const isoGroup = await isoGroupRes.json();
 
-    // User B attempts to access debt summary of User A's private group (should be rejected 403)
     const bolaRes = await request.get(`${baseUrl}/api/expenses/debt-summary?groupId=${isoGroup.groupId}`, {
       headers: { Authorization: `Bearer ${tokenB}` }
     });
@@ -151,12 +156,10 @@ test.describe.serial('Real Docker Full-Stack E2E through Nginx HTTPS (No Mocks)'
 
   test('9. Real Logout via UI', async ({ page }) => {
     await page.goto(`${baseUrl}/dashboard/home`);
-    
-    await page.evaluate(() => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('userName');
-      localStorage.removeItem('userId');
-    });
+    await expect(page.getByRole('banner')).toBeVisible({ timeout: 5000 });
+
+    await page.getByRole('button', { name: 'Logout' }).click();
+    await expect(page).toHaveURL(/\/auth\/login/, { timeout: 5000 });
 
     await page.goto(`${baseUrl}/dashboard/home`);
     await expect(page).toHaveURL(/\/auth\/login/);
