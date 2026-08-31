@@ -163,6 +163,7 @@ services:
       - HTTPS_LISTEN_PORT=8443
     volumes:
       - nginx_certs:/etc/nginx/ssl
+      - /opt/splitit/certs/letsencrypt:/etc/letsencrypt:ro
       - certbot_www:/var/www/certbot
     networks:
       - splitit-frontend-net
