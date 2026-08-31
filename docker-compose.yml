@@ -139,6 +139,40 @@ services:
           cpus: '0.50'
           memory: 128M
 
+  proxy:
+    container_name: splitit-proxy
+    build:
+      context: .
+      dockerfile: docker/proxy/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    ports:
+      - "80:8080"
+      - "443:8443"
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+      - TLS_MODE=${TLS_MODE:-selfsigned}
+      - ACME_EMAIL=${ACME_EMAIL:-}
+      - BACKEND_HOST=backend
+      - FRONTEND_HOST=frontend
+      - HTTP_LISTEN_PORT=8080
+      - HTTPS_LISTEN_PORT=8443
+    volumes:
+      - nginx_certs:/etc/nginx/ssl
+      - certbot_www:/var/www/certbot
+    networks:
+      - splitit-frontend-net
+      - splitit-backend-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+
 networks:
   splitit-frontend-net:
     name: splitit-frontend-net
@@ -153,3 +187,7 @@ volumes:
     name: splitit_sqlserver_data
   dataprotection_keys:
     name: splitit_dataprotection_keys
+  nginx_certs:
+    name: splitit_nginx_certs
+  certbot_www:
+    name: splitit_certbot_www
