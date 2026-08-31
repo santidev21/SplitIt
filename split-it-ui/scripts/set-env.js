@@ -1,10 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const envPath = path.resolve(__dirname, '..', '..', '.env');
-const envFile = path.resolve(__dirname, '..', 'src', 'environments', 'environment.ts');
-
-function parseEnv(file) {
+function parseEnvFile(file) {
   if (!fs.existsSync(file)) return {};
   const lines = fs.readFileSync(file, 'utf-8').split('\n');
   const env = {};
@@ -23,12 +20,16 @@ function parseEnv(file) {
   return env;
 }
 
-const env = parseEnv(envPath);
+const envPath = path.resolve(__dirname, '..', '..', '.env');
+const envFile = path.resolve(__dirname, '..', 'src', 'environments', 'environment.ts');
+
+const fileEnv = parseEnvFile(envPath);
+const googleClientId = process.env.GOOGLE_CLIENT_ID || fileEnv.GOOGLE_CLIENT_ID || '';
 
 const content = `export const environment = {
   production: false,
   apiUrl: 'http://localhost:5120/api',
-  googleClientId: '${env.GOOGLE_CLIENT_ID || ''}',
+  googleClientId: '${googleClientId}',
 };
 `;
 

@@ -3,12 +3,18 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
+ARG GOOGLE_CLIENT_ID=
+ENV GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+
 # Copy package definition files to leverage Docker layer caching
 COPY split-it-ui/package.json split-it-ui/package-lock.json ./
 RUN npm ci --legacy-peer-deps
 
 # Copy full frontend source code
 COPY split-it-ui/ ./
+
+# Generate environment.ts from env var
+RUN node scripts/set-env.js
 
 # Build production distribution
 RUN npm run build -- --configuration production
