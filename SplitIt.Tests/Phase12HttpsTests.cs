@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -96,10 +97,19 @@ public class Phase12HttpsTests
     public void NginxTemplate_AcmePathHasNoRedirect()
     {
         var template = ReadRepoFile("docker/proxy/nginx.conf.template");
-        var httpServerMatch = Regex.Match(template, @"listen\s+\$\{HTTP_LISTEN_PORT\}.*?(?=\n\s*server\s*\{|\Z)",
+        // Multi-site gateway: there are multiple HTTP server blocks (default catch-all + per-domain).
+        // Find the HTTP block that serves ${DOMAIN} with ACME challenge and redirect, not the default catch-all (return 444).
+        var httpServerMatches = Regex.Matches(template, @"listen\s+\$\{HTTP_LISTEN_PORT\}.*?(?=\n\s*server\s*\{|\Z)",
             RegexOptions.Singleline);
-        Assert.True(httpServerMatch.Success, "HTTP server block not found");
-        var httpBlock = httpServerMatch.Value;
+        Assert.True(httpServerMatches.Count > 0, "HTTP server block not found");
+        var httpBlock = httpServerMatches.Cast<Match>()
+            .Select(m => m.Value)
+            .FirstOrDefault(b => b.Contains("${DOMAIN}") || (b.Contains("acme-challenge") && b.Contains("return 301")));
+        // Fallback to any block with acme-challenge if DOMAIN filter fails (backwards compat with single-site template)
+        httpBlock ??= httpServerMatches.Cast<Match>()
+            .Select(m => m.Value)
+            .FirstOrDefault(b => b.Contains("acme-challenge"));
+        Assert.True(httpBlock != null, "HTTP server block with ACME challenge not found");
         Assert.Contains("acme-challenge", httpBlock);
         Assert.Contains("return 301", httpBlock);
 
