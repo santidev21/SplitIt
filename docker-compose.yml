@@ -173,6 +173,7 @@ services:
       - splitit-frontend-net
       - splitit-backend-net
       - portfolio_default
+      - billard-net
     deploy:
       resources:
         limits:
@@ -189,6 +190,9 @@ networks:
     internal: true
   portfolio_default:
     name: portfolio_default
+    external: true
+  billard-net:
+    name: billard-net
     external: true
 
 volumes:
