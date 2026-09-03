@@ -4,7 +4,7 @@ services:
   sqlserver:
     container_name: splitit-db
     image: mcr.microsoft.com/mssql/server:2022-latest
-    # Uses official default user (mssql, UID 10001). On Docker Desktop Windows, override with user: "0:0" in docker-compose.override.yml.
+    # Uses official default user (mssql, UID 10001). On Docker Desktop Windows, override with user: "0:0" in docker-compose.local.yml.
     restart: unless-stopped
     environment:
       - ACCEPT_EULA=Y
@@ -142,44 +142,6 @@ services:
           cpus: '0.50'
           memory: 128M
 
-  proxy:
-    container_name: splitit-proxy
-    build:
-      context: .
-      dockerfile: docker/proxy/Dockerfile
-    restart: unless-stopped
-    depends_on:
-      backend:
-        condition: service_healthy
-      frontend:
-        condition: service_healthy
-    ports:
-      - "80:8080"
-      - "443:8443"
-    environment:
-      - DOMAIN=${DOMAIN:-localhost}
-      - TLS_MODE=${TLS_MODE:-selfsigned}
-      - ACME_EMAIL=${ACME_EMAIL:-}
-      - BACKEND_HOST=backend
-      - FRONTEND_HOST=frontend
-      - HTTP_LISTEN_PORT=8080
-      - HTTPS_LISTEN_PORT=8443
-    volumes:
-      - nginx_certs:/etc/nginx/ssl
-      - /opt/gateway/certbot:/etc/letsencrypt:ro
-      - /opt/gateway/sites-enabled:/etc/nginx/sites-enabled:ro
-      - /opt/gateway/www:/var/www/certbot
-    networks:
-      - splitit-frontend-net
-      - splitit-backend-net
-      - portfolio_default
-      - billard-net
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 256M
-
 networks:
   splitit-frontend-net:
     name: splitit-frontend-net
@@ -188,17 +150,9 @@ networks:
     name: splitit-backend-net
     driver: bridge
     internal: true
-  portfolio_default:
-    name: portfolio_default
-    external: true
-  billard-net:
-    name: billard-net
-    external: true
 
 volumes:
   sqlserver_data:
     name: splitit_sqlserver_data
   dataprotection_keys:
     name: splitit_dataprotection_keys
-  nginx_certs:
-    name: splitit_nginx_certs

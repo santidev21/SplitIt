@@ -1,0 +1,27 @@
+# Local development — run with:
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+#
+# This file:
+# - Redefines shared networks as local bridges (no external dependency)
+# - Publishes debug ports to localhost
+# - Applies Docker Desktop Windows fixes
+
+services:
+  sqlserver:
+    user: "0:0"  # Docker Desktop Windows: mssql image requires root for named volumes
+
+  backend:
+    ports:
+      - "127.0.0.1:8080:8080"
+
+  frontend:
+    ports:
+      - "127.0.0.1:80:80"
+
+networks:
+  splitit-frontend-net:
+    name: splitit-frontend-net
+    driver: bridge
+  splitit-backend-net:
+    name: splitit-backend-net
+    driver: bridge

@@ -25,11 +25,11 @@
 ## Architecture
 
 ```
-Internet → HTTPS → Reverse Proxy (nginx)
-  └── splitit.yourdomain.com
-        ├── /api/*  → Backend (.NET 8)
-        ├── /health → Backend (.NET 8)
-        └── /*      → Frontend (Angular)
+Internet → vps-gateway (:80/:443, private repo)
+  └── splitit.santidev21.tech
+        ├── /api/*  → splitit-backend (.NET 8)
+        ├── /health → splitit-backend (.NET 8)
+        └── /*      → splitit-frontend (Angular)
 ```
 
 **Docker services:**
@@ -58,7 +58,7 @@ Internet → HTTPS → Reverse Proxy (nginx)
 | Backend | .NET 8 Web API (C#) |
 | Database | SQL Server 2022 (EF Core) |
 | Auth | JWT (HMAC-SHA256) |
-| Proxy | nginx:alpine (HTTPS, HSTS, security headers) |
+| Gateway | nginx via [vps-gateway](https://github.com/santidev21/vps-gateway) (HTTPS, HSTS, security headers) |
 | CI/CD | GitHub Actions (test → build → Trivy scan → deploy) |
 | Deploy | Docker Compose on VPS |
 
@@ -85,13 +85,10 @@ cp .env.example .env
 
 ### 3. Run with Docker (recommended)
 ```bash
-# Create the external network first
-docker network create splitit-frontend-net
-
-# Start all services
-docker compose up -d
+# Start all services (local bridge networks, debug ports)
+docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
 ```
-This starts all 5 services. The backend will be at `http://localhost:8080`, frontend at `http://localhost:80`.
+This starts all 5 services. Backend at `http://localhost:8080`, frontend at `http://localhost:80`.
 
 ### 4. Run without Docker (manual)
 
@@ -231,13 +228,13 @@ cd /opt/splitit
 
 - JWT tokens signed with HMAC-SHA256 (64+ char secret required in production)
 - BCrypt password hashing (with automatic rehash on login)
-- Rate limiting: 5 req/min on auth endpoints, 100 req/min on general API
+- Rate limiting at gateway: 30r/m auth, 100r/m API, 200r/m general (in [vps-gateway](https://github.com/santidev21/vps-gateway))
 - CORS restricted to configured origins only
 - Docker containers run as non-root (except SQL Server on Docker Desktop Windows)
 - Internal Docker network isolates database from external access
 - No database ports exposed to host
 - Trivy vulnerability scanning in CI
-- Security headers: HSTS, CSP, X-Frame-Options, etc.
+- Security headers applied by gateway: HSTS, CSP, X-Frame-Options, etc.
 
 ---
 

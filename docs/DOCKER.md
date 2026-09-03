@@ -5,34 +5,29 @@
 SplitIt uses a hardened multi-container architecture orchestrated via Docker Compose. The services run isolated across private bridge networks to ensure the SQL Server database is never exposed to the host network or the Internet.
 
 ```
-                  INTERNET
-                     │
-              :80 / :443
-                     │
-         ┌───────────▼───────────┐
-         │   VPS reverse-proxy   │  (existing nginx, TLS termination)
-         │   splitit-frontend-net│
-         └───────────┬───────────┘
-                     │ (splitit-frontend-net)
-                     ▼
-           ┌───────────────────┐
-           │ splitit-frontend  │ (Nginx + Angular SPA, port 80 internal)
-           └─────────┬─────────┘
-                     │ (splitit-frontend-net)
-                     ▼
-           ┌───────────────────┐
-           │  splitit-backend  │ (.NET 8 Web API, port 8080 internal)
-           └─────────┬─────────┘
-                     │ (splitit-backend-net: internal=true)
-                     ▼
-           ┌───────────────────┐
-           │   splitit-migrator│ (one-shot, as splitit_migrator, db_ddladmin)
-           └─────────┬─────────┘
-                     │ depends_on migrator completed
-                     ▼
-           ┌───────────────────┐
-           │    splitit-db     │ (SQL Server 2022)
-           └───────────────────┘
+                    INTERNET
+                       │
+                :80 / :443
+                       │
+           ┌───────────▼───────────┐
+           │   vps-gateway         │  (nginx, TLS, security headers, rate limiting)
+           │   [separate repo]     │  sites-enabled/splitit.santidev21.tech.conf
+           └───────────┬───────────┘
+                       │ (splitit-frontend-net, external)
+                       ▼
+             ┌───────────────────┐
+             │  splitit-frontend │ (Angular SPA, port 80 internal)
+             └─────────┬─────────┘
+                       │ (splitit-frontend-net)
+                       ▼
+             ┌───────────────────┐
+             │  splitit-backend  │ (.NET 8 Web API, port 8080 internal)
+             └─────────┬─────────┘
+                       │ (splitit-backend-net: internal=true)
+                       ▼
+             ┌───────────────────┐
+             │    splitit-db     │ (SQL Server 2022)
+             └───────────────────┘
   Startup order: sqlserver (healthy) → db-init (create users) → migrator (EF Migrate) → backend → frontend
 ```
 
@@ -43,10 +38,9 @@ SplitIt uses a hardened multi-container architecture orchestrated via Docker Com
 To support hosting multiple projects cleanly on the same VPS, networks are explicitly named:
 
 1. **`splitit-frontend-net`** (external):
-   - Bridge network connecting the VPS reverse-proxy to SplitIt's frontend and backend containers.
-   - Declared as `external: true` so Docker Compose does not create/remove it.
-   - Must be created manually: `docker network create splitit-frontend-net`.
-   - The existing VPS `reverse-proxy` container must be connected: `docker network connect splitit-frontend-net reverse-proxy`.
+   - Bridge network connecting the VPS gateway to SplitIt's frontend and backend containers.
+   - Declared as `external: true` — the network is **owned by the `vps-gateway`** compose stack.
+   - SplitIt attaches to it so the gateway can route traffic to its containers.
 2. **`splitit-backend-net`** (`internal: true`):
    - Private, isolated internal network connecting `.NET 8 Web API` to `SQL Server`.
    - Outbound and inbound external traffic is blocked by Docker daemon. SQL Server port `1433` is **not** exposed to the host machine.
@@ -67,29 +61,19 @@ To support hosting multiple projects cleanly on the same VPS, networks are expli
 `mcr.microsoft.com/mssql/server:2022-latest` image history shows `USER mssql` (non-root, UID 10001) by default. However, verification on Docker Desktop Windows 29.7.2 with named volume `splitit_sqlserver_data:/var/opt/mssql/data` fails when running as `mssql`:
 ```
 ERROR: BootstrapSystemDataDirectories() 0x80070005 Access is denied
-Setup FAILED copying system data file 'C:\templatedata\master.mdf' to '/var/opt/mssql/data/master.mdf': 5(Access is denied.)
 ```
-Volume is created with root ownership; `mssql` lacks write permission. Fixing would require a privileged chown init container or host directory with correct ownership, adding complexity and fragility. **Decision: keep `user: "0:0"` (root) for `sqlserver` service** — documented exception, stability preferred over artificial non-root.
-**Mitigations compensating for root:** `internal:true` network (`splitit-backend-net`), no host `1433` exposure (`Ports: {"1433/tcp":null}`), `privileged:false`, resource limits (`1.5 CPU/2GB`), dedicated least-privilege `splitit_app` for API (see below), `db-init` one-shot creates app user and never uses `sa` at runtime.
+**Decision: keep `user: "0:0"` (root) for `sqlserver` service** — documented exception, stability preferred over artificial non-root.
+**Mitigations compensating for root:** `internal:true` network (`splitit-backend-net`), no host `1433` exposure, `privileged:false`, resource limits (`1.5 CPU/2GB`), dedicated least-privilege `splitit_app` for API, `db-init` one-shot creates app user and never uses `sa` at runtime.
 
-### Database Least-Privilege (Phase 10)
+### Database Least-Privilege
 | Principal | Purpose | Permissions | Used By |
 | :--- | :--- | :--- | :--- |
 | `sa` (`${DB_PASSWORD}`) | Bootstrap only | `sysadmin` — **never in API** | `db-init` only |
-| `splitit_migrator` (`${DB_MIGRATOR_USER/PASSWORD}`) | EF Core migrations (one-shot) | `db_datareader` + `db_datawriter` + `db_ddladmin` — **not `db_owner`** | `migrator` service (`dotnet SplitIt.API.dll --migrate`) |
-| `splitit_app` (`${DB_APP_USER/PASSWORD}`) | API runtime | `db_datareader` + `db_datawriter` **only (no DDL, no owner)** | `backend` (`splitit-backend`) |
-Init logic: `docker/sqlserver/init-db-users.sh` idempotently creates both LOGIN/USER, ensures `SplitItDb` exists. `backend` no longer runs `Database.Migrate()` — see `Program.cs:213` migrator branch.
-
-### Migration Strategy (Phase 10)
-- **Previous (unsafe):** `Program.cs:267` `db.Database.Migrate()` on every API startup — multiple instances race, requires SA/ddl in runtime.
-- **Current (safe):** Dedicated `migrator` service in `docker-compose.yml:55` — `depends_on: db-init completed` → runs `dotnet SplitIt.API.dll --migrate` with migrator credentials, applies pending migrations via `Database.Migrate()` then exits 0. `backend` `depends_on: migrator completed_successfully` so API never starts before DB is ready. Running `migrator` twice is idempotent (`Pending 0` → `No migrations applied`). Failure exits 1, visible in `docker compose ps` and logs.
-- Migrations audited: 8 deterministic migrations (`20250401024634_InitialCreate` → `20250524200603_ChangeExpenseDateToDateTime`), all use `HasColumnType("decimal(18,2)")` for money, no `float`, `HasIndex` unique on `Users.Email`, FK `Cascade`/`Restrict` validated.
+| `splitit_migrator` | EF Core migrations (one-shot) | `db_datareader` + `db_datawriter` + `db_ddladmin` — **not `db_owner`** | `migrator` service |
+| `splitit_app` | API runtime | `db_datareader` + `db_datawriter` **only (no DDL, no owner)** | `backend` |
 
 ### DataProtection Persistence
-ASP.NET Core DataProtection keys stored at `/home/app/.aspnet/DataProtection-Keys` via `PersistKeysToFileSystem` (`Program.cs`). Mounted as volume `splitit_dataprotection_keys` so keys survive `docker compose down/up` without regeneration. Volume not in Git (`.dockerignore`/`.gitignore`).
-
-### Backups
-Out of scope for Phase 9. Documented as Phase 15. Manual `tar` of volume is not production backup.
+ASP.NET Core DataProtection keys stored at `/home/app/.aspnet/DataProtection-Keys` via `PersistKeysToFileSystem` (`Program.cs`). Mounted as volume `splitit_dataprotection_keys` so keys survive `docker compose down/up` without regeneration.
 
 ---
 
@@ -112,7 +96,29 @@ cp .env.example .env
 | `JWT_ISSUER` | Valid token issuer domain | `https://splitit.example.com` |
 | `JWT_AUDIENCE` | Valid token audience domain | `https://splitit.example.com` |
 | `CORS_ALLOWED_ORIGINS` | Permitted frontend origins | `https://splitit.example.com` |
-| `FRONTEND_PORT` | Published HTTP port on VPS host | `80` |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID | `xxx.apps.googleusercontent.com` |
+
+---
+
+## Local Development
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+```
+
+This runs SplitIt locally with:
+- Local bridge networks (no external dependencies)
+- Debug ports published to `localhost`
+- sqlserver `user: "0:0"` for Docker Desktop Windows
+
+## Production Deploy
+
+Automatic on push to `main` via GitHub Actions. Manual:
+
+```bash
+cd /opt/splitit
+./scripts/deploy.sh deploy
+```
 
 ---
 
@@ -127,20 +133,10 @@ docker compose up -d --build
 ```bash
 docker compose ps
 ```
-*Expected Output:*
-```text
-NAME               STATUS                  PORTS
-splitit-db         Up (healthy)            
-splitit-backend    Up (healthy)            
-splitit-frontend   Up (healthy)            0.0.0.0:80->80/tcp
-```
 
 ### 3. View Logs
 ```bash
-# All services
 docker compose logs -f
-
-# Specific service
 docker compose logs -f backend
 ```
 
@@ -149,7 +145,7 @@ docker compose logs -f backend
 docker compose down
 ```
 
-### 5. Verify Database Isolation (Port Scan)
+### 5. Verify Database Isolation
 ```bash
 docker ps
 ```
