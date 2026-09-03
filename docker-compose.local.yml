@@ -19,9 +19,9 @@ services:
       - "127.0.0.1:80:80"
 
 networks:
-  splitit-frontend-net:
-    name: splitit-frontend-net
+  splitit-net:
+    name: splitit-net
     driver: bridge
-  splitit-backend-net:
-    name: splitit-backend-net
+  splitit-internal-net:
+    name: splitit-internal-net
     driver: bridge

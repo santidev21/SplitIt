@@ -201,7 +201,7 @@ cp .env.example .env
 # Edit .env with production secrets
 
 # Create Docker network
-docker network create splitit-frontend-net
+docker network create splitit-net
 
 # Start services
 docker compose up -d

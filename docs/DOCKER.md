@@ -13,17 +13,17 @@ SplitIt uses a hardened multi-container architecture orchestrated via Docker Com
            │   vps-gateway         │  (nginx, TLS, security headers, rate limiting)
            │   [separate repo]     │  sites-enabled/splitit.santidev21.tech.conf
            └───────────┬───────────┘
-                       │ (splitit-frontend-net, external)
+                       │ (splitit-net, external)
                        ▼
              ┌───────────────────┐
              │  splitit-frontend │ (Angular SPA, port 80 internal)
              └─────────┬─────────┘
-                       │ (splitit-frontend-net)
+                       │ (splitit-net)
                        ▼
              ┌───────────────────┐
              │  splitit-backend  │ (.NET 8 Web API, port 8080 internal)
              └─────────┬─────────┘
-                       │ (splitit-backend-net: internal=true)
+                       │ (splitit-internal-net: internal=true)
                        ▼
              ┌───────────────────┐
              │    splitit-db     │ (SQL Server 2022)
@@ -37,11 +37,11 @@ SplitIt uses a hardened multi-container architecture orchestrated via Docker Com
 
 To support hosting multiple projects cleanly on the same VPS, networks are explicitly named:
 
-1. **`splitit-frontend-net`** (external):
+1. **`splitit-net`** (external):
    - Bridge network connecting the VPS gateway to SplitIt's frontend and backend containers.
    - Declared as `external: true` — the network is **owned by the `vps-gateway`** compose stack.
    - SplitIt attaches to it so the gateway can route traffic to its containers.
-2. **`splitit-backend-net`** (`internal: true`):
+2. **`splitit-internal-net`** (`internal: true`):
    - Private, isolated internal network connecting `.NET 8 Web API` to `SQL Server`.
    - Outbound and inbound external traffic is blocked by Docker daemon. SQL Server port `1433` is **not** exposed to the host machine.
 
@@ -63,7 +63,7 @@ To support hosting multiple projects cleanly on the same VPS, networks are expli
 ERROR: BootstrapSystemDataDirectories() 0x80070005 Access is denied
 ```
 **Decision: keep `user: "0:0"` (root) for `sqlserver` service** — documented exception, stability preferred over artificial non-root.
-**Mitigations compensating for root:** `internal:true` network (`splitit-backend-net`), no host `1433` exposure, `privileged:false`, resource limits (`1.5 CPU/2GB`), dedicated least-privilege `splitit_app` for API, `db-init` one-shot creates app user and never uses `sa` at runtime.
+**Mitigations compensating for root:** `internal:true` network (`splitit-internal-net`), no host `1433` exposure, `privileged:false`, resource limits (`1.5 CPU/2GB`), dedicated least-privilege `splitit_app` for API, `db-init` one-shot creates app user and never uses `sa` at runtime.
 
 ### Database Least-Privilege
 | Principal | Purpose | Permissions | Used By |

@@ -28,9 +28,9 @@ No SplitIt container publishes host ports.
 
 ## Network Connectivity
 
-The gateway reaches SplitIt via `splitit-frontend-net` (external, owned by vps-gateway):
-- `splitit-frontend` joins `splitit-frontend-net` → reachable as hostname `splitit-frontend`
-- `splitit-backend` joins both `splitit-frontend-net` + `splitit-backend-net` (internal, DB only)
+The gateway reaches SplitIt via `splitit-net` (external, owned by vps-gateway):
+- `splitit-frontend` joins `splitit-net` → reachable as hostname `splitit-frontend`
+- `splitit-backend` joins both `splitit-net` + `splitit-internal-net` (internal, DB only)
 
 ## Security Headers (applied by vps-gateway)
 
