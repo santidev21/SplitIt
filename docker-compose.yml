@@ -4,7 +4,9 @@ services:
   sqlserver:
     container_name: splitit-db
     image: mcr.microsoft.com/mssql/server:2022-latest
-    # Uses official default user (mssql, UID 10001). On Docker Desktop Windows, override with user: "0:0" in docker-compose.local.yml.
+    # Exception (documented in docs/DOCKER.md): mssql image fails on root-owned named
+    # volumes as the default mssql user. Run as root (0:0) for volume compatibility.
+    user: "0:0"
     restart: unless-stopped
     environment:
       - ACCEPT_EULA=Y
