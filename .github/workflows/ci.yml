@@ -248,9 +248,23 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" | base64 -d > ~/.ssh/deploy_key
+          # Handle both base64-encoded and raw PEM formats (new ci-all key may be stored raw)
+          # The vps-ci-all private key (ci-all-repos) must decode correctly
+          if echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" | base64 -d > ~/.ssh/deploy_key 2>/dev/null && grep -q "BEGIN.*PRIVATE KEY" ~/.ssh/deploy_key; then
+            echo "Using base64-decoded deploy key"
+          else
+            echo "Using raw deploy key (fallback for non-base64 secret)"
+            printf "%s\n" "${{ secrets.VPS_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+            # Handle case where secret contains literal \n escapes
+            if grep -q '\\n' ~/.ssh/deploy_key; then
+              printf "%b" "$(cat ~/.ssh/deploy_key)" > ~/.ssh/deploy_key.tmp && mv ~/.ssh/deploy_key.tmp ~/.ssh/deploy_key
+            fi
+          fi
+          sed -i 's/\r//g' ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          ssh-keygen -l -f ~/.ssh/deploy_key 2>/dev/null || { echo "ERROR: Invalid SSH deploy key"; head -n 3 ~/.ssh/deploy_key; exit 1; }
+          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+          chmod 600 ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Deploy to VPS
         env:
