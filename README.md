@@ -1,5 +1,9 @@
 # SplitIt
 
+![License](https://img.shields.io/badge/license-MIT-blue)
+![.NET](https://img.shields.io/badge/.NET-8-purple)
+![Angular](https://img.shields.io/badge/Angular-19-red)
+
 **SplitIt** is a web application designed to help people manage shared expenses within groups. Whether you're on a trip with friends, splitting rent with roommates, or handling any shared bills, SplitIt simplifies the process of tracking expenses and settling debts fairly.
 
 ![Group Overview](docs/images/group-overview.png)
@@ -19,14 +23,6 @@
 - Authentication system with protected routes (JWT)
 - Real-time notifications for friend requests
 - Form validation with inline error messages
-
----
-
-## To Do
-
-- [ ] Fix Google OAuth sign-up for new users on mobile — creating the account fails on mobile and only works after creating it on desktop first.
-- [ ] Fix i18n on the group dashboard: "¡Estás todo liquidado!" is not translated to English when the app is in EN.
-- [ ] Fix i18n on the add-expense dialog: "Pagado por You" hardcodes English "You" — it should be localized ("Tú" in ES).
 
 ---
 
@@ -69,6 +65,23 @@ Internet → vps-gateway (:80/:443, private repo)
 | Gateway | nginx via [vps-gateway](https://github.com/santidev21/vps-gateway) (HTTPS, HSTS, security headers) |
 | CI/CD | GitHub Actions (test → build → Trivy scan → deploy) |
 | Deploy | Docker Compose on VPS |
+
+---
+
+## Project Structure
+
+```
+SplitIt/
+├── SplitIt.API/       # .NET solution (API, Application, Domain, Infrastructure, Shared, Tests)
+├── split-it-ui/       # Angular 19 frontend (src/app, e2e)
+├── docker/            # Docker configs (backend, frontend, proxy, sqlserver)
+├── docs/              # Guides, reports, and screenshots
+├── scripts/           # Deploy and helper scripts
+├── ai-context/        # Project context for AI work
+├── .github/           # CI/CD workflows
+├── docker-compose.yml
+└── .env.example
+```
 
 ---
 
@@ -148,101 +161,9 @@ curl -X POST http://localhost:5120/api/admin/promote \
 
 ---
 
-## Running Tests
+## Deployment
 
-```bash
-# Backend unit tests
-dotnet test SplitIt.API/SplitIt.Back.sln
-
-# Frontend unit tests
-npm run test --prefix split-it-ui
-
-# E2E tests (Playwright)
-cd split-it-ui
-npx playwright install chromium
-npx playwright test
-```
-
-**Note:** Integration tests (Phase10DatabaseTests, HealthCheckTests, RateLimitingTests) require a running SQL Server instance and are excluded from CI.
-
----
-
-## CI/CD Pipeline
-
-The GitHub Actions workflow (`.github/workflows/ci.yml`) runs on push to `main`:
-
-| Job | What it does |
-|---|---|
-| Backend Tests | .NET build + test + coverage |
-| Frontend Build & Test | Angular build + unit tests + coverage |
-| Playwright E2E | End-to-end browser tests |
-| Security Scan | Checks for secrets in code, validates .gitignore/.dockerignore |
-| Docker Build & Trivy | Builds images, scans for HIGH/CRITICAL vulnerabilities |
-| Docker Compose Validate | Validates compose file syntax |
-| Deploy to VPS | SSH into VPS, pulls latest, rebuilds, restarts containers |
-
-**Required GitHub Environment Secrets** (production environment):
-| Secret | Description |
-|---|---|
-| `VPS_SSH_PRIVATE_KEY` | Base64-encoded ED25519 private key for deploy |
-| `VPS_HOST` | VPS IP address |
-| `VPS_USER` | SSH user |
-
----
-
-## Production Deployment
-
-### VPS Setup (one-time)
-```bash
-# Install Docker
-curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER
-
-# Clone the repo
-sudo mkdir -p /opt/splitit
-sudo chown $USER:docker /opt/splitit
-git clone https://github.com/santidev21/SplitIt.git /opt/splitit
-
-# Configure environment
-cd /opt/splitit
-cp .env.example .env
-# Edit .env with production secrets
-
-# Create Docker network
-docker network create splitit-net
-
-# Start services
-docker compose up -d
-```
-
-### Deploy Updates
-Deploys happen automatically on push to `main` via GitHub Actions. Manual deploy:
-```bash
-cd /opt/splitit
-./scripts/deploy.sh deploy
-```
-
-### Other Deploy Commands
-```bash
-./scripts/deploy.sh status    # Show container status
-./scripts/deploy.sh logs      # Show recent logs
-./scripts/deploy.sh rollback  # Rollback to last backup
-./scripts/deploy.sh verify    # Verify all services healthy
-```
-
----
-
-## Security
-
-- JWT tokens signed with HMAC-SHA256 (64+ char secret required in production)
-- BCrypt password hashing (with automatic rehash on login)
-- Rate limiting at gateway: 30r/m auth, 100r/m API, 200r/m general (in [vps-gateway](https://github.com/santidev21/vps-gateway))
-- CORS restricted to configured origins only
-- Docker containers run as non-root (except SQL Server on Docker Desktop Windows)
-- Internal Docker network isolates database from external access
-- No database ports exposed to host
-- Trivy vulnerability scanning in CI
-- Security headers applied by gateway: HSTS, CSP, X-Frame-Options, etc.
+Deploys happen automatically on push to `main` via GitHub Actions. For VPS setup and manual deploy commands, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ---
 
@@ -262,11 +183,31 @@ cd /opt/splitit
 
 ---
 
-## Future Features
-- [x] Partial payments functionality
-- [x] Support alternative split methods (by amount or percentage)
-- [x] Email validation
-- [x] Group admin and application admin roles
-- [x] Friends system with requests
-- [x] Admin panel with settings
-- [x] Form validation and error feedback
+## Security
+
+- JWT auth with HMAC-SHA256 signed tokens (64+ char secret required in production)
+- BCrypt password hashing (with automatic rehash on login)
+- Rate limiting enforced at the gateway
+- CORS restricted to configured origins only
+- Database isolated on an internal Docker network, no DB ports exposed
+- Security headers (HSTS, CSP, X-Frame-Options) applied by the gateway
+
+---
+
+## AI Context
+
+[ai-context/](ai-context/) is the canonical project context for AI-assisted work (architecture snapshot, specs, agents, and skills).
+
+---
+
+## To Do
+
+- [ ] Fix Google OAuth sign-up for new users on mobile — creating the account fails on mobile and only works after creating it on desktop first.
+- [ ] Fix i18n on the group dashboard: "¡Estás todo liquidado!" is not translated to English when the app is in EN.
+- [ ] Fix i18n on the add-expense dialog: "Pagado por You" hardcodes English "You" — it should be localized ("Tú" in ES).
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
