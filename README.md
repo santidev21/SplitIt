@@ -22,6 +22,14 @@
 
 ---
 
+## To Do
+
+- [ ] Fix Google OAuth sign-up for new users on mobile — creating the account fails on mobile and only works after creating it on desktop first.
+- [ ] Fix i18n on the group dashboard: "¡Estás todo liquidado!" is not translated to English when the app is in EN.
+- [ ] Fix i18n on the add-expense dialog: "Pagado por You" hardcodes English "You" — it should be localized ("Tú" in ES).
+
+---
+
 ## Architecture
 
 ```
