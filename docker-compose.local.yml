@@ -22,6 +22,7 @@ networks:
   splitit-net:
     name: splitit-net
     driver: bridge
+    external: false
   splitit-internal-net:
     name: splitit-internal-net
     driver: bridge
