@@ -194,7 +194,6 @@
   "SPLIT.CONFIRM": "Confirmar método de división",
   "SPLIT.NO_MEMBERS": "Selecciona al menos un miembro para dividir el gasto.",
   "SPLIT.NO_AMOUNTS": "Ingresa un monto para al menos un miembro.",
-  "EXPENSE.NO_AMOUNTS": "Ingresa un monto para al menos un miembro.",
   "SPLIT.AMOUNTS_UNDER": "Los montos suman ${{sum}} — faltan ${{diff}} para alcanzar ${{total}}.",
   "SPLIT.AMOUNTS_OVER": "Los montos suman ${{sum}} — ${{diff}} sobre el total de ${{total}}.",
   "SPLIT.NO_PERCENTAGES": "Ingresa un porcentaje para al menos un miembro.",
