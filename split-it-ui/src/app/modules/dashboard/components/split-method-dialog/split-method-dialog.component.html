@@ -6,7 +6,7 @@
       <div class="tab-content">
         <mat-checkbox *ngFor="let member of members" [(ngModel)]="equalSplitSelection[member.id]"
                       [attr.aria-label]="'SPLIT.INCLUDE_IN_SPLIT' | translate: { name: member.name }">
-          {{ member.name }}
+          {{ displayName(member) }}
         </mat-checkbox>
       </div>
     </mat-tab>
@@ -14,7 +14,7 @@
     <mat-tab [label]="'SPLIT.BY_AMOUNT' | translate">
       <div class="tab-content">
         <div *ngFor="let member of members" class="split-input-row">
-            <span class="member-name">{{ member.name }}</span>
+            <span class="member-name">{{ displayName(member) }}</span>
             <mat-form-field class="member-input" appearance="fill">
               <mat-label>{{ 'SPLIT.AMOUNT_FOR' | translate: { name: member.name } }}</mat-label>
               <input matInput type="number" [(ngModel)]="member.amount" appPositiveNumber/>
@@ -26,7 +26,7 @@
     <mat-tab [label]="'SPLIT.BY_PERCENTAGE' | translate">
       <div class="tab-content">
         <div *ngFor="let member of members" class="split-input-row">
-            <span class="member-name">{{ member.name }}</span>
+            <span class="member-name">{{ displayName(member) }}</span>
             <mat-form-field class="member-input" appearance="fill">
               <mat-label>{{ 'SPLIT.PERCENTAGE_FOR' | translate: { name: member.name } }}</mat-label>
               <input matInput type="number" [(ngModel)]="member.amount" appPercentage/>

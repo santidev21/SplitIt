@@ -95,6 +95,13 @@ export class GroupSettingsDialogComponent implements OnInit {
     return this.data.isAdminOrCreator;
   }
 
+  /** Localized label for a member: "You"/"Tú" for the current user, real name otherwise. */
+  displayName(member: GroupMember): string {
+    return member.id === this.currentUserId
+      ? this.translate.instant('COMMON.YOU')
+      : member.name;
+  }
+
   save(): void {
     if (this.groupForm.invalid) {
       this.groupForm.markAllAsTouched();

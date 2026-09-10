@@ -32,7 +32,10 @@ export class GroupDetailComponent implements OnInit{
   debtsOwedByUser: DebtOwedByUserDto[] = [];
   debtsOwedToUser: DebtOwedToUserDto[] = [];
   debtDetails: DebtDetails[] = [];
-  debtMessage: string = '';
+  // Structured debt state; rendered via the translate pipe so it reacts to
+  // language changes (never freeze a translated string with instant() here).
+  debtState: 'owe' | 'owed' | 'settled' = 'settled';
+  debtAmount = 0;
   totalOwedByUser = 0;
   totalOwedToUser = 0;
 
@@ -151,13 +154,14 @@ export class GroupDetailComponent implements OnInit{
       this.totalOwedToUser = resp.debtsOwedToUser.reduce((sum, d) => sum + d.totalAmountOwed, 0);
 
       if (this.totalOwedByUser > this.totalOwedToUser) {
-        const amount = Math.round(this.totalOwedByUser - this.totalOwedToUser);
-        this.debtMessage = this.translate.instant('GROUP_DETAIL.OWE', { amount });
+        this.debtState = 'owe';
+        this.debtAmount = Math.round(this.totalOwedByUser - this.totalOwedToUser);
       } else if (this.totalOwedToUser > this.totalOwedByUser) {
-        const amount = Math.round(this.totalOwedToUser - this.totalOwedByUser);
-        this.debtMessage = this.translate.instant('GROUP_DETAIL.OWED', { amount });
+        this.debtState = 'owed';
+        this.debtAmount = Math.round(this.totalOwedToUser - this.totalOwedByUser);
       } else {
-        this.debtMessage = this.translate.instant('GROUP_DETAIL.ALL_SETTLED');
+        this.debtState = 'settled';
+        this.debtAmount = 0;
       }
 
       // Combine debts into a single list with signed values

@@ -25,7 +25,7 @@ test.describe('Groups E2E', () => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ message: 'Group created correctly.', groupId: 99 }) });
     });
     await page.route('**/api/groups/99/details', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ name: 'New Group', description: 'Desc' }) }));
-    await page.route('**/api/groups/99/members', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id: 1, name: 'You' }, { id: 2, name: 'Bob' }]) }));
+    await page.route('**/api/groups/99/members', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }]) }));
     await page.route('**/api/groups/99/userrole', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ role: 'creator' }) }));
     await page.route('**/api/expenses/99/expenses*', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) }));
     await page.route('**/api/expenses/debt-summary*', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ debtsOwedByUser: [], debtsOwedToUser: [] }) }));
@@ -45,8 +45,8 @@ test.describe('Groups E2E', () => {
 
   test('View group → details, members, expenses loaded', async ({ page }) => {
     await page.route('**/api/groups/1/details', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ name: 'Trip to Mendoza', description: 'Expenses for the trip' }) }));
-    await page.route('**/api/groups/1/members', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id: 1, name: 'You' }, { id: 2, name: 'Bob' }]) }));
-    await page.route('**/api/expenses/1/expenses*', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id: 10, title: 'Dinner', amount: 100, paidBy: 'Bob', date: new Date().toISOString(), note: '', participants: [{ name: 'You', amount: 50 }, { name: 'Bob', amount: 50 }] }]) }));
+    await page.route('**/api/groups/1/members', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }]) }));
+    await page.route('**/api/expenses/1/expenses*', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id: 10, title: 'Dinner', amount: 100, paidBy: 'Bob', date: new Date().toISOString(), note: '', participants: [{ name: 'Alice', amount: 50 }, { name: 'Bob', amount: 50 }] }]) }));
     await page.route('**/api/expenses/debt-summary*', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ debtsOwedByUser: [{ creditorUserId: 2, creditorUserName: 'Bob', totalAmountOwed: 50 }], debtsOwedToUser: [] }) }));
     await page.route('**/api/groups/1/userrole', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ role: 'creator' }) }));
 

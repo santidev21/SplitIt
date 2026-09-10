@@ -27,7 +27,7 @@
         <div *ngFor="let member of members" class="member-row">
           <div class="member-info">
             <mat-icon>{{ member.role === 'creator' ? 'star' : 'person' }}</mat-icon>
-            <span>{{ member.name }}</span>
+            <span>{{ displayName(member) }}</span>
             <span class="role-chip">{{ member.role || ('GROUP_SETTINGS.ROLE_MEMBER' | translate) }}</span>
           </div>
           <div class="member-actions" *ngIf="canManageMember(member)">

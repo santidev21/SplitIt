@@ -12,7 +12,7 @@ test.describe('Expenses E2E', () => {
     await mockRefreshEndpoint(page, token);
 
     await page.route('**/api/groups/1/details', async r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ name: 'Group 1', description: 'Desc' }) }));
-    await page.route('**/api/groups/1/members', async r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id: 1, name: 'You' }, { id: 2, name: 'Bob' }, { id: 3, name: 'Charlie' }]) }));
+    await page.route('**/api/groups/1/members', async r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }, { id: 3, name: 'Charlie' }]) }));
     await page.route('**/api/groups/1/userrole', async r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ role: 'creator' }) }));
     await page.route('**/api/expenses/1/expenses*', async r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) }));
     await page.route('**/api/expenses/debt-summary*', async r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ debtsOwedByUser: [], debtsOwedToUser: [] }) }));

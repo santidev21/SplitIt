@@ -7,6 +7,7 @@
   "COMMON.YES_CONTINUE": "Sí, continuar",
   "COMMON.YES_DELETE": "Sí, eliminar grupo",
   "COMMON.YES_REMOVE": "Sí, eliminar",
+  "COMMON.YOU": "Tú",
 
   "HEADER.HOME": "Inicio",
   "HEADER.FRIENDS": "Amigos",
@@ -71,6 +72,9 @@
   "AUTH.BACK_TO_LOGIN": "Volver al inicio de sesión",
   "AUTH.RESET_NO_TOKEN": "No se proporcionó un token de restablecimiento. Utiliza el enlace de tu administrador.",
   "AUTH.RESET_INVALID_TOKEN": "Token inválido o expirado. Solicita un nuevo token de restablecimiento.",
+  "AUTH.GOOGLE_FAILED": "Error al iniciar sesión con Google. Inténtalo de nuevo.",
+  "AUTH.GOOGLE_UNAVAILABLE": "El inicio de sesión con Google no está disponible ahora. Inténtalo de nuevo.",
+  "AUTH.GOOGLE_RETRY": "Reintentar",
 
   "ADMIN.TITLE": "Panel de administración",
   "ADMIN.TAB_DASHBOARD": "Panel",
@@ -161,6 +165,7 @@
   "GROUP_DETAIL.DELETE_SUCCESS": "Grupo eliminado.",
   "GROUP_DETAIL.PAYMENT_REGISTERED": "¡Pago de ${{amount}} registrado!{{remaining}}",
   "GROUP_DETAIL.REMAINING_DEBT": " Pendiente: ${{amount}}",
+  "GROUP_DETAIL.PAID_HISTORY": "{{name}} pagó ${{amount}}",
 
   "EXPENSE.TITLE_LABEL": "Título",
   "EXPENSE.TITLE_REQUIRED": "El título es obligatorio.",
@@ -188,6 +193,7 @@
   "SPLIT.PERCENTAGE_FOR": "Porcentaje para {{name}}",
   "SPLIT.CONFIRM": "Confirmar método de división",
   "SPLIT.NO_MEMBERS": "Selecciona al menos un miembro para dividir el gasto.",
+  "SPLIT.NO_AMOUNTS": "Ingresa un monto para al menos un miembro.",
   "EXPENSE.NO_AMOUNTS": "Ingresa un monto para al menos un miembro.",
   "SPLIT.AMOUNTS_UNDER": "Los montos suman ${{sum}} — faltan ${{diff}} para alcanzar ${{total}}.",
   "SPLIT.AMOUNTS_OVER": "Los montos suman ${{sum}} — ${{diff}} sobre el total de ${{total}}.",

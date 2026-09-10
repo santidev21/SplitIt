@@ -1,6 +1,7 @@
 ﻿using Google.Apis.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SplitIt.Application.DTOs;
 using SplitIt.Domain.Entities;
@@ -16,13 +17,15 @@ namespace SplitIt.API.Controllers
         private readonly TokenService _tokenService;
         private readonly IConfiguration _configuration;
         private readonly SettingsService? _settingsService;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(AuthService authService, TokenService tokenService, IConfiguration configuration, SettingsService? settingsService = null)
+        public AuthController(AuthService authService, TokenService tokenService, IConfiguration configuration, SettingsService? settingsService = null, ILogger<AuthController>? logger = null)
         {
             _authService = authService;
             _tokenService = tokenService;
             _configuration = configuration;
             _settingsService = settingsService;
+            _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<AuthController>.Instance;
         }
 
         [HttpPost("register")]
@@ -76,9 +79,15 @@ namespace SplitIt.API.Controllers
             if (_settingsService != null && !await _settingsService.GetValueAsync(SettingsService.RegistrationEnabled, true))
                 return BadRequest(new { message = "Registration is currently disabled. Contact an administrator." });
 
+            if (string.IsNullOrWhiteSpace(request?.IdToken))
+                return BadRequest(new { message = "Google token is required." });
+
             var googleClientId = _configuration["Google:ClientId"];
             if (string.IsNullOrWhiteSpace(googleClientId))
+            {
+                _logger.LogError("Google sign-in attempted but Google:ClientId is not configured.");
                 return StatusCode(500, new { message = "Google sign-in is not configured." });
+            }
 
             GoogleJsonWebSignature.Payload payload;
             try
@@ -89,27 +98,65 @@ namespace SplitIt.API.Controllers
                 };
                 payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken, settings);
             }
-            catch (InvalidJwtException)
+            catch (InvalidJwtException ex)
             {
+                _logger.LogWarning(ex, "Google sign-in failed: invalid token.");
                 return Unauthorized(new { message = "Invalid Google token." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Google sign-in failed: token validation error.");
+                return StatusCode(500, new { message = "Unable to verify Google token. Please try again." });
             }
 
             if (payload.EmailVerified != true)
+            {
+                _logger.LogWarning("Google sign-in rejected: email not verified.");
                 return Unauthorized(new { message = "Google email is not verified." });
+            }
+
+            if (string.IsNullOrWhiteSpace(payload.Email))
+            {
+                _logger.LogWarning("Google sign-in rejected: token has no email.");
+                return Unauthorized(new { message = "Google account has no email address." });
+            }
 
             var email = payload.Email.Trim().ToLowerInvariant();
             var user = await _authService.GetUserByEmail(email);
 
             if (user == null)
             {
+                // Sanitize the Google display name (User.Name is nvarchar(100), required).
+                var displayName = (payload.Name ?? string.Empty).Trim();
+                if (string.IsNullOrWhiteSpace(displayName))
+                    displayName = email.Split('@')[0];
+                if (displayName.Length > 100)
+                    displayName = displayName[..100];
+
                 var randomPassword = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
-                var registered = await _authService.RegisterUser(payload.Name ?? email, email, randomPassword);
-                if (!registered)
-                    return Conflict(new { message = "Unable to create account." });
+                try
+                {
+                    var registered = await _authService.RegisterUser(displayName, email, randomPassword);
+                    if (!registered)
+                    {
+                        // Another concurrent request (e.g. a retried tap on a slow
+                        // mobile connection) may have created the account first.
+                        _logger.LogInformation("Google sign-up: account for {Email} already exists, continuing with login.", email);
+                    }
+                }
+                catch (DbUpdateException ex)
+                {
+                    // Unique-index race: two parallel sign-ups for the same new
+                    // email both passed the existence check. Recover by logging in.
+                    _logger.LogInformation(ex, "Google sign-up race for {Email}, continuing with login.", email);
+                }
 
                 user = await _authService.GetUserByEmail(email);
                 if (user == null)
+                {
+                    _logger.LogError("Google sign-up failed: unable to retrieve account for {Email} after registration.", email);
                     return StatusCode(500, new { message = "An error occurred while retrieving the user." });
+                }
             }
 
             var accessToken = _tokenService.GenerateAccessToken(user);

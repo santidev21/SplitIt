@@ -6,6 +6,18 @@
   margin-bottom: var(--space-4);
 }
 
+.google-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  text-align: center;
+  color: var(--mat-sys-error, #ba1a1a);
+  font-size: 0.875rem;
+  margin-bottom: var(--space-4);
+}
+
 mat-divider {
   margin: var(--space-4) 0;
 }

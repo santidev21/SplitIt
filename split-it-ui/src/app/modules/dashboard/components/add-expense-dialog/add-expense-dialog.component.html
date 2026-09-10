@@ -49,7 +49,7 @@
         <span>{{ 'EXPENSE.PAID_BY' | translate }}</span>
         <mat-select formControlName="paidById" panelClass="wide-select-panel" [attr.aria-label]="'EXPENSE.PAID_BY' | translate">
             <mat-option *ngFor="let member of members" [value]="member.id">
-                {{ member.name }}
+                {{ member.id === currentUserId ? ('COMMON.YOU' | translate) : member.name }}
             </mat-option>
         </mat-select>
 

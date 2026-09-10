@@ -9,6 +9,7 @@ import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { of } from 'rxjs';
 import { GroupService } from '../../services/group.service';
 import { ExpenseService } from '../../services/expense.service';
+import { AuthService } from '../../../auth/services/auth.service';
 
 describe('AddExpenseDialogComponent', () => {
   let component: AddExpenseDialogComponent;
@@ -16,7 +17,7 @@ describe('AddExpenseDialogComponent', () => {
 
   beforeEach(async () => {
     const groupSpy = jasmine.createSpyObj('GroupService', ['getGroupMembers']);
-    groupSpy.getGroupMembers.and.returnValue(of([{ id: 1, name: 'You' }, { id: 2, name: 'Bob' }]));
+    groupSpy.getGroupMembers.and.returnValue(of([{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }]));
     const expenseSpy = jasmine.createSpyObj('ExpenseService', ['addExpense']);
     expenseSpy.addExpense.and.returnValue(of({ id: 1 }));
 
@@ -30,6 +31,7 @@ describe('AddExpenseDialogComponent', () => {
         { provide: MAT_DIALOG_DATA, useValue: { groupId: 1 } },
         { provide: GroupService, useValue: groupSpy },
         { provide: ExpenseService, useValue: expenseSpy },
+        { provide: AuthService, useValue: { getCurrentUserId: () => 1 } },
         provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
         provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' })
       ]

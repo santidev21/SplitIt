@@ -91,7 +91,9 @@ namespace SplitIt.Infrastructure.Services
                 .Select(m => new MemberDto
                 {
                     Id = m.UserId,
-                    Name = m.UserId == currentUserId ? "You" : m.User.Name,
+                    // Always return the real name. The "current user" label ("You"/"Tú")
+                    // is a presentation concern and is localized by the frontend.
+                    Name = m.User.Name,
                     Role = m.Role,
                     Email = m.User.Email
                 })

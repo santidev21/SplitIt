@@ -6,6 +6,7 @@ import { ExpenseParticipant } from '../../../../models/expense.model';
 import { PositiveNumberDirective } from '../../../../shared/directives/positive-number.directive';
 import { PercentageDirective } from '../../../../shared/directives/percentage.directive';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-split-method-dialog',
@@ -22,12 +23,15 @@ export class SplitMethodDialogComponent {
   percentageSplit: { [key: string]: number } = {};
   amount: number = 0;
   validationError: string = '';
+  currentUserId = 0;
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
     private dialogRef: MatDialogRef<SplitMethodDialogComponent>,
-    private translate: TranslateService
+    private translate: TranslateService,
+    authService: AuthService
   ) {
+    this.currentUserId = authService.getCurrentUserId();
     this.members = data.members || [];
     this.members.forEach((m) => {
       this.equalSplitSelection[m.id] = true;
@@ -40,6 +44,13 @@ export class SplitMethodDialogComponent {
   onTabChange(index: number): void {
     this.selectedTabIndex = index;
     this.validationError = '';
+  }
+
+  /** Localized label for a member: "You"/"Tú" for the current user, real name otherwise. */
+  displayName(member: any): string {
+    return member?.id === this.currentUserId
+      ? this.translate.instant('COMMON.YOU')
+      : member?.name;
   }
 
   validateEqualSplit(): string {

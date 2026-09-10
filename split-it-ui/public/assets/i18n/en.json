@@ -7,6 +7,7 @@
   "COMMON.YES_CONTINUE": "Yes, continue",
   "COMMON.YES_DELETE": "Yes, delete group",
   "COMMON.YES_REMOVE": "Yes, remove",
+  "COMMON.YOU": "You",
 
   "HEADER.HOME": "Home",
   "HEADER.FRIENDS": "Friends",
@@ -71,6 +72,9 @@
   "AUTH.BACK_TO_LOGIN": "Back to login",
   "AUTH.RESET_NO_TOKEN": "No reset token provided. Please use the link from your administrator.",
   "AUTH.RESET_INVALID_TOKEN": "Invalid or expired token. Please request a new reset token.",
+  "AUTH.GOOGLE_FAILED": "Google login failed. Please try again.",
+  "AUTH.GOOGLE_UNAVAILABLE": "Google sign-in is unavailable right now. Please try again.",
+  "AUTH.GOOGLE_RETRY": "Retry",
 
   "ADMIN.TITLE": "Administration panel",
   "ADMIN.TAB_DASHBOARD": "Dashboard",
@@ -161,6 +165,7 @@
   "GROUP_DETAIL.DELETE_SUCCESS": "Group deleted.",
   "GROUP_DETAIL.PAYMENT_REGISTERED": "Payment of ${{amount}} registered!{{remaining}}",
   "GROUP_DETAIL.REMAINING_DEBT": " Remaining: ${{amount}}",
+  "GROUP_DETAIL.PAID_HISTORY": "{{name}} paid ${{amount}}",
 
   "EXPENSE.TITLE_LABEL": "Title",
   "EXPENSE.TITLE_REQUIRED": "Title is required.",

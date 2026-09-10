@@ -17,9 +17,10 @@ describe('LoginComponent', () => {
   let router: Router;
 
   beforeEach(async () => {
-    authServiceSpy = jasmine.createSpyObj('AuthService', ['login', 'isAuthenticated']);
+    authServiceSpy = jasmine.createSpyObj('AuthService', ['login', 'isAuthenticated', 'loginWithGoogle']);
     authServiceSpy.isAuthenticated.and.returnValue(false);
     authServiceSpy.login.and.returnValue(of({ token: 'fake', userName: 'Test', userId: 1 }));
+    authServiceSpy.loginWithGoogle.and.returnValue(of({ token: 'fake', userName: 'Test', userId: 1 }));
 
     await TestBed.configureTestingModule({
       imports: [LoginComponent, NoopAnimationsModule, RouterTestingModule],
@@ -73,5 +74,23 @@ describe('LoginComponent', () => {
     spyOn(event, 'preventDefault');
     component.login(event);
     expect(authServiceSpy.login).not.toHaveBeenCalled();
+  });
+
+  it('google credential should call loginWithGoogle once', () => {
+    component.handleGoogleCredential({ credential: 'cred-123' });
+    expect(authServiceSpy.loginWithGoogle).toHaveBeenCalledTimes(1);
+    expect(authServiceSpy.loginWithGoogle).toHaveBeenCalledWith('cred-123');
+  });
+
+  it('google duplicate callback while loading should be ignored', () => {
+    component.isLoading = true;
+    component.handleGoogleCredential({ credential: 'cred-123' });
+    expect(authServiceSpy.loginWithGoogle).not.toHaveBeenCalled();
+  });
+
+  it('google callback without credential should not call service', () => {
+    component.handleGoogleCredential({});
+    expect(authServiceSpy.loginWithGoogle).not.toHaveBeenCalled();
+    expect(component.googleError).toBeTruthy();
   });
 });

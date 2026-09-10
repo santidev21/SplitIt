@@ -5,6 +5,7 @@ import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { AuthService } from '../../../auth/services/auth.service';
 
 describe('SplitMethodDialogComponent', () => {
   let component: SplitMethodDialogComponent;
@@ -26,6 +27,7 @@ describe('SplitMethodDialogComponent', () => {
       providers: [
         { provide: MAT_DIALOG_DATA, useValue: data },
         { provide: MatDialogRef, useValue: dialogRefSpy },
+        { provide: AuthService, useValue: { getCurrentUserId: () => 1 } },
         provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
         provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
         provideHttpClient(),

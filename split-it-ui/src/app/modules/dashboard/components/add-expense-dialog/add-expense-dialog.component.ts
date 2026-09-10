@@ -13,6 +13,7 @@ import { ExpenseParticipant } from '../../../../models/expense.model';
 import { ExpenseService } from '../../services/expense.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-add-expense-dialog',
@@ -34,6 +35,7 @@ export class AddExpenseDialogComponent implements OnInit {
   members: GroupMember[] = [];
   groupId : number = 0;
   expenseParticipants: ExpenseParticipant[] = [];
+  currentUserId = 0;
 
   constructor(
     private fb: FormBuilder,
@@ -43,8 +45,10 @@ export class AddExpenseDialogComponent implements OnInit {
     private dialogRef: MatDialogRef<AddExpenseDialogComponent>,
     private notifications: NotificationService,
     @Inject(MAT_DIALOG_DATA) public data: { groupId: number },
-    private translate: TranslateService
+    private translate: TranslateService,
+    authService: AuthService
   ) {
+    this.currentUserId = authService.getCurrentUserId();
     this.expenseForm = this.fb.group({
       title: ['', [Validators.required, Validators.maxLength(100)]],
       note: ['', Validators.maxLength(500)],

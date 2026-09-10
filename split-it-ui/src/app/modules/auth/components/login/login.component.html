@@ -28,6 +28,10 @@
         <mat-divider class="full-width"></mat-divider>
 
         <div id="google-signin-button" class="google-btn-wrapper"></div>
+        <div *ngIf="googleError" class="google-error" role="alert">
+          <span>{{ googleError }}</span>
+          <button mat-button color="primary" type="button" (click)="retryGoogle()">{{ 'AUTH.GOOGLE_RETRY' | translate }}</button>
+        </div>
       </mat-card-content>
       <mat-card-actions>
         <span class="auth-action-text">{{ 'AUTH.NO_ACCOUNT' | translate }} <a routerLink="/auth/register" class="auth-link">{{ 'AUTH.CREATE_ACCOUNT' | translate }}</a></span>
