@@ -72,13 +72,15 @@ Internet → vps-gateway (:80/:443, private repo)
 
 ```
 SplitIt/
-├── SplitIt.API/       # .NET solution (API, Application, Domain, Infrastructure, Shared, Tests)
+├── SplitIt.API/       # .NET solution (API, Application, Domain, Infrastructure, Shared)
+├── SplitIt.Tests/     # Backend tests (referenced from the solution)
 ├── split-it-ui/       # Angular 19 frontend (src/app, e2e)
 ├── docker/            # Docker configs (backend, frontend, proxy, sqlserver)
-├── docs/              # Guides, reports, and screenshots
+├── docs/              # Guides, reports, screenshots, specs (docs/specs/)
 ├── scripts/           # Deploy and helper scripts
-├── ai-context/        # Project context for AI work
+├── .opencode/         # AI home: agent/, command/, skills/
 ├── .github/           # CI/CD workflows
+├── opencode.json      # opencode config (instructions, MCP, permissions)
 ├── docker-compose.yml
 └── .env.example
 ```
@@ -196,10 +198,12 @@ Deploys happen automatically on push to `main` via GitHub Actions. For VPS setup
 
 ## AI Context
 
-- [AGENTS.md](AGENTS.md) — project snapshot (stack, layout, working rules)
-- [.opencode/agents/](.opencode/agents/) — per-area playbooks (backend, frontend)
-- [.opencode/skills/](.opencode/skills/) — task playbooks (migrations, e2e)
-- [ai-context/specs/](ai-context/specs/) — architecture, auth, database detail specs
+- [AGENTS.md](AGENTS.md) — project snapshot (stack, layout, commands, working rules)
+- [opencode.json](opencode.json) — instructions, MCP servers and permissions
+- [.opencode/agent/](.opencode/agent/) — per-area playbooks (backend, frontend, reviewer)
+- [.opencode/skills/](.opencode/skills/) — task playbooks (migrations, e2e, tests, docker, contracts, i18n, …)
+- [.opencode/command/](.opencode/command/) — shortcuts (`/test`, `/migrate`, `/e2e`)
+- [docs/specs/](docs/specs/) — architecture, auth, database detail specs
 
 ---
 
