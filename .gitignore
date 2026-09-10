@@ -195,3 +195,7 @@ _ReSharper.Caches/
 
 # OS generated files
 Desktop.ini
+
+# opencode CLI — tool-level skills (project-level context lives in ai-context/)
+.agents/
+skills-lock.json
