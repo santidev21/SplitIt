@@ -243,7 +243,7 @@ if (args.Contains("--migrate"))
         var pending = db.Database.GetPendingMigrations().ToList();
         Console.WriteLine($"Pending migrations: {(pending.Count == 0 ? "(none)" : string.Join(", ", pending))}");
 
-        db.Database.Migrate();
+        await db.Database.MigrateAsync();
 
         var applied = db.Database.GetAppliedMigrations().ToList();
         Console.WriteLine($"Applied migrations count: {applied.Count} — last: {applied.LastOrDefault()}");
