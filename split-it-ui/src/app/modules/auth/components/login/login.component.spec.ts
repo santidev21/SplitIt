@@ -17,6 +17,17 @@ describe('LoginComponent', () => {
   let router: Router;
 
   beforeEach(async () => {
+    // Provide a minimal mock of Google Identity Services so initGoogleButton()
+    // doesn't enter the retry loop (which causes ExpressionChangedAfterItHasBeenCheckedError).
+    (window as any).google = {
+      accounts: {
+        id: {
+          initialize: jasmine.createSpy('initialize'),
+          renderButton: jasmine.createSpy('renderButton'),
+        },
+      },
+    };
+
     authServiceSpy = jasmine.createSpyObj('AuthService', ['login', 'isAuthenticated', 'loginWithGoogle']);
     authServiceSpy.isAuthenticated.and.returnValue(false);
     authServiceSpy.login.and.returnValue(of({ token: 'fake', userName: 'Test', userId: 1 }));
@@ -38,6 +49,10 @@ describe('LoginComponent', () => {
     router = TestBed.inject(Router);
     spyOn(router, 'navigate');
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    delete (window as any).google;
   });
 
   it('should create', () => expect(component).toBeTruthy());
