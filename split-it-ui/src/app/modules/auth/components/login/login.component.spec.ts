@@ -9,6 +9,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
+import { environment } from '../../../../../environments/environment';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -27,6 +28,9 @@ describe('LoginComponent', () => {
         },
       },
     };
+    // Provide a fake googleClientId so initGoogleButton() doesn't set googleError
+    // (which causes ExpressionChangedAfterItHasBeenCheckedError in tests).
+    (environment as any).googleClientId = 'test-client-id';
 
     authServiceSpy = jasmine.createSpyObj('AuthService', ['login', 'isAuthenticated', 'loginWithGoogle']);
     authServiceSpy.isAuthenticated.and.returnValue(false);
@@ -53,6 +57,7 @@ describe('LoginComponent', () => {
 
   afterEach(() => {
     delete (window as any).google;
+    delete (environment as any).googleClientId;
   });
 
   it('should create', () => expect(component).toBeTruthy());
