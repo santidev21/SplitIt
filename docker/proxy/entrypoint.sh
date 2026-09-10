@@ -1,4 +1,4 @@
-#!/bin/sh
+﻿#!/bin/sh
 set -e
 
 # ---------------------------------------------------------------------------
@@ -44,7 +44,7 @@ else
     export SSL_CERTIFICATE_KEY="${CERT_DIR}/nginx.key"
 
     if [ ! -f "${DH_FILE}" ]; then
-        echo "Generating DH parameters (2048-bit) — this happens once..."
+        echo "Generating DH parameters (2048-bit) â€” this happens once..."
         openssl dhparam -out "${DH_FILE}" 2048
     fi
 
@@ -86,6 +86,6 @@ RELOAD_SENTINEL="/var/www/certbot/.reload-trigger"
     done
 ) &
 
-echo "Starting SplitIt reverse proxy — domain=${DOMAIN}, tls=${TLS_MODE}, http=${HTTP_LISTEN_PORT}, https=${HTTPS_LISTEN_PORT}"
+echo "Starting SplitIt reverse proxy â€” domain=${DOMAIN}, tls=${TLS_MODE}, http=${HTTP_LISTEN_PORT}, https=${HTTPS_LISTEN_PORT}"
 
 exec "$@"

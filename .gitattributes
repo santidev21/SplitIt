@@ -1,0 +1,10 @@
+# Shell scripts must always be LF (no CRLF) — bash on Docker/Linux rejects CRLF
+*.sh text eol=lf
+
+# Docker configs (compose, Dockerfile) — same reason
+Dockerfile* text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Default for everything else — let git handle
+* text=auto

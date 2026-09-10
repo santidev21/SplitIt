@@ -1,7 +1,7 @@
-#!/bin/bash
+﻿#!/bin/bash
 set -e
 
-# SplitIt — init dedicated DB users with least privilege (Phase 10)
+# SplitIt â€” init dedicated DB users with least privilege (Phase 10)
 # Runs as one-shot container db-init after sqlserver is healthy
 # Uses SA to create LOGIN/USER if not exists
 # - splitit_app: runtime API (reader + writer, NO DDL)
@@ -64,7 +64,7 @@ $ROLES_SQL
 " 2>&1
 }
 
-# splitit_app: runtime least privilege — NO DDL
+# splitit_app: runtime least privilege â€” NO DDL
 ensure_user "$APP_USER" "
 IF IS_ROLEMEMBER('db_datareader', '$APP_USER') = 0 ALTER ROLE db_datareader ADD MEMBER [$APP_USER];
 IF IS_ROLEMEMBER('db_datawriter', '$APP_USER') = 0 ALTER ROLE db_datawriter ADD MEMBER [$APP_USER];
@@ -73,7 +73,7 @@ IF IS_ROLEMEMBER('db_owner', '$APP_USER') = 1 ALTER ROLE db_owner DROP MEMBER [$
 PRINT 'Roles for $APP_USER: db_datareader, db_datawriter (no ddl, no owner)';
 "
 
-# splitit_migrator: migration job — needs DDL
+# splitit_migrator: migration job â€” needs DDL
 ensure_user "$MIG_USER" "
 IF IS_ROLEMEMBER('db_datareader', '$MIG_USER') = 0 ALTER ROLE db_datareader ADD MEMBER [$MIG_USER];
 IF IS_ROLEMEMBER('db_datawriter', '$MIG_USER') = 0 ALTER ROLE db_datawriter ADD MEMBER [$MIG_USER];

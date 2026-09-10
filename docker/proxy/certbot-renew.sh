@@ -1,8 +1,8 @@
-#!/bin/sh
+﻿#!/bin/sh
 set -e
 
 # ---------------------------------------------------------------------------
-# SplitIt — Let's Encrypt automated certificate renewal loop.
+# SplitIt â€” Let's Encrypt automated certificate renewal loop.
 #
 # Runs inside the certbot-renewer container (profile: letsencrypt).
 # Checks for existing certificates, performs initial issuance if missing,
@@ -10,7 +10,7 @@ set -e
 #
 # After each successful renewal, a sentinel file is written to the shared
 # certbot_www volume. The proxy entrypoint watches for this file and
-# reloads Nginx automatically — no docker exec required.
+# reloads Nginx automatically â€” no docker exec required.
 #
 # Prerequisites:
 #   - Proxy must be running and serving /.well-known/acme-challenge/ on :80
