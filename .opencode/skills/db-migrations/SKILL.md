@@ -1,3 +1,8 @@
+---
+name: db-migrations
+description: Add and apply EF Core migrations for SplitIt. Use when creating or applying SQL Server migrations in SplitIt.Infrastructure.
+---
+
 # EF Core migrations
 
 Migrations live in `SplitIt.Infrastructure`. Run from the repo root:

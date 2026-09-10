@@ -1,3 +1,8 @@
+---
+description: Backend playbook for SplitIt — .NET 8 Clean Architecture (API, Application, Domain, Infrastructure). Use when working on SplitIt.API/.
+mode: subagent
+---
+
 # Backend agent
 
 Playbook for .NET 8 backend work (`SplitIt.API/`).

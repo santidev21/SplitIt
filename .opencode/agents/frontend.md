@@ -1,3 +1,8 @@
+---
+description: Frontend playbook for SplitIt — Angular 19 (Material, SCSS, Bootstrap). Use when working on split-it-ui/.
+mode: subagent
+---
+
 # Frontend agent
 
 Playbook for Angular 19 frontend work (`split-it-ui/`).

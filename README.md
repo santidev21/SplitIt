@@ -196,7 +196,10 @@ Deploys happen automatically on push to `main` via GitHub Actions. For VPS setup
 
 ## AI Context
 
-[ai-context/](ai-context/) is the canonical project context for AI-assisted work (architecture snapshot, specs, agents, and skills).
+- [AGENTS.md](AGENTS.md) — project snapshot (stack, layout, working rules)
+- [.opencode/agents/](.opencode/agents/) — per-area playbooks (backend, frontend)
+- [.opencode/skills/](.opencode/skills/) — task playbooks (migrations, e2e)
+- [ai-context/specs/](ai-context/specs/) — architecture, auth, database detail specs
 
 ---
 
