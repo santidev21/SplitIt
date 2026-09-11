@@ -1,0 +1,22 @@
+{
+  "name": "splitit-root",
+  "private": true,
+  "scripts": {
+    "start": "npm run dev",
+    "dev": "node ./scripts/run-splitit.mjs all",
+    "dev:ui": "node ./scripts/run-splitit.mjs ui",
+    "dev:api": "node ./scripts/run-splitit.mjs api",
+    "setup": "npm --prefix split-it-ui install --legacy-peer-deps",
+    "db:up": "docker compose -f docker-compose.yml -f docker-compose.local.yml up -d sqlserver",
+    "db:down": "docker compose -f docker-compose.yml -f docker-compose.local.yml stop sqlserver",
+    "db:migrate": "node ./scripts/run-splitit.mjs migrate",
+    "db:migration:add": "dotnet ef migrations add --project SplitIt.API/SplitIt.Infrastructure/SplitIt.Infrastructure.csproj --startup-project SplitIt.API/SplitIt.API/SplitIt.API.csproj",
+    "docker:dev": "docker compose -f docker-compose.yml -f docker-compose.local.yml up --build",
+    "build": "npm run build:ui && npm run build:api",
+    "build:ui": "npm --prefix split-it-ui run build",
+    "build:api": "dotnet build SplitIt.API/SplitIt.Back.sln",
+    "test": "npm run test:ui && npm run test:api",
+    "test:ui": "npm --prefix split-it-ui run test:ci",
+    "test:api": "dotnet test SplitIt.API/SplitIt.Back.sln"
+  }
+}

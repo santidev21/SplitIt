@@ -9,10 +9,12 @@
 services:
   sqlserver:
     user: "0:0"  # Docker Desktop Windows: mssql image requires root for named volumes
+    ports:
+      - "127.0.0.1:1433:1433"  # loopback only: reachable from `dotnet run`, never external
 
   backend:
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:8090:8080"  # host 8090: avoids clash with Bikontrol API (8080); container still listens on 8080
 
   frontend:
     ports:

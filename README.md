@@ -87,7 +87,12 @@ SplitIt/
 
 ---
 
-## Getting Started (Local Development)
+## Local Development
+
+The database (SQL Server 2022) **always runs in Docker** — loopback-only (`127.0.0.1:1433`), never exposed externally. Only where the app itself runs changes:
+
+- `npm run docker:dev` → everything (DB + API + frontend) in Docker, closest to prod.
+- `npm run dev` → DB in Docker, API + frontend native (`dotnet run` / `npm start`) with hot reload, against the **same** DB volume.
 
 ### Prerequisites
 - Node.js 20+
@@ -103,50 +108,66 @@ cd SplitIt
 ### 2. Set up environment
 ```bash
 cp .env.example .env
-# Edit .env with your local settings
+# Fill DB_PASSWORD (SA), DB_APP_PASSWORD, DB_MIGRATOR_PASSWORD,
+# JWT_SECRET (64+ chars), GOOGLE_CLIENT_ID
 ```
 
-### 3. Run with Docker (recommended)
+Frontend first-time setup:
 ```bash
-# Start all services (local bridge networks, debug ports)
-docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+npm run setup   # npm install --legacy-peer-deps in split-it-ui
 ```
-This starts all 5 services. Backend at `http://localhost:8080`, frontend at `http://localhost:80`.
 
-### 4. Run without Docker (manual)
-
-**Requirements:** SQL Server running locally or via Docker.
+### 3. Run everything in Docker (closest to prod)
+```bash
+npm run docker:dev
+# = docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+```
+Starts all 5 services. API at `http://localhost:8090`, frontend at `http://localhost:80`.
 
 ```bash
-# Option A: Start just SQL Server via Docker
-docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrong!Password123" \
-  -p 1433:1433 --name splitit-sql -d mcr.microsoft.com/mssql/server:2022-latest
+# Stop (data persists in the splitit_sqlserver_data volume)
+docker compose -f docker-compose.yml -f docker-compose.local.yml down
 
-# Option B: Use your local SQL Server instance
+# Wipe the DB and start clean
+docker compose -f docker-compose.yml -f docker-compose.local.yml down -v
 ```
 
-**Backend:**
+### 4. Run natively with hot reload
 ```bash
-cd SplitIt.API
-
-# Configure appsettings.Development.json with your connection string:
-# "DefaultConnection": "Server=localhost;Database=SplitIt_Dev;Trusted_Connection=True;TrustServerCertificate=True"
-
-dotnet restore
-dotnet ef database update --project SplitIt.Infrastructure --startup-project SplitIt.API
-dotnet run
+npm run dev
 ```
-Backend starts at `http://localhost:5120`. Swagger at `http://localhost:5120/swagger`.
+Starts SQL Server in Docker, applies EF migrations, then runs the API (`http://localhost:5120`, Swagger at `/swagger`) and the frontend (`http://localhost:4200`, proxies `/api` → 5120).
 
-**Frontend:**
+Single side:
 ```bash
-cd split-it-ui
-npm install --legacy-peer-deps
-npm start
+npm run dev:api   # API only (:5120)
+npm run dev:ui    # frontend only (:4200)
 ```
-Frontend starts at `http://localhost:4200`, auto-proxies API calls to `localhost:5120`.
 
-### 5. Create your first admin user
+### 5. Database & migrations
+
+```bash
+npm run db:up       # start SQL Server only (127.0.0.1:1433, loopback-only)
+npm run db:down     # stop it (data persists in the volume)
+npm run db:migrate  # apply EF migrations (dotnet ef database update)
+# New migration:
+npm run db:migration:add -- <Name>
+```
+
+Native `dotnet run` takes the SA password from `.env` (`DB_PASSWORD`), so it always matches the Docker SQL Server. On first run the root scripts create `SplitIt.API/SplitIt.API/appsettings.Development.json` (gitignored) from the committed `.example` template. In the Docker flow, migrations run via the one-shot `splitit-migrator` container instead.
+
+### Commands
+
+| Command | Purpose |
+|---|---|
+| `npm run dev` | DB (Docker) + API + frontend with hot reload |
+| `npm run dev:ui` / `npm run dev:api` | Frontend / API only |
+| `npm run db:up` / `npm run db:down` | Start / stop SQL Server in Docker |
+| `npm run db:migrate` | Apply EF migrations |
+| `npm run docker:dev` | Full stack in Docker (like prod) |
+| `npm run build` / `npm run test` | Build / test frontend + backend |
+
+### 6. Create your first admin user
 
 After registering a user, promote them to SuperAdmin via SQL:
 ```sql

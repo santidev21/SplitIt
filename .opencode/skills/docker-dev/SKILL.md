@@ -5,11 +5,12 @@ description: Run SplitIt locally with Docker Compose. Use when starting services
 
 # Local Docker
 
-Run from the repo root:
+Prefer the root scripts (`npm run docker:dev`, `npm run db:up`, `npm run dev`). Run from the repo root:
 
 ```bash
 # Full local stack (bridge networks, debug ports)
-docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+npm run docker:dev
+# = docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
 
 # Validate only
 docker compose config --quiet
@@ -19,12 +20,12 @@ docker compose -f docker-compose.yml -f docker-compose.local.yml down
 ```
 
 Local ports:
-- Backend: `http://localhost:8080` (Swagger at `/swagger`)
+- Backend: `http://localhost:8090` (Swagger at `/swagger`; container listens on 8080, host 8090 avoids clash with Bikontrol API)
 - Frontend: `http://localhost:80`
-- SQL Server: internal to the compose network (`splitit-db`)
+- SQL Server: `127.0.0.1:1433` (loopback only; same `splitit_sqlserver_data` volume native dev uses)
 
 Services (`docker-compose.yml`): `splitit-db` (SQL Server 2022) → `splitit-db-init` (least-privilege users, first run) → `splitit-migrator` (EF migrations, runs then exits) → `splitit-backend` + `splitit-frontend`.
 
 Rules:
-- Manual (no-Docker) dev uses `http://localhost:5120` (backend) and `http://localhost:4200` (frontend, proxies `/api` to 5120 via `proxy.conf.json`).
+- Native (no-Docker app) dev uses `npm run dev` (DB in Docker + `dotnet run` backend `:5120` + `ng serve` frontend `:4200`, proxies `/api` to 5120 via `proxy.conf.json`); single side via `dev:api` / `dev:ui`.
 - Never bake secrets into images — `.env` and certs are excluded via `.dockerignore`.
