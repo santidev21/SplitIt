@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SplitIt.Application.Constants;
 using SplitIt.Application.DTOs;
 using SplitIt.Domain.Entities;
 using SplitIt.Infrastructure.Services;
@@ -35,7 +36,13 @@ namespace SplitIt.API.Controllers
             if (_settingsService != null && !await _settingsService.GetValueAsync(SettingsService.RegistrationEnabled, true))
                 return BadRequest(new { message = "Registration is currently disabled. Contact an administrator." });
 
-            bool success = await _authService.RegisterUser(request.Name, request.Email, request.Password);
+            if (!request.AcceptTerms)
+                return BadRequest(new { message = "You must accept the Privacy Policy and Terms to register." });
+
+            bool success = await _authService.RegisterUser(request.Name, request.Email, request.Password,
+                acceptTerms: true,
+                consentVersion: LegalConsent.CurrentVersion,
+                consentIp: ClientIp());
             if (!success)
                 return Conflict(new { message = "Unable to register. If the email is already registered, try logging in." });
 
@@ -134,9 +141,14 @@ namespace SplitIt.API.Controllers
                     displayName = displayName[..100];
 
                 var randomPassword = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+                if (!request.AcceptTerms)
+                    return BadRequest(new { message = "You must accept the Privacy Policy and Terms to create an account." });
                 try
                 {
-                    var registered = await _authService.RegisterUser(displayName, email, randomPassword);
+                    var registered = await _authService.RegisterUser(displayName, email, randomPassword,
+                        acceptTerms: true,
+                        consentVersion: LegalConsent.CurrentVersion,
+                        consentIp: ClientIp());
                     if (!registered)
                     {
                         // Another concurrent request (e.g. a retried tap on a slow
@@ -239,6 +251,8 @@ namespace SplitIt.API.Controllers
 
             return Ok(new { message = "Password has been reset successfully. You can now log in." });
         }
+
+        private string? ClientIp() => HttpContext.Connection.RemoteIpAddress?.ToString();
 
         private void SetRefreshTokenCookie(string token)
         {

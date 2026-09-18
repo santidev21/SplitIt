@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SplitIt.Application.DTOs;
 using SplitIt.Infrastructure.Services;
 using System.Security.Claims;
 
@@ -20,18 +21,55 @@ namespace SplitIt.API.Controllers
             _configuration = configuration;
         }
 
-            [HttpGet]
-            [Authorize]
-            public async Task<IActionResult> GetUsers()
+        private int CurrentUserId()
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(claim, out var id) ? id : 0;
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetUsers()
+        {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(currentUserId))
+                return Unauthorized(new { message = "Invalid user session." });
+
+            var users = await _usersService.GetUsersAsync(currentUserId);
+
+            return Ok(users);
+        }
+
+        /// <summary>Access/portability right: download a copy of the user's data (Ley 1581).</summary>
+        [HttpGet("me/export")]
+        [Authorize]
+        public async Task<IActionResult> ExportMyData()
+        {
+            var userId = CurrentUserId();
+            if (userId == 0) return Unauthorized();
+            var data = await _usersService.ExportUserDataAsync(userId);
+            return Ok(data);
+        }
+
+        /// <summary>Suppression right: anonymize and deactivate the account (Ley 1581).</summary>
+        [HttpDelete("me")]
+        [Authorize]
+        public async Task<IActionResult> DeleteMyAccount([FromBody] DeleteAccountDto dto)
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+
+            var userId = CurrentUserId();
+            if (userId == 0) return Unauthorized();
+
+            try
             {
-                var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-                if (string.IsNullOrEmpty(currentUserId))
-                    return Unauthorized(new { message = "Invalid user session." });
-
-                var users = await _usersService.GetUsersAsync(currentUserId);
-
-                return Ok(users);
+                await _usersService.DeleteAccountAsync(userId, dto.Password);
+                return Ok(new { message = "Account deleted." });
             }
+            catch (UnauthorizedAccessException ex) { return Unauthorized(new { message = ex.Message }); }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        }
     }
 }

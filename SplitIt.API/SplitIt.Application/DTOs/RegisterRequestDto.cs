@@ -14,5 +14,11 @@ namespace SplitIt.Application.DTOs
 
         [Required, StringLength(100, MinimumLength = 8)]
         public string Password { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Informed authorization (Ley 1581). Must be explicitly true — the UI checkbox is not pre-checked.
+        /// </summary>
+        [Range(typeof(bool), "true", "true", ErrorMessage = "You must accept the Privacy Policy and Terms to register.")]
+        public bool AcceptTerms { get; set; }
     }
 }

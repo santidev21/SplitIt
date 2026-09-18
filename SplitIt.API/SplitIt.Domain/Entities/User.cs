@@ -17,5 +17,13 @@ namespace SplitIt.Domain.Entities
 
         public int RoleId { get; set; }
         public Role Role { get; set; }
+
+        // Consent (Ley 1581): proof of the authorization given at registration.
+        public DateTime? ConsentAt { get; set; }
+        public string? ConsentVersion { get; set; }
+        public string? ConsentIp { get; set; }
+
+        // Set when the account is deleted (anonymized, not physically removed).
+        public DateTime? DeletedAt { get; set; }
     }
 }

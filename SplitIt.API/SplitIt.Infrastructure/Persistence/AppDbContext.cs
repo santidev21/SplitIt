@@ -199,6 +199,9 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
                 entity.Property(u => u.PasswordHash).IsRequired();
                 entity.Property(u => u.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
                 entity.Property(u => u.IsActive).IsRequired().HasDefaultValue(true);
+                entity.Property(u => u.ConsentVersion).HasMaxLength(20);
+                entity.Property(u => u.ConsentIp).HasMaxLength(64);
+                entity.Property(u => u.DeletedAt).HasColumnType("datetime2");
             });
 
             // Role table configuration

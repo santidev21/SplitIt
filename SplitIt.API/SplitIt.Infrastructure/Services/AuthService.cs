@@ -19,7 +19,8 @@ namespace SplitIt.Infrastructure.Services
         // For DI without IPasswordHasher in tests: fallback
         public AuthService(AppDbContext context) : this(context, new PasswordHasher<User>()) { }
 
-        public async Task<bool> RegisterUser(string name, string email, string password)
+        public async Task<bool> RegisterUser(string name, string email, string password,
+            bool acceptTerms = false, string? consentVersion = null, string? consentIp = null)
         {
             var normalizedEmail = email.Trim().ToLowerInvariant();
             if (await _context.Users.AnyAsync(u => u.Email.ToLower() == normalizedEmail))
@@ -27,6 +28,14 @@ namespace SplitIt.Infrastructure.Services
 
             var user = new User { Name = name.Trim(), Email = normalizedEmail, RoleId = RoleConstants.User };
             user.PasswordHash = _passwordHasher.HashPassword(user, password);
+
+            if (acceptTerms)
+            {
+                // Proof of the authorization (Ley 1581).
+                user.ConsentAt = DateTime.UtcNow;
+                user.ConsentVersion = consentVersion;
+                user.ConsentIp = consentIp;
+            }
 
             _context.Add(user);
             await _context.SaveChangesAsync();

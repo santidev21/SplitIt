@@ -20,15 +20,22 @@ public class ValidationTests
     [InlineData("Valid Name", "test@example.com", "short")]
     public void RegisterRequest_Invalid_ShouldFail(string name, string email, string pwd)
     {
-        var dto = new RegisterRequestDto { Name = name, Email = email, Password = pwd };
+        var dto = new RegisterRequestDto { Name = name, Email = email, Password = pwd, AcceptTerms = true };
         Assert.NotEmpty(Validate(dto));
     }
 
     [Fact]
     public void RegisterRequest_Valid_ShouldPass()
     {
-        var dto = new RegisterRequestDto { Name = "Alice", Email = "alice@test.com", Password = "StrongPass123!" };
+        var dto = new RegisterRequestDto { Name = "Alice", Email = "alice@test.com", Password = "StrongPass123!", AcceptTerms = true };
         Assert.Empty(Validate(dto));
+    }
+
+    [Fact]
+    public void RegisterRequest_WithoutAcceptingTerms_ShouldFail()
+    {
+        var dto = new RegisterRequestDto { Name = "Alice", Email = "alice@test.com", Password = "StrongPass123!", AcceptTerms = false };
+        Assert.NotEmpty(Validate(dto));
     }
 
     [Theory]
