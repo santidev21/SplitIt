@@ -65,6 +65,10 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
                 entity.Property(g => g.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
                 entity.HasOne(g => g.Currency).WithMany().HasForeignKey(g => g.CurrencyId);
                 entity.Property(g => g.AllowToDeleteExpenses).HasDefaultValue(false);
+                entity.Property(g => g.IsDeleted).IsRequired().HasDefaultValue(false);
+                entity.Property(g => g.DeletedAt).HasColumnType("datetime2");
+                // Soft-deleted groups are hidden from every query by default.
+                entity.HasQueryFilter(g => !g.IsDeleted);
             });
 
             // GroupMember table configuration
@@ -74,6 +78,10 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
                 entity.HasOne(gm => gm.Group).WithMany(g => g.GroupMembers).HasForeignKey(gm => gm.GroupId);
                 entity.HasOne(gm => gm.User).WithMany().HasForeignKey(gm => gm.UserId);
                 entity.Property(gm => gm.Role).IsRequired().HasMaxLength(50);
+                // A user can only be a member of a group once.
+                entity.HasIndex(gm => new { gm.GroupId, gm.UserId }).IsUnique();
+                // Hide memberships of soft-deleted groups.
+                entity.HasQueryFilter(gm => !gm.Group!.IsDeleted);
             });
 
             // Expense table configuration
@@ -87,6 +95,8 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
                 entity.HasOne(e => e.Group).WithMany(g => g.Expenses).HasForeignKey(e => e.GroupId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(e => e.CreatedBy).WithMany().HasForeignKey(e => e.CreatedById).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(e => e.PaidBy).WithMany().HasForeignKey(e => e.PaidById).OnDelete(DeleteBehavior.Restrict);
+                // Hide expenses that belong to a soft-deleted group.
+                entity.HasQueryFilter(e => !e.Group!.IsDeleted);
             });
 
             // Expense Share table configuration
@@ -98,6 +108,8 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
                 entity.HasOne(es => es.User).WithMany().HasForeignKey(es => es.UserId).OnDelete(DeleteBehavior.Restrict);
                 entity.Property(es => es.IsSettled).IsRequired().HasDefaultValue(false);
                 entity.Property(es => es.SettledAt).HasColumnType("datetime");
+                // Hide shares that belong to a soft-deleted group's expense.
+                entity.HasQueryFilter(es => !es.Expense!.Group!.IsDeleted);
             });
 
             // Friendship table configuration

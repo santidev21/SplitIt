@@ -17,6 +17,11 @@ namespace SplitIt.Domain.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool AllowToDeleteExpenses { get; set; }
 
+        // Soft delete: groups (and their financial history) are never physically removed.
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
+        public int? DeletedBy { get; set; }
+
         public ICollection<GroupMember> GroupMembers { get; set; } = new List<GroupMember>();
         public ICollection<Expense> Expenses { get; set; } = new List<Expense>();
     }

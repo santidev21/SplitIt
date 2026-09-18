@@ -75,17 +75,20 @@ namespace SplitIt.Infrastructure.Services
                 CreatedById = createdById,
                 PaidById = request.PaidById,
             };
-            await _context.Expense.AddAsync(expense);
-            await _context.SaveChangesAsync();
 
-            var participants = request.Participants.Select(p => new ExpenseShare
+            // Atomic write: add the shares through the navigation and save once, so EF
+            // wraps the expense + shares in a single implicit transaction. (No user-initiated
+            // transaction here, which keeps the SQL Server retrying execution strategy usable.)
+            foreach (var p in request.Participants)
             {
-                UserId = p.UserId,
-                ExpenseId = expense.Id,
-                AmountOwed = p.AmountOwed
-            }).ToList();
+                expense.Shares.Add(new ExpenseShare
+                {
+                    UserId = p.UserId,
+                    AmountOwed = p.AmountOwed
+                });
+            }
 
-            await _context.ExpenseShare.AddRangeAsync(participants);
+            await _context.Expense.AddAsync(expense);
             await _context.SaveChangesAsync();
 
             return expense;
@@ -291,21 +294,15 @@ namespace SplitIt.Infrastructure.Services
                 IsPayment = true,
             };
 
-            await _context.Expense.AddAsync(expense);
-            await _context.SaveChangesAsync();
-
-            var expenseDetails = new ExpenseShare
+            var paymentShare = new ExpenseShare
             {
                 UserId = receiverUserId,
-                ExpenseId = expense.Id,
                 AmountOwed = amount,
                 AmountPaid = amount,
                 IsSettled = true,
                 SettledAt = DateTime.UtcNow,
             };
-
-            await _context.ExpenseShare.AddRangeAsync(expenseDetails);
-            await _context.SaveChangesAsync();
+            expense.Shares.Add(paymentShare);
 
             // Apply the payment to the payer's outstanding shares.
             // IMPORTANT: AmountOwed is immutable — we only increment AmountPaid, so the
@@ -338,9 +335,12 @@ namespace SplitIt.Infrastructure.Services
                 }
             }
 
+            // Single SaveChanges => EF wraps the payment expense, its share and the
+            // AmountPaid updates in one implicit transaction (retry-strategy friendly).
+            await _context.Expense.AddAsync(expense);
             await _context.SaveChangesAsync();
 
-            return expenseDetails.Id;
+            return paymentShare.Id;
         }
             
     }

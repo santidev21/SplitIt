@@ -110,6 +110,9 @@ namespace SplitIt.Infrastructure.Services
 
         public async Task<bool> IsUserMemberAsync(int groupId, int userId)
         {
+            // Soft-deleted groups are invisible: membership must not grant access to them.
+            var groupVisible = await _context.Groups.AnyAsync(g => g.Id == groupId);
+            if (!groupVisible) return false;
             return await _context.GroupMembers.AnyAsync(gm => gm.GroupId == groupId && gm.UserId == userId);
         }
 
@@ -173,6 +176,17 @@ namespace SplitIt.Infrastructure.Services
             if (target.Role == "admin" && requesterRole != "creator")
                 throw new UnauthorizedAccessException("Only creator can remove an admin.");
 
+            // Data integrity: do not orphan balances. A member with outstanding debt
+            // (as debtor or creditor) must be settled before they can be removed.
+            var hasOutstandingBalance = await _context.ExpenseShare.AnyAsync(es =>
+                !es.IsSettled
+                && es.AmountOwed - es.AmountPaid > 0
+                && es.Expense.GroupId == groupId
+                && !es.Expense.IsPayment
+                && (es.UserId == targetUserId || es.Expense.PaidById == targetUserId));
+            if (hasOutstandingBalance)
+                throw new ArgumentException("This member has an outstanding balance in the group. Settle all debts before removing them.");
+
             _context.GroupMembers.Remove(target);
             await _context.SaveChangesAsync();
         }
@@ -213,7 +227,10 @@ namespace SplitIt.Infrastructure.Services
             if (group == null)
                 throw new KeyNotFoundException("Group not found.");
 
-            _context.Groups.Remove(group);
+            // Soft delete: keep the group and all its financial history; just hide it.
+            group.IsDeleted = true;
+            group.DeletedAt = DateTime.UtcNow;
+            group.DeletedBy = requesterId;
             await _context.SaveChangesAsync();
         }
 
