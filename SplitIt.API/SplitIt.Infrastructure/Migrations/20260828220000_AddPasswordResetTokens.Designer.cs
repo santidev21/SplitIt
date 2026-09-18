@@ -11,6 +11,7 @@ using SplitIt.Infrastructure.Persistence;
 
 namespace SplitIt.Infrastructure.Migrations
 {
+    [DbContext(typeof(AppDbContext))]
     [Migration("20260828220000_AddPasswordResetTokens")]
     partial class AddPasswordResetTokens
     {
