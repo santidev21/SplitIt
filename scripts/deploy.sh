@@ -79,7 +79,7 @@ backup() {
         BACKUP_COUNT=$(ls -dt /tmp/splitit-backup-* 2>/dev/null | wc -l)
         if [ "$BACKUP_COUNT" -gt "$MAX_BACKUPS" ]; then
             log "Rotating backups (keeping last $MAX_BACKUPS)..."
-            ls -dt /opt/splitit-backup-* 2>/dev/null | tail -n +$((MAX_BACKUPS + 1)) | xargs rm -rf 2>/dev/null || true
+            ls -dt /tmp/splitit-backup-* 2>/dev/null | tail -n +$((MAX_BACKUPS + 1)) | xargs rm -rf 2>/dev/null || true
         fi
     fi
 }
@@ -102,24 +102,33 @@ backup_database() {
         return 0
     fi
 
-    # Create backup inside the sqlserver container
-    local BACKUP_PATH="/var/opt/mssql/data/backup_pre_deploy_$(date +%Y%m%d_%H%M%S).bak"
+    # Create backup inside the sqlserver container, on the dedicated backups volume
+    docker exec splitit-db mkdir -p /var/opt/mssql/backups || true
+    local BACKUP_PATH="/var/opt/mssql/backups/splitit_predeploy_$(date +%Y%m%d_%H%M%S).bak"
     if docker exec splitit-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$SA_PASSWORD" -C -Q \
-        "BACKUP DATABASE [SplitItDb] TO DISK = N'$BACKUP_PATH' WITH INIT, FORMAT, COMPRESSION" \
+        "BACKUP DATABASE [SplitItDb] TO DISK = N'$BACKUP_PATH' WITH INIT, FORMAT, COMPRESSION, CHECKSUM" \
         >/dev/null 2>&1; then
         log "Database backup created: $BACKUP_PATH"
     else
         # Try alternate tools path
         if docker exec splitit-db /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$SA_PASSWORD" -Q \
-            "BACKUP DATABASE [SplitItDb] TO DISK = N'$BACKUP_PATH' WITH INIT, FORMAT, COMPRESSION" \
+            "BACKUP DATABASE [SplitItDb] TO DISK = N'$BACKUP_PATH' WITH INIT, FORMAT, COMPRESSION, CHECKSUM" \
             >/dev/null 2>&1; then
             log "Database backup created: $BACKUP_PATH"
         else
             log "WARNING: Database backup failed. Continuing deployment (migration is idempotent)."
+            return 0
         fi
     fi
-    # Clean old backups inside container (keep last 5)
-    docker exec splitit-db sh -c "ls -t /var/opt/mssql/data/backup_pre_deploy_*.bak 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null" || true
+    # Verify the backup is restorable before trusting it
+    if docker exec splitit-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$SA_PASSWORD" -C -Q \
+        "RESTORE VERIFYONLY FROM DISK = N'$BACKUP_PATH'" >/dev/null 2>&1; then
+        log "Pre-deploy backup verified OK."
+    else
+        log "WARNING: Pre-deploy backup verification failed."
+    fi
+    # Retain the newest 4 pre-deploy backups on the backups volume
+    docker exec splitit-db sh -c "ls -1t /var/opt/mssql/backups/splitit_predeploy_*.bak 2>/dev/null | tail -n +5 | xargs -r rm -f" || true
 }
 
 # Pull latest code

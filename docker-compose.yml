@@ -13,6 +13,9 @@ services:
       - MSSQL_SA_PASSWORD=${DB_PASSWORD}
     volumes:
       - sqlserver_data:/var/opt/mssql/data
+      # Backups live on a SEPARATE volume so losing the data volume does not
+      # lose the backups too. Off-site copies are handled by scripts/db-backup.sh.
+      - sqlserver_backups:/var/opt/mssql/backups
     networks:
       - splitit-internal-net
     healthcheck:
@@ -156,5 +159,7 @@ networks:
 volumes:
   sqlserver_data:
     name: splitit_sqlserver_data
+  sqlserver_backups:
+    name: splitit_sqlserver_backups
   dataprotection_keys:
     name: splitit_dataprotection_keys
