@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using SplitIt.Domain.Entities;
 using SplitIt.Infrastructure.Persistence;
+using System.Security.Cryptography;
 
 namespace SplitIt.Infrastructure.Services
 {
@@ -78,7 +79,7 @@ namespace SplitIt.Infrastructure.Services
                 .ToListAsync();
             _context.PasswordResetTokens.RemoveRange(existingTokens);
 
-            var code = Random.Shared.Next(100000, 999999).ToString();
+            var code = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
             var resetToken = new PasswordResetToken
             {
                 UserId = user.Id,
@@ -93,7 +94,7 @@ namespace SplitIt.Infrastructure.Services
             return code;
         }
 
-        public async Task<bool> ResetPasswordAsync(string token, string newPassword)
+        public async Task<bool> ResetPasswordAsync(string token, string newPassword, string? email = null)
         {
             var resetToken = await _context.PasswordResetTokens
                 .Include(t => t.User)
@@ -102,9 +103,25 @@ namespace SplitIt.Infrastructure.Services
             if (resetToken == null) return false;
             if (resetToken.ExpiresAt < DateTime.UtcNow) return false;
 
+            // Bind the code to the account: the requester must also know the email.
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                var normalized = email.Trim().ToLowerInvariant();
+                if (resetToken.User == null ||
+                    !string.Equals(resetToken.User.Email.ToLowerInvariant(), normalized, StringComparison.Ordinal))
+                    return false;
+            }
+
             var user = resetToken.User;
             user.PasswordHash = _passwordHasher.HashPassword(user, newPassword);
             resetToken.Used = true;
+
+            // A password change invalidates all active sessions.
+            var activeTokens = await _context.RefreshTokens
+                .Where(r => r.UserId == user.Id && r.RevokedAt == null)
+                .ToListAsync();
+            foreach (var activeToken in activeTokens)
+                activeToken.RevokedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             return true;

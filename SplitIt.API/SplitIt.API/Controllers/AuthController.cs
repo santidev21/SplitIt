@@ -245,7 +245,7 @@ namespace SplitIt.API.Controllers
             if (request.NewPassword.Length < 8)
                 return BadRequest(new { message = "Password must be at least 8 characters." });
 
-            var success = await _authService.ResetPasswordAsync(request.Code, request.NewPassword);
+            var success = await _authService.ResetPasswordAsync(request.Code, request.NewPassword, request.Email);
             if (!success)
                 return BadRequest(new { message = "Invalid or expired code." });
 

@@ -111,4 +111,41 @@ public class AccountConsentTests
         var usersService = new UsersService(ctx, hasher);
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => usersService.DeleteAccountAsync(user!.Id, "WrongPassword1!"));
     }
+
+    [Fact]
+    public async Task ResetPassword_WithMismatchedEmail_ShouldFail()
+    {
+        var ctx = TestDbHelper.CreateInMemoryContext();
+        var hasher = new PasswordHasher<User>();
+        var auth = new AuthService(ctx, hasher);
+        await auth.RegisterUser("R1", "r1@reset.com", "OldPass123!", true, "1.0", "ip");
+        await auth.RegisterUser("R2", "r2@reset.com", "OldPass123!", true, "1.0", "ip");
+
+        var code = await auth.GenerateResetTokenAsync("r1@reset.com");
+        Assert.NotNull(code);
+
+        // Right code, wrong email -> rejected (code is bound to the account).
+        Assert.False(await auth.ResetPasswordAsync(code!, "NewPass123!", "r2@reset.com"));
+        // Right code + right email -> accepted.
+        Assert.True(await auth.ResetPasswordAsync(code!, "NewPass123!", "r1@reset.com"));
+        Assert.True(await auth.ValidateUser("r1@reset.com", "NewPass123!"));
+    }
+
+    [Fact]
+    public async Task ResetPassword_RevokesActiveSessions()
+    {
+        var ctx = TestDbHelper.CreateInMemoryContext();
+        var hasher = new PasswordHasher<User>();
+        var auth = new AuthService(ctx, hasher);
+        await auth.RegisterUser("R3", "r3@reset.com", "OldPass123!", true, "1.0", "ip");
+        var user = await auth.GetUserByEmail("r3@reset.com");
+        ctx.RefreshTokens.Add(new RefreshToken { UserId = user!.Id, TokenHash = "h", ExpiresAt = DateTime.UtcNow.AddDays(10) });
+        await ctx.SaveChangesAsync();
+
+        var code = await auth.GenerateResetTokenAsync("r3@reset.com");
+        Assert.True(await auth.ResetPasswordAsync(code!, "NewPass123!", "r3@reset.com"));
+
+        var token = await ctx.RefreshTokens.FirstAsync(r => r.UserId == user.Id);
+        Assert.NotNull(token.RevokedAt);
+    }
 }
