@@ -1,11 +1,11 @@
 ---
-description: Frontend playbook for SplitIt — Angular 19 (Material, SCSS, Bootstrap). Use when working on split-it-ui/.
+description: Frontend playbook for SplitIt — Angular 20 (Material, SCSS, Bootstrap). Use when working on split-it-ui/.
 mode: subagent
 ---
 
 # Frontend agent
 
-Playbook for Angular 19 frontend work (`split-it-ui/`).
+Playbook for Angular 20 frontend work (`split-it-ui/`).
 
 - Install with `npm install --legacy-peer-deps`.
 - Local dev proxies API calls to `localhost:5120` (`proxy.conf.json`).

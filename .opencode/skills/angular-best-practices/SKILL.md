@@ -5,7 +5,7 @@ description: Angular conventions and quality rules for SplitIt. Use when writing
 
 # Angular best practices (SplitIt)
 
-Applies to `split-it-ui/`. Angular 19 today, upgrading to 20 LTS (target). Standalone components, Angular Material + SCSS + Bootstrap, ngx-translate, Karma/Jasmine.
+Applies to `split-it-ui/`. Angular 20 LTS. Standalone components, Angular Material + SCSS + Bootstrap, ngx-translate, Karma/Jasmine.
 
 ## Components
 - Standalone components and functional guards/interceptors; import what the template uses.

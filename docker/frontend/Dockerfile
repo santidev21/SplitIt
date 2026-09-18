@@ -1,6 +1,6 @@
 # Multi-stage Dockerfile for SplitIt Angular SPA Frontend
 # Stage 1: Build Angular application using Node.js
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 WORKDIR /app
 
 ARG GOOGLE_CLIENT_ID=
