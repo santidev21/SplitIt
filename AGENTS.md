@@ -5,7 +5,7 @@ This file is the working context for SplitIt. Keep it updated when architecture,
 ## Project Snapshot
 SplitIt is a shared-expense manager with:
 - Angular 21 frontend (Material, SCSS, Bootstrap)
-- .NET 8 backend using Clean Architecture (API, Application, Domain, Infrastructure, Shared)
+- .NET 8 backend using Clean Architecture (API, Application, Domain, Infrastructure)
 - SQL Server 2022 persistence via EF Core (DB always in Docker, loopback-only `:1433` locally)
 - Root `package.json` orchestrates local dev (`dev`, `dev:ui/dev:api`, `db:*`, `docker:dev` scripts)
 - JWT authentication (HMAC-SHA256), BCrypt password hashing
@@ -16,7 +16,7 @@ SplitIt is a shared-expense manager with:
 ## Repository Layout
 ```text
 SplitIt/
-├─ SplitIt.API/     # .NET solution (API, Application, Domain, Infrastructure, Shared)
+├─ SplitIt.API/     # .NET solution (API, Application, Domain, Infrastructure)
 ├─ SplitIt.Tests/   # Backend tests (referenced from SplitIt.API/SplitIt.Back.sln)
 ├─ split-it-ui/     # Angular application (src/app, e2e)
 ├─ docker/          # Docker configs (backend, frontend, proxy, sqlserver)

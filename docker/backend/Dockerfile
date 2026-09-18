@@ -10,7 +10,6 @@ COPY SplitIt.API/SplitIt.API/SplitIt.API.csproj SplitIt.API/SplitIt.API/
 COPY SplitIt.API/SplitIt.Application/SplitIt.Application.csproj SplitIt.API/SplitIt.Application/
 COPY SplitIt.API/SplitIt.Domain/SplitIt.Domain.csproj SplitIt.API/SplitIt.Domain/
 COPY SplitIt.API/SplitIt.Infrastructure/SplitIt.Infrastructure.csproj SplitIt.API/SplitIt.Infrastructure/
-COPY SplitIt.API/SplitIt.Shared/SplitIt.Shared.csproj SplitIt.API/SplitIt.Shared/
 COPY SplitIt.Tests/SplitIt.Tests.csproj SplitIt.Tests/
 
 RUN dotnet restore SplitIt.API/SplitIt.Back.sln
