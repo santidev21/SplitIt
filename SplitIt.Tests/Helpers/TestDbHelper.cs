@@ -1,12 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using SplitIt.Infrastructure.Persistence;
+using SplitIt.Infrastructure.Services;
 
 namespace SplitIt.Tests.Helpers;
 
 public static class TestDbHelper
 {
-    public static AppDbContext CreateInMemoryContext(string dbName = "")
+    public static AppDbContext CreateInMemoryContext(string dbName = "", ICurrentUserService? currentUser = null)
     {
         if (string.IsNullOrEmpty(dbName)) dbName = Guid.NewGuid().ToString();
         var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -16,6 +17,6 @@ public static class TestDbHelper
             // the same code paths as SQL Server.
             .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
-        return new AppDbContext(options);
+        return new AppDbContext(options, currentUser);
     }
 }

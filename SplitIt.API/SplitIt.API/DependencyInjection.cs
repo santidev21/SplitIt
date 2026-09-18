@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SplitIt.API.Services;
 using SplitIt.Infrastructure.Persistence;
+using SplitIt.Infrastructure.Services;
 using System;
 
 namespace SplitIt.API
@@ -26,6 +28,10 @@ namespace SplitIt.API
                     // Command timeout 30s default, keep as is for monetary transactions
                     sqlOpts.CommandTimeout(30);
                 }));
+
+            // Ambient actor for the audit trail (null outside an HTTP request).
+            services.AddHttpContextAccessor();
+            services.AddScoped<ICurrentUserService, HttpCurrentUserService>();
 
             return services;
         }

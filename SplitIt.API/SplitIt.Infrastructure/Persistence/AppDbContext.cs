@@ -1,18 +1,32 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using SplitIt.Domain.Entities;
+using SplitIt.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace SplitIt.Infrastructure.Persistence
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        // Fields that must never be written to the audit trail.
+        private static readonly HashSet<string> SensitiveProperties = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "PasswordHash", "Password", "Token", "TokenHash", "ReplacedByTokenHash", "SecretKey"
+        };
+
+        private readonly ICurrentUserService? _currentUser;
+
+        public AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserService? currentUser = null) : base(options)
+        {
+            _currentUser = currentUser;
+        }
 
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
@@ -25,6 +39,152 @@ namespace SplitIt.Infrastructure.Persistence
         public DbSet<AppSetting> AppSettings { get; set; }
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
+
+        /// <summary>
+        /// Audits every tracked change (create/update/delete) for the domain entities.
+        /// The audit rows are persisted in a second save after the main change, so the
+        /// generated keys are available and sensitive fields are never serialized.
+        /// </summary>
+        public override int SaveChanges()
+        {
+            var audit = CaptureAudit();
+            var result = base.SaveChanges();
+            EmitAudit(audit);
+            return result;
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            var audit = CaptureAudit();
+            var result = await base.SaveChangesAsync(cancellationToken);
+            await EmitAuditAsync(audit, cancellationToken);
+            return result;
+        }
+
+        private void EmitAudit(List<AuditDescriptor> audit)
+        {
+            if (audit.Count == 0) return;
+            AddAuditRows(audit);
+            base.SaveChanges();
+        }
+
+        private async Task EmitAuditAsync(List<AuditDescriptor> audit, CancellationToken cancellationToken)
+        {
+            if (audit.Count == 0) return;
+            AddAuditRows(audit);
+            await base.SaveChangesAsync(cancellationToken);
+        }
+
+        private void AddAuditRows(List<AuditDescriptor> audit)
+        {
+            var actorId = _currentUser?.UserId;
+            var ip = _currentUser?.IpAddress;
+            foreach (var item in audit)
+            {
+                AuditLogs.Add(new AuditLog
+                {
+                    EntityName = item.EntityName,
+                    EntityId = item.ResolveId(),
+                    Action = item.Action,
+                    ActorUserId = actorId,
+                    IpAddress = ip,
+                    Timestamp = DateTime.UtcNow,
+                    Details = item.Details
+                });
+            }
+        }
+
+        private List<AuditDescriptor> CaptureAudit()
+        {
+            var audit = new List<AuditDescriptor>();
+            foreach (var entry in ChangeTracker.Entries())
+            {
+                if (entry.State != EntityState.Added && entry.State != EntityState.Modified && entry.State != EntityState.Deleted)
+                    continue;
+                if (entry.Entity is AuditLog)
+                    continue;
+
+                var action = entry.State switch
+                {
+                    EntityState.Added => "create",
+                    EntityState.Deleted => "delete",
+                    _ => ResolveModifiedAction(entry)
+                };
+
+                var descriptor = new AuditDescriptor
+                {
+                    EntityName = entry.Metadata.ClrType.Name,
+                    Action = action
+                };
+
+                if (entry.State == EntityState.Deleted)
+                {
+                    descriptor.DeletedKey = entry.Properties
+                        .Where(p => p.Metadata.IsPrimaryKey())
+                        .Select(p => p.OriginalValue?.ToString())
+                        .FirstOrDefault();
+                }
+                else
+                {
+                    descriptor.Entry = entry;
+                    if (entry.State == EntityState.Modified)
+                        descriptor.Details = BuildModifiedDetails(entry);
+                }
+
+                audit.Add(descriptor);
+            }
+            return audit;
+        }
+
+        private static string ResolveModifiedAction(EntityEntry entry)
+        {
+            // Soft deletes are modifications of IsDeleted; surface them as delete/restore.
+            var isDeleted = entry.Properties.FirstOrDefault(p => p.Metadata.Name == "IsDeleted");
+            if (isDeleted != null && isDeleted.IsModified)
+                return (bool?)isDeleted.CurrentValue == true ? "delete" : "restore";
+            return "update";
+        }
+
+        private static string? BuildModifiedDetails(EntityEntry entry)
+        {
+            var changed = new Dictionary<string, object?>();
+            foreach (var prop in entry.Properties)
+            {
+                if (!prop.IsModified) continue;
+                if (SensitiveProperties.Contains(prop.Metadata.Name)) continue;
+                changed[prop.Metadata.Name] = new { from = prop.OriginalValue, to = prop.CurrentValue };
+            }
+            if (changed.Count == 0) return null;
+            try
+            {
+                return JsonSerializer.Serialize(changed);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private sealed class AuditDescriptor
+        {
+            public string EntityName { get; set; } = string.Empty;
+            public string Action { get; set; } = string.Empty;
+            public string? Details { get; set; }
+            public EntityEntry? Entry { get; set; }
+            public string? DeletedKey { get; set; }
+
+            public string ResolveId()
+            {
+                if (Entry != null)
+                {
+                    var key = Entry.Properties.FirstOrDefault(p => p.Metadata.IsPrimaryKey());
+                    if (key?.CurrentValue != null)
+                        return key.CurrentValue.ToString() ?? string.Empty;
+                }
+                return DeletedKey ?? string.Empty;
+            }
+        }
 
 protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -154,6 +314,20 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
                 entity.Property(r => r.TokenHash).IsRequired().HasMaxLength(64);
                 entity.HasOne(r => r.User).WithMany().HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Cascade);
                 entity.Property(r => r.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            });
+
+            // AuditLog table configuration (append-only traceability)
+            modelBuilder.Entity<AuditLog>(entity =>
+            {
+                entity.HasKey(a => a.Id);
+                entity.Property(a => a.EntityName).IsRequired().HasMaxLength(100);
+                entity.Property(a => a.EntityId).IsRequired().HasMaxLength(64);
+                entity.Property(a => a.Action).IsRequired().HasMaxLength(20);
+                entity.Property(a => a.IpAddress).HasMaxLength(64);
+                entity.Property(a => a.Details).HasColumnType("nvarchar(max)");
+                entity.Property(a => a.Timestamp).HasDefaultValueSql("GETUTCDATE()");
+                entity.HasIndex(a => new { a.EntityName, a.EntityId });
+                entity.HasIndex(a => a.Timestamp);
             });
 
             SeedRoles(modelBuilder);
