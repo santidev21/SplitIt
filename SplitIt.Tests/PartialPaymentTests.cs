@@ -44,10 +44,11 @@ public class PartialPaymentTests
         var remainingAfter = await expSvc.GetRemainingDebtAsync(aliceId, bobId, gId);
         Assert.Equal(70, remainingAfter);
 
-        // Verify share reduced, not fully settled
+        // Verify the original amount is immutable and the payment is tracked separately
         var shares = await ctx.ExpenseShare.Include(es => es.Expense).Where(es => es.UserId == aliceId && es.Expense.GroupId == gId && !es.Expense.IsPayment).ToListAsync();
         Assert.Single(shares);
-        Assert.Equal(70, shares[0].AmountOwed);
+        Assert.Equal(100, shares[0].AmountOwed);
+        Assert.Equal(30, shares[0].AmountPaid);
         Assert.False(shares[0].IsSettled);
     }
 
@@ -148,7 +149,58 @@ public class PartialPaymentTests
 
         var shares = await ctx.ExpenseShare.Include(es => es.Expense).Where(es => !es.Expense.IsPayment).OrderBy(es => es.Expense.Date).ToListAsync();
         Assert.True(shares[0].IsSettled);
-        Assert.Equal(30, shares[1].AmountOwed);
+        Assert.Equal(60, shares[0].AmountOwed);
+        Assert.Equal(60, shares[0].AmountPaid);
+
+        // Original amount stays immutable; only AmountPaid advances (10 of 40 paid)
+        Assert.Equal(40, shares[1].AmountOwed);
+        Assert.Equal(10, shares[1].AmountPaid);
         Assert.False(shares[1].IsSettled);
+    }
+
+    [Fact]
+    public async Task PartialPayment_ShouldPreserveShareSumInvariant()
+    {
+        var (ctx, aliceId, bobId, gId) = await SetupAsync();
+        var expSvc = new ExpensesService(ctx);
+        await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
+        {
+            GroupId = gId, Title = "Groceries", Amount = 100.01m, Date = DateTime.UtcNow, PaidById = bobId,
+            Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto>
+            {
+                new() { UserId = aliceId, AmountOwed = 50.00m },
+                new() { UserId = bobId, AmountOwed = 50.01m }
+            }
+        }, bobId);
+
+        await expSvc.RegisterPayment(aliceId, bobId, gId, 33.33m);
+        await expSvc.RegisterPayment(aliceId, bobId, gId, 10.00m);
+
+        // Invariant: sum of share amounts always equals the expense amount, regardless of payments
+        var expense = await ctx.Expense.FirstAsync(e => e.GroupId == gId && !e.IsPayment);
+        var sharesSum = await ctx.ExpenseShare.Where(es => es.ExpenseId == expense.Id).SumAsync(es => es.AmountOwed);
+        Assert.Equal(expense.Amount, sharesSum);
+
+        // And the remaining debt is the original minus what was paid
+        Assert.Equal(6.67m, await expSvc.GetRemainingDebtAsync(aliceId, bobId, gId));
+    }
+
+    [Fact]
+    public async Task FullySettledShare_KeepsOriginalAmount()
+    {
+        var (ctx, aliceId, bobId, gId) = await SetupAsync();
+        var expSvc = new ExpensesService(ctx);
+        await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
+        {
+            GroupId = gId, Title = "Taxi", Amount = 50, Date = DateTime.UtcNow, PaidById = bobId,
+            Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = aliceId, AmountOwed = 50 } }
+        }, bobId);
+
+        await expSvc.RegisterPayment(aliceId, bobId, gId, 50);
+
+        var share = await ctx.ExpenseShare.Include(es => es.Expense).FirstAsync(es => es.UserId == aliceId && !es.Expense.IsPayment);
+        Assert.True(share.IsSettled);
+        Assert.Equal(50, share.AmountOwed);
+        Assert.Equal(50, share.AmountPaid);
     }
 }

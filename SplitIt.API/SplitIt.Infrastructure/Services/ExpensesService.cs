@@ -137,7 +137,8 @@ namespace SplitIt.Infrastructure.Services
                 {
                     CreditorUserId = group.Key.PaidById,
                     CreditorUserName = group.Key.Name,
-                    TotalAmountOwed = group.Sum(es => es.AmountOwed)
+                    // Outstanding = original owed minus what has already been paid (AmountOwed is immutable).
+                    TotalAmountOwed = group.Sum(es => es.AmountOwed - es.AmountPaid)
                 })
                 .ToListAsync();
         }
@@ -151,7 +152,7 @@ namespace SplitIt.Infrastructure.Services
                 {
                     DebtorUserId = group.Key.UserId,
                     DebtorUserName = group.Key.Name,
-                    TotalAmountOwed = group.Sum(es => es.AmountOwed)
+                    TotalAmountOwed = group.Sum(es => es.AmountOwed - es.AmountPaid)
                 })
                 .ToListAsync();
         }
@@ -208,13 +209,14 @@ namespace SplitIt.Infrastructure.Services
 
         public async Task<decimal> GetRemainingDebtAsync(int payerUserId, int receiverUserId, int groupId)
         {
-            // Net debt payer -> receiver
+            // Net debt payer -> receiver, based on the outstanding balance of each share
+            // (AmountOwed - AmountPaid). AmountOwed is never mutated by payments.
             var payerOwesReceiver = await _context.ExpenseShare
                 .Where(es => !es.IsSettled && es.Expense.GroupId == groupId && es.UserId == payerUserId && es.Expense.PaidById == receiverUserId)
-                .SumAsync(es => (decimal?)es.AmountOwed) ?? 0;
+                .SumAsync(es => (decimal?)(es.AmountOwed - es.AmountPaid)) ?? 0;
             var receiverOwesPayer = await _context.ExpenseShare
                 .Where(es => !es.IsSettled && es.Expense.GroupId == groupId && es.UserId == receiverUserId && es.Expense.PaidById == payerUserId)
-                .SumAsync(es => (decimal?)es.AmountOwed) ?? 0;
+                .SumAsync(es => (decimal?)(es.AmountOwed - es.AmountPaid)) ?? 0;
             return Math.Round(payerOwesReceiver - receiverOwesPayer, 2, MidpointRounding.AwayFromZero);
         }
 
@@ -242,6 +244,7 @@ namespace SplitIt.Infrastructure.Services
 
             foreach (var share in unsettledShares)
             {
+                share.AmountPaid = share.AmountOwed;
                 share.IsSettled = true;
                 share.SettledAt = DateTime.UtcNow;
             }
@@ -296,6 +299,7 @@ namespace SplitIt.Infrastructure.Services
                 UserId = receiverUserId,
                 ExpenseId = expense.Id,
                 AmountOwed = amount,
+                AmountPaid = amount,
                 IsSettled = true,
                 SettledAt = DateTime.UtcNow,
             };
@@ -303,7 +307,10 @@ namespace SplitIt.Infrastructure.Services
             await _context.ExpenseShare.AddRangeAsync(expenseDetails);
             await _context.SaveChangesAsync();
 
-            // Apply partial settlement to existing debts (payer owes receiver)
+            // Apply the payment to the payer's outstanding shares.
+            // IMPORTANT: AmountOwed is immutable — we only increment AmountPaid, so the
+            // expense history always reconciles (sum of shares == expense amount) even
+            // after partial payments.
             var remainingPayment = amount;
             var shares = await _context.ExpenseShare
                 .Include(es => es.Expense)
@@ -315,21 +322,21 @@ namespace SplitIt.Infrastructure.Services
             foreach (var share in shares)
             {
                 if (remainingPayment <= 0.009m) break;
-                if (share.AmountOwed <= remainingPayment + 0.01m)
+
+                var outstanding = Math.Round(share.AmountOwed - share.AmountPaid, 2, MidpointRounding.AwayFromZero);
+                if (outstanding <= 0.009m) continue;
+
+                var applied = Math.Min(outstanding, remainingPayment);
+                share.AmountPaid = Math.Round(share.AmountPaid + applied, 2, MidpointRounding.AwayFromZero);
+                remainingPayment = Math.Round(remainingPayment - applied, 2, MidpointRounding.AwayFromZero);
+
+                if (share.AmountPaid >= share.AmountOwed - 0.009m)
                 {
-                    remainingPayment = Math.Round(remainingPayment - share.AmountOwed, 2, MidpointRounding.AwayFromZero);
+                    share.AmountPaid = share.AmountOwed;
                     share.IsSettled = true;
                     share.SettledAt = DateTime.UtcNow;
                 }
-                else
-                {
-                    share.AmountOwed = Math.Round(share.AmountOwed - remainingPayment, 2, MidpointRounding.AwayFromZero);
-                    remainingPayment = 0;
-                }
             }
-
-            // If still remaining (due to rounding or netting with opposite direction), also check opposite direction netting?
-            // For now, if remainingPayment >0 and no payer->receiver shares left, it may be that receiver owes payer (net negative) — but we already validated net >0, so this shouldn't happen.
 
             await _context.SaveChangesAsync();
 
