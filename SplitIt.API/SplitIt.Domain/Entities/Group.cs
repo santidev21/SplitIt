@@ -22,6 +22,9 @@ namespace SplitIt.Domain.Entities
         public DateTime? DeletedAt { get; set; }
         public int? DeletedBy { get; set; }
 
+        // Optimistic concurrency: prevents lost updates on concurrent settings edits.
+        public byte[]? RowVersion { get; set; }
+
         public ICollection<GroupMember> GroupMembers { get; set; } = new List<GroupMember>();
         public ICollection<Expense> Expenses { get; set; } = new List<Expense>();
     }

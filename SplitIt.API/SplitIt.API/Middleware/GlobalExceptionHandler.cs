@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 
 namespace SplitIt.API.Middleware;
@@ -18,7 +19,11 @@ public class GlobalExceptionHandler : IExceptionHandler
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         var traceId = httpContext.TraceIdentifier;
-        _logger.LogError(exception, "Unhandled exception TraceId:{TraceId} Path:{Path}", traceId, httpContext.Request.Path);
+
+        if (exception is DbUpdateConcurrencyException)
+            _logger.LogWarning(exception, "Concurrency conflict TraceId:{TraceId} Path:{Path}", traceId, httpContext.Request.Path);
+        else
+            _logger.LogError(exception, "Unhandled exception TraceId:{TraceId} Path:{Path}", traceId, httpContext.Request.Path);
 
         // Business-rule exceptions carry user-safe messages: always surface them.
         // Unexpected exceptions are only detailed in development.
@@ -32,6 +37,7 @@ public class GlobalExceptionHandler : IExceptionHandler
             ArgumentException => (int)HttpStatusCode.BadRequest,
             KeyNotFoundException => (int)HttpStatusCode.NotFound,
             UnauthorizedAccessException => (int)HttpStatusCode.Forbidden,
+            DbUpdateConcurrencyException => (int)HttpStatusCode.Conflict,
             _ => (int)HttpStatusCode.InternalServerError
         };
 
@@ -40,14 +46,18 @@ public class GlobalExceptionHandler : IExceptionHandler
             ArgumentException => "Invalid request.",
             KeyNotFoundException => "Not found.",
             UnauthorizedAccessException => "Not allowed.",
+            DbUpdateConcurrencyException => "Conflicting update.",
             _ => "An unexpected error occurred."
         };
 
-        var detail = isBusinessRule
-            ? exception.Message
-            : _env.IsDevelopment()
+        var detail = exception switch
+        {
+            DbUpdateConcurrencyException => "This record was modified by someone else. Reload and try again.",
+            _ when isBusinessRule => exception.Message,
+            _ => _env.IsDevelopment()
                 ? exception.Message
-                : "An unexpected error occurred. Please try again later.";
+                : "An unexpected error occurred. Please try again later."
+        };
 
         var problem = new ProblemDetails
         {

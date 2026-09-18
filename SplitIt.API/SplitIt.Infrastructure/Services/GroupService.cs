@@ -38,6 +38,31 @@ namespace SplitIt.Infrastructure.Services
             return group.Id;
         }
 
+        // Atomic create: the group and all its members are persisted in a single
+        // SaveChanges, so a failure cannot leave a group with no members.
+        public async Task<int> CreateGroupWithMembersAsync(string name, string description, bool allowToDeleteExpenses, int currencyId, int creatorId, IEnumerable<int> memberIds)
+        {
+            var currencyExists = await _context.Currencies.AnyAsync(c => c.Id == currencyId);
+            if (!currencyExists)
+                throw new ArgumentException("Invalid currency.");
+
+            var group = new Group()
+            {
+                Name = name.Trim(),
+                Description = description.Trim(),
+                CurrencyId = currencyId,
+                CreatedAt = DateTime.UtcNow,
+            };
+
+            group.GroupMembers.Add(new GroupMember { UserId = creatorId, Role = "creator" });
+            foreach (var memberId in memberIds.Where(id => id != creatorId).Distinct())
+                group.GroupMembers.Add(new GroupMember { UserId = memberId, Role = "member" });
+
+            _context.Groups.Add(group);
+            await _context.SaveChangesAsync();
+            return group.Id;
+        }
+
         // Function to add members to the group. 
         // If a createdBy value is provided, it means this is a new group, and this user will be its creator.
         public async Task<bool> AddGroupMembers(int groupId, List<int> userMembers, int? creatorId)

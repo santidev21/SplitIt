@@ -49,13 +49,13 @@ namespace SplitIt.API.Controllers
 
             string name = request.Name;
             string description = request.Description;
-            List<int> members = new List<int> { userId }.Concat(distinctMembers).ToList();
             bool allowToDeleteExpenses = request.AllowToDeleteExpenses;
             int currencyId = request.CurrencyId;
 
-            var groupId = await _groupService.CreateGroup(name, description, allowToDeleteExpenses, currencyId, userId);
+            // Atomic: group + all members are created in a single transaction.
+            var groupId = await _groupService.CreateGroupWithMembersAsync(
+                name, description, allowToDeleteExpenses, currencyId, userId, distinctMembers);
 
-            bool result = await _groupService.AddGroupMembers(groupId, members, userId);
             return Ok(new { Message = "Group created correctly.", GroupId = groupId });
         }
 

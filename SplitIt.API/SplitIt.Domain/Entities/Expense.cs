@@ -30,5 +30,8 @@ namespace SplitIt.Domain.Entities
 
         public ICollection<ExpenseShare> Shares { get; set; } = new List<ExpenseShare>();
         public bool IsPayment { get; set; } = false;
+
+        // Optimistic concurrency: prevents lost updates on concurrent edits.
+        public byte[]? RowVersion { get; set; }
     }
 }

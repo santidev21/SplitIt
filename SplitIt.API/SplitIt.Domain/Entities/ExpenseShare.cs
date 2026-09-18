@@ -33,6 +33,9 @@ namespace SplitIt.Domain.Entities
 
         public bool IsSettled { get; set; } = false;
         public DateTime? SettledAt { get; set; }
+
+        // Optimistic concurrency: protects partial payments against lost updates.
+        public byte[]? RowVersion { get; set; }
     }
 
 }

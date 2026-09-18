@@ -101,4 +101,21 @@ public class GroupDataIntegrityTests
         var members = await ctx.GroupMembers.IgnoreQueryFilters().Where(gm => gm.GroupId == gId).ToListAsync();
         Assert.Equal(2, members.Count);
     }
+
+    [Fact]
+    public async Task CreateGroupWithMembers_PersistsGroupAndAllMembersAtomically()
+    {
+        var (ctx, aliceId, bobId, _) = await SetupAsync();
+        var groupSvc = new GroupService(ctx);
+
+        var gId = await groupSvc.CreateGroupWithMembersAsync("Atomic", "Desc", false, 1, aliceId, new[] { bobId });
+
+        var group = await ctx.Groups.FirstOrDefaultAsync(g => g.Id == gId);
+        Assert.NotNull(group);
+
+        var members = await ctx.GroupMembers.Where(gm => gm.GroupId == gId).ToListAsync();
+        Assert.Equal(2, members.Count);
+        Assert.Contains(members, m => m.UserId == aliceId && m.Role == "creator");
+        Assert.Contains(members, m => m.UserId == bobId && m.Role == "member");
+    }
 }
