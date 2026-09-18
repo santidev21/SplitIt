@@ -38,6 +38,14 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       if (req.url.includes('/auth/refresh') || req.url.includes('/auth/logout')) {
         return throwError(() => error);
       }
+
+      // A 401 on a regular API call is a token-expiry signal: the auth interceptor
+      // will refresh and retry. Don't flash an error toast for it. Keep the toast
+      // for auth endpoints (e.g. wrong password on /auth/login).
+      if (error.status === 401 && !req.url.includes('/auth/')) {
+        return throwError(() => error);
+      }
+
       const message = extractBackendMessage(error);
       Swal.fire({
         toast: true,
