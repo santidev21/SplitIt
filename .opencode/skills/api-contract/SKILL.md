@@ -10,7 +10,7 @@ SplitIt has no codegen — contracts are synced by hand. When a backend DTO, con
 1. Backend: DTO in `SplitIt.Application`, controller in `SplitIt.API`, server-side validation on the endpoint.
 2. Frontend: matching TypeScript type/interface and the Angular service that calls `/api/*`.
 3. Tests: backend test in `SplitIt.Tests/` and frontend `.spec.ts` covering the new shape.
-4. Docs: update `ai-context/specs/` and `AGENTS.md` if behavior changed.
+4. Docs: update `docs/specs/` and `AGENTS.md` if behavior changed.
 
 Checklist before finishing:
 - `dotnet build SplitIt.API/SplitIt.Back.sln -c Release` passes.

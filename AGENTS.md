@@ -44,8 +44,9 @@ Angular 19 app in `split-it-ui/src/app`. Protected routes via JWT, admin panel b
 - E2E (from `split-it-ui/`): `npx playwright test` · `npm run e2e:fullstack` (see `run-e2e`)
 - Migrations: `npm run db:migrate` (= `dotnet ef database update --project SplitIt.API/SplitIt.Infrastructure --startup-project SplitIt.API/SplitIt.API`) · `npm run db:migration:add -- <Name>` (see `db-migrations`, or `/migrate`)
 - DB: `npm run db:up` (SQL Server on `127.0.0.1:1433`, loopback-only) · `npm run db:down`
+- Backups: `npm run db:backup` (crea + verifica + retención 4) · `npm run db:backup:list` · `npm run db:restore -- <file>` (see `docs/BACKUPS.md`)
 - Docker: `npm run docker:dev` (= `docker compose -f docker-compose.yml -f docker-compose.local.yml up --build`) (see `docker-dev`)
-- Shortcuts: `/test` (both suites) · `/e2e` · `/migrate`
+- Shortcuts: `/test` (both suites) · `/e2e` · `/migrate` · `/review`
 
 ## Ports
 | Context | Backend | Frontend | DB |
@@ -54,9 +55,11 @@ Angular 19 app in `split-it-ui/src/app`. Protected routes via JWT, admin panel b
 | Docker local (`npm run docker:dev`) | `http://localhost:8090` | `http://localhost:80` | internal only |
 
 ## AI Setup
-- `.opencode/` is the AI home (tracked in git): `skills/` (task playbooks in `SKILL.md` format), `agent/` (per-area playbooks: backend, frontend, reviewer), `command/` (shortcuts: /test, /migrate, /e2e). Local plugin scaffold (`node_modules`, `package.json`) is ignored.
+- `.opencode/` is the AI home (tracked in git): `skills/` (task playbooks in `SKILL.md` format), `agent/` (playbooks: backend, frontend, reviewer, repo-auditor), `command/` (shortcuts: /test, /migrate, /e2e, /review). Local plugin scaffold (`node_modules`, `package.json`) is ignored.
+- Skills: `api-contract`, `i18n`, `db-migrations`, `backend-test`, `frontend-test`, `run-e2e`, `docker-dev`, `security-review`, `angular-best-practices`, `dotnet-best-practices`, `data-integrity-audit`, plus imported generic ones.
+- Two review modes: `/review <diff>` → **reviewer** agent (per-change); `/review repo` → **repo-auditor** agent (whole-repo graded report, read-only).
 - `opencode.json` holds instructions, MCP servers and permissions. Skills, agents and commands need no config — opencode auto-discovers `.opencode/`.
-- `AGENTS.md` is the single source of truth; `docs/specs/` holds details.
+- `AGENTS.md` is the single source of truth; `docs/specs/` holds details and `docs/AUDIT_*.md` holds audit reports.
 
 ## Working Rules For This Repo
 - Prefer small, focused changes.
