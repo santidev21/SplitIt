@@ -43,8 +43,8 @@ export class AuthService {
       );
   }
 
-  register(userName: string, email: string, password: string): Observable<{ token: string; userName: string; userId: number }> {
-    const body = { name: userName, email, password };
+  register(userName: string, email: string, password: string, acceptTerms = false): Observable<{ token: string; userName: string; userId: number }> {
+    const body = { name: userName, email, password, acceptTerms };
     return this.http.post<{ token: string; userName: string; userId: number }>(`${this.API_URL}/register`, body, { withCredentials: true })
       .pipe(
         tap(response => {
@@ -56,8 +56,8 @@ export class AuthService {
       );
   }
 
-  loginWithGoogle(idToken: string): Observable<{ token: string; userName: string; userId: number }> {
-    return this.http.post<{ token: string; userName: string; userId: number }>(`${this.API_URL}/google`, { idToken }, { withCredentials: true })
+  loginWithGoogle(idToken: string, acceptTerms = false): Observable<{ token: string; userName: string; userId: number }> {
+    return this.http.post<{ token: string; userName: string; userId: number }>(`${this.API_URL}/google`, { idToken, acceptTerms }, { withCredentials: true })
       .pipe(
         tap(response => {
           this.setSession(response);

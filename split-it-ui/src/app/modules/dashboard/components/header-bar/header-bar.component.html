@@ -20,6 +20,15 @@
         <mat-icon>{{ isDark ? 'light_mode' : 'dark_mode' }}</mat-icon>
       </button>
       <button class="logout-button" (click)="logout()" [attr.aria-label]="'HEADER.LOGOUT' | translate" type="button">{{ 'HEADER.LOGOUT' | translate }}</button>
+      <div class="account-menu">
+        <button class="account-toggle" (click)="toggleAccount()" [attr.aria-expanded]="accountOpen" [attr.aria-label]="'HEADER.ACCOUNT' | translate" type="button">
+          <mat-icon>account_circle</mat-icon>
+        </button>
+        <div class="account-dropdown" *ngIf="accountOpen" role="menu">
+          <button class="account-item" (click)="exportData()" type="button">{{ 'HEADER.EXPORT_DATA' | translate }}</button>
+          <button class="account-item danger" (click)="deleteAccount()" type="button">{{ 'HEADER.DELETE_ACCOUNT' | translate }}</button>
+        </div>
+      </div>
       <button class="menu-toggle" (click)="menuOpen = !menuOpen" [attr.aria-expanded]="menuOpen" [attr.aria-label]="'HEADER.TOGGLE_MENU' | translate" type="button">
         <mat-icon>{{ menuOpen ? 'close' : 'menu' }}</mat-icon>
       </button>

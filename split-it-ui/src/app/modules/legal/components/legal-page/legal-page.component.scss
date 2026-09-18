@@ -1,0 +1,46 @@
+.legal-container {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.legal-back {
+  background: none;
+  border: none;
+  color: var(--primary-color, #005cbb);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 0 12px;
+}
+
+.legal-card {
+  padding: 8px 20px 20px;
+}
+
+.legal-title {
+  font-size: 22px;
+  font-weight: 600;
+  padding: 8px 0 4px;
+}
+
+.legal-error {
+  color: #b3261e;
+}
+
+.legal-content {
+  line-height: 1.6;
+  font-size: 14px;
+
+  h1 {
+    font-size: 20px;
+  }
+
+  h2 {
+    font-size: 16px;
+    margin-top: 20px;
+  }
+
+  a {
+    color: var(--primary-color, #005cbb);
+  }
+}

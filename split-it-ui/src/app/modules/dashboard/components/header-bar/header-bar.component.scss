@@ -170,6 +170,67 @@
     }
   }
 
+  .account-menu {
+    position: relative;
+  }
+
+  .account-toggle {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+
+    &:hover {
+      color: white;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    &:focus-visible {
+      outline: 2px solid white;
+      outline-offset: 2px;
+    }
+  }
+
+  .account-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 220px;
+    background: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    z-index: 120;
+  }
+
+  .account-item {
+    background: none;
+    border: none;
+    text-align: left;
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: #1f2937;
+    cursor: pointer;
+    width: 100%;
+
+    &:hover {
+      background: #f3f4f6;
+    }
+
+    &.danger {
+      color: #b3261e;
+    }
+  }
+
   .menu-toggle {
     display: none;
     background: none;

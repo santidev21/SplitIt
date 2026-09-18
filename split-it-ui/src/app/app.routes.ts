@@ -25,6 +25,21 @@ export const routes: Routes = [
       path: 'dashboard',
       loadChildren: () => import('./modules/dashboard/dashboard.module').then(m => m.DashboardModule)
     },
+    {
+      path: 'legal',
+      children: [
+        {
+          path: 'privacy',
+          loadComponent: () => import('./modules/legal/components/legal-page/legal-page.component').then(m => m.LegalPageComponent),
+          data: { doc: 'privacy' }
+        },
+        {
+          path: 'terms',
+          loadComponent: () => import('./modules/legal/components/legal-page/legal-page.component').then(m => m.LegalPageComponent),
+          data: { doc: 'terms' }
+        }
+      ]
+    },
     { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
     { path: '**', redirectTo: authAwareRedirect }
   ];

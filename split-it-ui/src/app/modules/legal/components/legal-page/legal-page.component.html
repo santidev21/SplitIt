@@ -1,0 +1,11 @@
+<div class="legal-container">
+  <button type="button" class="legal-back" (click)="goBack()">{{ 'LEGAL.BACK' | translate }}</button>
+
+  <mat-card class="legal-card" appearance="outlined">
+    <mat-card-title class="legal-title">{{ titleKey | translate }}</mat-card-title>
+    <mat-card-content>
+      <p *ngIf="loadError" class="legal-error">{{ 'LEGAL.LOAD_ERROR' | translate }}</p>
+      <div *ngIf="content" class="legal-content" [innerHTML]="content"></div>
+    </mat-card-content>
+  </mat-card>
+</div>

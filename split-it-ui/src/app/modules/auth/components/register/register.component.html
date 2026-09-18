@@ -28,6 +28,18 @@
                     <mat-error *ngIf="registerForm.get('password')?.hasError('minlength')">{{ 'AUTH.PASSWORD_MIN_LENGTH_8' | translate }}</mat-error>
                 </mat-form-field>
 
+                <div class="consent-block">
+                    <mat-checkbox formControlName="acceptTerms" aria-required="true">{{ 'AUTH.ACCEPT_TERMS' | translate }}</mat-checkbox>
+                    <span class="consent-links">
+                        <a routerLink="/legal/privacy" target="_blank" rel="noopener">{{ 'AUTH.PRIVACY_LINK' | translate }}</a>
+                        ·
+                        <a routerLink="/legal/terms" target="_blank" rel="noopener">{{ 'AUTH.TERMS_LINK' | translate }}</a>
+                    </span>
+                    <span class="consent-error" *ngIf="submitAttempted && registerForm.get('acceptTerms')?.hasError('required')">
+                        {{ 'AUTH.ACCEPT_TERMS_REQUIRED' | translate }}
+                    </span>
+                </div>
+
                 <button mat-raised-button color="primary" class="full-width" type="submit">{{ 'AUTH.REGISTER_BUTTON' | translate }}</button>
             </form>
         </mat-card-content>

@@ -25,7 +25,8 @@ export class RegisterComponent {
     this.registerForm = this.fb.group({
       userName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
-      password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(100)]]
+      password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(100)]],
+      acceptTerms: [false, [Validators.requiredTrue]]
     });
   }
 
@@ -38,8 +39,8 @@ export class RegisterComponent {
     }
     this.isLoading = true;
 
-    const { userName, email, password } = this.registerForm.value;
-    this.authService.register(userName, email, password).subscribe({
+    const { userName, email, password, acceptTerms } = this.registerForm.value;
+    this.authService.register(userName, email, password, acceptTerms === true).subscribe({
       next: (response) => {
         this.isLoading = false;
         this.router.navigate(['/dashboard']);

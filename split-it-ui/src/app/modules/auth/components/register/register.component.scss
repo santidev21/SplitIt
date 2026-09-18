@@ -1,1 +1,27 @@
 @use '../../auth.styles.scss';
+
+.consent-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0 16px;
+
+  ::ng-deep .mat-mdc-checkbox label {
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: normal;
+  }
+}
+
+.consent-links {
+  font-size: 12px;
+  padding-left: 8px;
+
+  a {
+    color: var(--primary-color, #005cbb);
+  }
+}
+
+.consent-error {
+  font-size: 12px;
+}

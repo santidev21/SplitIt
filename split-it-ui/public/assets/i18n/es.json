@@ -19,6 +19,9 @@
   "HEADER.HOME_LINK": "Inicio de SplitIt",
   "HEADER.MAIN_NAV": "Navegación principal",
   "HEADER.LANG_TOGGLE": "Cambiar idioma a {{lang}}",
+  "HEADER.ACCOUNT": "Cuenta",
+  "HEADER.EXPORT_DATA": "Descargar mis datos",
+  "HEADER.DELETE_ACCOUNT": "Eliminar mi cuenta",
 
   "DASHBOARD.HI": "¡Hola, {{name}}!",
   "DASHBOARD.MY_GROUPS": "Mis Grupos",
@@ -75,6 +78,11 @@
   "AUTH.GOOGLE_FAILED": "Error al iniciar sesión con Google. Inténtalo de nuevo.",
   "AUTH.GOOGLE_UNAVAILABLE": "El inicio de sesión con Google no está disponible ahora. Inténtalo de nuevo.",
   "AUTH.GOOGLE_RETRY": "Reintentar",
+  "AUTH.ACCEPT_TERMS": "Soy mayor de 18 años y acepto la Política de Privacidad y los Términos y Condiciones.",
+  "AUTH.ACCEPT_TERMS_REQUIRED": "Debes aceptar la Política de Privacidad y los Términos para registrarte.",
+  "AUTH.PRIVACY_LINK": "Política de Privacidad",
+  "AUTH.TERMS_LINK": "Términos y Condiciones",
+  "AUTH.AND": "y",
 
   "ADMIN.TITLE": "Panel de administración",
   "ADMIN.TAB_DASHBOARD": "Panel",
@@ -194,7 +202,6 @@
   "SPLIT.CONFIRM": "Confirmar método de división",
   "SPLIT.NO_MEMBERS": "Selecciona al menos un miembro para dividir el gasto.",
   "SPLIT.NO_AMOUNTS": "Ingresa un monto para al menos un miembro.",
-  "EXPENSE.NO_AMOUNTS": "Ingresa un monto para al menos un miembro.",
   "SPLIT.AMOUNTS_UNDER": "Los montos suman ${{sum}} — faltan ${{diff}} para alcanzar ${{total}}.",
   "SPLIT.AMOUNTS_OVER": "Los montos suman ${{sum}} — ${{diff}} sobre el total de ${{total}}.",
   "SPLIT.NO_PERCENTAGES": "Ingresa un porcentaje para al menos un miembro.",
@@ -291,5 +298,17 @@
   "NOTIFICATIONS.COULD_NOT_LOAD_MEMBERS": "No se pudieron cargar los miembros del grupo.",
   "NOTIFICATIONS.AMOUNT_GT_ZERO_SPLIT": "Ingresa un monto mayor a 0 antes de dividir.",
   "NOTIFICATIONS.OPEN_SPLIT_OPTIONS": "Abre las opciones de división y confirma cómo se reparte el gasto.",
-  "NOTIFICATIONS.EXPENSE_ADDED": "Gasto agregado exitosamente."
+  "NOTIFICATIONS.EXPENSE_ADDED": "Gasto agregado exitosamente.",
+  "NOTIFICATIONS.EXPORT_READY": "Tus datos se han descargado.",
+  "NOTIFICATIONS.EXPORT_FAILED": "No se pudieron exportar tus datos.",
+  "NOTIFICATIONS.DELETE_CONFIRM_TITLE": "¿Eliminar tu cuenta?",
+  "NOTIFICATIONS.DELETE_CONFIRM_TEXT": "Esto anonimiza tu cuenta. Tu historial de gastos se conserva para que los saldos de los demás miembros sigan correctos.",
+  "NOTIFICATIONS.DELETE_PASSWORD": "Confirma tu contraseña para continuar",
+  "NOTIFICATIONS.DELETE_SUCCESS": "Tu cuenta ha sido eliminada.",
+  "NOTIFICATIONS.DELETE_FAILED": "No se pudo eliminar la cuenta.",
+
+  "LEGAL.PRIVACY_TITLE": "Política de Privacidad",
+  "LEGAL.TERMS_TITLE": "Términos y Condiciones",
+  "LEGAL.BACK": "Volver",
+  "LEGAL.LOAD_ERROR": "No se pudo cargar el documento."
 }

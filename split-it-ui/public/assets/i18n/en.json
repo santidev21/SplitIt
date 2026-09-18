@@ -19,6 +19,9 @@
   "HEADER.HOME_LINK": "SplitIt home",
   "HEADER.MAIN_NAV": "Main navigation",
   "HEADER.LANG_TOGGLE": "Change language to {{lang}}",
+  "HEADER.ACCOUNT": "Account",
+  "HEADER.EXPORT_DATA": "Download my data",
+  "HEADER.DELETE_ACCOUNT": "Delete my account",
 
   "DASHBOARD.HI": "Hi, {{name}}!",
   "DASHBOARD.MY_GROUPS": "My Groups",
@@ -75,6 +78,11 @@
   "AUTH.GOOGLE_FAILED": "Google login failed. Please try again.",
   "AUTH.GOOGLE_UNAVAILABLE": "Google sign-in is unavailable right now. Please try again.",
   "AUTH.GOOGLE_RETRY": "Retry",
+  "AUTH.ACCEPT_TERMS": "I am 18 or older and accept the Privacy Policy and the Terms and Conditions.",
+  "AUTH.ACCEPT_TERMS_REQUIRED": "You must accept the Privacy Policy and Terms to register.",
+  "AUTH.PRIVACY_LINK": "Privacy Policy",
+  "AUTH.TERMS_LINK": "Terms and Conditions",
+  "AUTH.AND": "and",
 
   "ADMIN.TITLE": "Administration panel",
   "ADMIN.TAB_DASHBOARD": "Dashboard",
@@ -290,5 +298,17 @@
   "NOTIFICATIONS.COULD_NOT_LOAD_MEMBERS": "Could not load group members.",
   "NOTIFICATIONS.AMOUNT_GT_ZERO_SPLIT": "Enter an amount greater than 0 before splitting.",
   "NOTIFICATIONS.OPEN_SPLIT_OPTIONS": "Open the split options and confirm how the expense is divided.",
-  "NOTIFICATIONS.EXPENSE_ADDED": "Expense added successfully."
+  "NOTIFICATIONS.EXPENSE_ADDED": "Expense added successfully.",
+  "NOTIFICATIONS.EXPORT_READY": "Your data has been downloaded.",
+  "NOTIFICATIONS.EXPORT_FAILED": "Could not export your data.",
+  "NOTIFICATIONS.DELETE_CONFIRM_TITLE": "Delete your account?",
+  "NOTIFICATIONS.DELETE_CONFIRM_TEXT": "This anonymizes your account. Your expense history is kept so the balances of the other members stay correct.",
+  "NOTIFICATIONS.DELETE_PASSWORD": "Confirm your password to continue",
+  "NOTIFICATIONS.DELETE_SUCCESS": "Your account has been deleted.",
+  "NOTIFICATIONS.DELETE_FAILED": "Could not delete the account.",
+
+  "LEGAL.PRIVACY_TITLE": "Privacy Policy",
+  "LEGAL.TERMS_TITLE": "Terms and Conditions",
+  "LEGAL.BACK": "Back",
+  "LEGAL.LOAD_ERROR": "Could not load the document."
 }

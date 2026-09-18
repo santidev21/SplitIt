@@ -5,7 +5,7 @@ description: Keep the English/Spanish UI dictionaries in sync. Use when adding U
 
 # EN/ES i18n
 
-Dictionaries: `split-it-ui/src/assets/i18n/en.json` and `es.json` (ngx-translate).
+Dictionaries: `split-it-ui/public/assets/i18n/en.json` and `es.json` (ngx-translate). This is the only copy — `angular.json` serves `public/`, so edit here, never a duplicate under `src/assets`.
 
 Rules:
 - Never hardcode a user-facing string in a template or component — add a key to both dictionaries.
