@@ -23,30 +23,6 @@ namespace SplitIt.Infrastructure.Services
             _passwordHasher = passwordHasher ?? new PasswordHasher<User>();
         }
 
-        public async Task<List<UserDto>> GetUsersAsync(string currentUserId)
-        {
-            return await _context.Users.Where(u => u.Id.ToString() != currentUserId)
-                .Select(u => new UserDto
-                {
-                    Id = u.Id,
-                    Name = u.Name,
-                    Email = u.Email
-                })
-                .ToListAsync();
-        }
-
-        public async Task<List<UserDto>> GetAllUsersAsync()
-        {
-            return await _context.Users
-                .Select(u => new UserDto
-                {
-                    Id = u.Id,
-                    Name = u.Name,
-                    Email = u.Email
-                })
-                .ToListAsync();
-        }
-
         public async Task<bool> IsUserAdminAsync(int userId)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);

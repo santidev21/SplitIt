@@ -37,7 +37,7 @@
         <button mat-flat-button color="primary" type="button" (click)="searchUsers()" [disabled]="isSearching" [attr.aria-label]="'COMMON.SEARCH' | translate">{{ 'COMMON.SEARCH' | translate }}</button>
       </div>
       <div *ngFor="let user of searchResults" class="search-result-row">
-        <span>{{ user.name }} ({{ user.email }})</span>
+        <span>{{ user.name }}<ng-container *ngIf="user.email"> ({{ user.email }})</ng-container></span>
         <button mat-button color="primary" type="button" (click)="sendFriendRequest(user)"
                 [attr.aria-label]="'GROUPS.SEND_REQUEST_TO' | translate: { name: user.name }">
           {{ 'GROUPS.SEND_FRIEND_REQUEST' | translate }}

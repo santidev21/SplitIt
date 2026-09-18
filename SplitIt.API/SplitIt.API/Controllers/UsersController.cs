@@ -27,20 +27,6 @@ namespace SplitIt.API.Controllers
             return int.TryParse(claim, out var id) ? id : 0;
         }
 
-        [HttpGet]
-        [Authorize]
-        public async Task<IActionResult> GetUsers()
-        {
-            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(currentUserId))
-                return Unauthorized(new { message = "Invalid user session." });
-
-            var users = await _usersService.GetUsersAsync(currentUserId);
-
-            return Ok(users);
-        }
-
         /// <summary>Access/portability right: download a copy of the user's data (Ley 1581).</summary>
         [HttpGet("me/export")]
         [Authorize]

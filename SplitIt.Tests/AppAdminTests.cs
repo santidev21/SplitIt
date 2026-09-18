@@ -75,8 +75,7 @@ public class AppAdminTests
     public async Task GetAllUsers_ShouldReturnAll()
     {
         var (ctx, _, _, _) = await SetupAsync();
-        var svc = new UsersService(ctx);
-        var all = await svc.GetAllUsersAsync();
+        var all = ctx.Users.ToList();
         Assert.Equal(3, all.Count);
     }
 }

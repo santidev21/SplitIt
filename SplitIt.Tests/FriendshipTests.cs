@@ -148,10 +148,42 @@ public class FriendshipTests
         var (_, svc, alice, bob, charlie) = await SetupAsync();
         await svc.SendRequestAsync(alice, bob, null); // pending counts as related
 
-        var results = await svc.SearchUsersAsync("f.com", alice); // matches by email domain
-        Assert.DoesNotContain(results, r => r.Id == alice);
-        Assert.DoesNotContain(results, r => r.Id == bob);
+        // Bob is related (pending) -> excluded even when his name matches.
+        Assert.Empty(await svc.SearchUsersAsync("bob", alice));
+
+        // Charlie is unrelated -> returned, and the current user is never returned.
+        var results = await svc.SearchUsersAsync("charlie", alice);
         Assert.Contains(results, r => r.Id == charlie);
+        Assert.DoesNotContain(results, r => r.Id == alice);
+    }
+
+    [Fact]
+    public async Task Search_ByPartialEmail_ReturnsNothing()
+    {
+        var (_, svc, alice, _, _) = await SetupAsync();
+        // Privacy: no partial-email enumeration (H-05).
+        var results = await svc.SearchUsersAsync("f.com", alice);
+        Assert.Empty(results);
+    }
+
+    [Fact]
+    public async Task Search_ByExactEmail_ReturnsUserWithEmail()
+    {
+        var (_, svc, alice, _, charlie) = await SetupAsync();
+        var results = await svc.SearchUsersAsync("charlie@f.com", alice);
+        var hit = Assert.Single(results);
+        Assert.Equal(charlie, hit.Id);
+        Assert.Equal("charlie@f.com", hit.Email);
+    }
+
+    [Fact]
+    public async Task Search_ByName_DoesNotReturnEmail()
+    {
+        var (_, svc, alice, _, charlie) = await SetupAsync();
+        var results = await svc.SearchUsersAsync("charlie", alice);
+        var hit = Assert.Single(results);
+        Assert.Equal(charlie, hit.Id);
+        Assert.Equal(string.Empty, hit.Email);
     }
 
     [Fact]

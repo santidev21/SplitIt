@@ -267,7 +267,7 @@
   "FRIENDS.NO_SENT": "No hay solicitudes enviadas.",
   "FRIENDS.WAITING": "Esperando respuesta",
   "FRIENDS.TAB_FIND": "Buscar amigos",
-  "FRIENDS.SEARCH_PLACEHOLDER": "ej. alice@split.com",
+  "FRIENDS.SEARCH_PLACEHOLDER": "Buscar por nombre o correo completo",
   "FRIENDS.ADD_BY_EMAIL": "O agregar por correo exacto",
   "FRIENDS.EMAIL_PLACEHOLDER": "amigo@correo.com",
   "FRIENDS.SEND_REQUEST": "Enviar solicitud",

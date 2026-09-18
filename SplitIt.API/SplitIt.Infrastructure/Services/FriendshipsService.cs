@@ -159,13 +159,27 @@ namespace SplitIt.Infrastructure.Services
                 .Select(f => f.RequesterId == currentUserId ? f.AddresseeId : f.RequesterId)
                 .ToListAsync();
 
-            return await _context.Users
-                .Where(u => u.Id != currentUserId
-                            && !relatedUserIds.Contains(u.Id)
-                            && (u.Name.ToLower().Contains(term) || u.Email.ToLower().Contains(term)))
+            var candidates = _context.Users
+                .Where(u => u.Id != currentUserId && !relatedUserIds.Contains(u.Id));
+
+            if (term.Contains('@'))
+            {
+                // Privacy: only an EXACT full email match reveals the email address
+                // (no partial-email enumeration).
+                return await candidates
+                    .Where(u => u.Email.ToLower() == term)
+                    .OrderBy(u => u.Name)
+                    .Take(20)
+                    .Select(u => new SearchUserDto { Id = u.Id, Name = u.Name, Email = u.Email })
+                    .ToListAsync();
+            }
+
+            // Name search never returns the email (data minimization, Ley 1581).
+            return await candidates
+                .Where(u => u.Name.ToLower().Contains(term))
                 .OrderBy(u => u.Name)
                 .Take(20)
-                .Select(u => new SearchUserDto { Id = u.Id, Name = u.Name, Email = u.Email })
+                .Select(u => new SearchUserDto { Id = u.Id, Name = u.Name, Email = string.Empty })
                 .ToListAsync();
         }
 

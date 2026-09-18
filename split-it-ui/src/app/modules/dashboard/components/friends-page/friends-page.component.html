@@ -89,7 +89,7 @@
               <mat-icon>person_outline</mat-icon>
               <div>
                 <div class="friend-name">{{ user.name }}</div>
-                <div class="friend-email">{{ user.email }}</div>
+                <div class="friend-email" *ngIf="user.email">{{ user.email }}</div>
               </div>
             </div>
             <button mat-icon-button color="primary" (click)="addUserToFriends(user)"
