@@ -28,3 +28,4 @@ networks:
   splitit-internal-net:
     name: splitit-internal-net
     driver: bridge
+    internal: false

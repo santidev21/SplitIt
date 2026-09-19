@@ -28,8 +28,10 @@ public class Phase10DatabaseTests : IClassFixture<SqlServerFixture>
         var pending = (await ctx.Database.GetPendingMigrationsAsync()).ToList();
         Assert.Empty(pending);
         var applied = (await ctx.Database.GetAppliedMigrationsAsync()).ToList();
-        Assert.Equal(11, applied.Count);
-        Assert.Equal("20260831155957_AddRefreshTokens", applied.Last());
+        var available = ctx.Database.GetMigrations().ToList();
+        // No pending migrations and every migration in the assembly is applied.
+        Assert.Equal(available.Count, applied.Count);
+        Assert.Equal(available.Last(), applied.Last());
 
         // Seed data exists
         var currencies = await ctx.Currencies.ToListAsync();
@@ -202,7 +204,8 @@ public class Phase10DatabaseTests : IClassFixture<SqlServerFixture>
         Assert.Contains("IX_Users_Email", indexes);
         Assert.Contains("IX_Expense_GroupId", indexes);
         Assert.Contains("IX_ExpenseShare_ExpenseId", indexes);
-        Assert.Contains("IX_GroupMembers_GroupId", indexes);
+        // GroupMembers now has the composite unique index (covers GroupId as leading column).
+        Assert.Contains("IX_GroupMembers_GroupId_UserId", indexes);
     }
 
     [SkippableFact]
