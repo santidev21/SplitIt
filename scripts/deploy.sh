@@ -152,10 +152,21 @@ build() {
     log "Build complete."
 }
 
+# Remove stale one-shot containers (migrator/db-init) so `up` can recreate them
+# without a "container name already in use" conflict after a failed/interrupted deploy.
+cleanup_stale_containers() {
+    log "Removing stale one-shot containers (migrator/db-init)..."
+    docker compose rm -f -s migrator db-init >/dev/null 2>&1 || true
+    for service in migrator db-init; do
+        docker ps -aq --filter "name=splitit-${service}" | xargs -r docker rm -f >/dev/null 2>&1 || true
+    done
+}
+
 # Start/update containers
 up() {
     log "Starting containers..."
     cd "$DEPLOY_DIR"
+    cleanup_stale_containers
     docker compose up -d --remove-orphans
     log "Containers started."
 }

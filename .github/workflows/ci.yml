@@ -273,7 +273,10 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
         run: |
           ssh -i "$SSH_KEY" -o StrictHostKeyChecking=yes "$VPS_USER@$VPS_HOST" \
-            'cd /opt/splitit && chmod +x ./scripts/deploy.sh && ./scripts/deploy.sh deploy'
+            'cd /opt/splitit && \
+             docker rm -f splitit-migrator splitit-db-init >/dev/null 2>&1 || true; \
+             docker ps -aq --filter name=splitit-migrator --filter name=splitit-db-init | xargs -r docker rm -f >/dev/null 2>&1 || true; \
+             chmod +x ./scripts/deploy.sh && ./scripts/deploy.sh deploy'
 
       - name: Cleanup SSH key
         if: always()
