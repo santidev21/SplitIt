@@ -27,6 +27,16 @@ test.describe('Auth E2E', () => {
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
   });
 
+  test('Register without accepting terms → stays on register and shows the consent error', async ({ page }) => {
+    await page.goto('/auth/register');
+    await page.getByPlaceholder('Enter your name').fill('Alice');
+    await page.getByPlaceholder('example@example.com').fill('alice@test.com');
+    await page.getByPlaceholder('Enter your password').fill('StrongPass123!');
+    await page.getByRole('button', { name: 'Register' }).click();
+    await expect(page).toHaveURL(/\/auth\/register/);
+    await expect(page.getByText('You must accept the Privacy Policy and Terms to register.')).toBeVisible();
+  });
+
   test('Login with valid credentials → redirects to dashboard', async ({ page }) => {
     const token = fakeJwt({ sub: '1' });
     await page.route('**/api/auth/login', async route => {
