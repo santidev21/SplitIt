@@ -31,6 +31,7 @@ test.describe.serial('Real Docker Full-Stack E2E through Nginx HTTPS (No Mocks)'
     await page.getByPlaceholder('Enter your name').fill(userA.name);
     await page.getByPlaceholder('example@example.com').fill(userA.email);
     await page.getByPlaceholder('Enter your password').fill(userA.password);
+    await page.getByRole('checkbox').check();
     await page.getByRole('button', { name: 'Register' }).click();
 
     const resp = await respPromise;
@@ -45,7 +46,7 @@ test.describe.serial('Real Docker Full-Stack E2E through Nginx HTTPS (No Mocks)'
 
   test('3. Real User B Registration via API & Login via UI', async ({ request, page }) => {
     const regRes = await request.post(`${baseUrl}/api/auth/register`, {
-      data: { name: userB.name, email: userB.email, password: userB.password }
+      data: { name: userB.name, email: userB.email, password: userB.password, acceptTerms: true }
     });
     expect(regRes.ok()).toBeTruthy();
     const regBody = await regRes.json();

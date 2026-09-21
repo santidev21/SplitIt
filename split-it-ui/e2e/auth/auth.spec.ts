@@ -22,6 +22,7 @@ test.describe('Auth E2E', () => {
     await page.getByPlaceholder('Enter your name').fill('Alice');
     await page.getByPlaceholder('example@example.com').fill('alice@test.com');
     await page.getByPlaceholder('Enter your password').fill('StrongPass123!');
+    await page.getByRole('checkbox').check();
     await page.getByRole('button', { name: 'Register' }).click();
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
   });

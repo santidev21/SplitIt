@@ -77,6 +77,7 @@ test.describe.serial('Docker HTTPS Full-Stack E2E (through Nginx)', () => {
     await page.getByPlaceholder('Enter your name').fill(userA.name);
     await page.getByPlaceholder('example@example.com').fill(userA.email);
     await page.getByPlaceholder('Enter your password').fill(userA.password);
+    await page.getByRole('checkbox').check();
     await page.getByRole('button', { name: 'Register' }).click();
 
     const resp = await respPromise;
@@ -91,7 +92,7 @@ test.describe.serial('Docker HTTPS Full-Stack E2E (through Nginx)', () => {
 
   test('7. User B registration via API', async ({ request }) => {
     const regRes = await request.post(`${baseUrl}/api/auth/register`, {
-      data: { name: userB.name, email: userB.email, password: userB.password }
+      data: { name: userB.name, email: userB.email, password: userB.password, acceptTerms: true }
     });
     expect(regRes.ok()).toBeTruthy();
     const regBody = await regRes.json();
