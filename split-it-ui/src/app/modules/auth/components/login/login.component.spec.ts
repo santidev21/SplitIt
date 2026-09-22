@@ -99,7 +99,7 @@ describe('LoginComponent', () => {
   it('google credential should call loginWithGoogle once', () => {
     component.handleGoogleCredential({ credential: 'cred-123' });
     expect(authServiceSpy.loginWithGoogle).toHaveBeenCalledTimes(1);
-    expect(authServiceSpy.loginWithGoogle).toHaveBeenCalledWith('cred-123');
+    expect(authServiceSpy.loginWithGoogle).toHaveBeenCalledWith('cred-123', true);
   });
 
   it('google duplicate callback while loading should be ignored', () => {

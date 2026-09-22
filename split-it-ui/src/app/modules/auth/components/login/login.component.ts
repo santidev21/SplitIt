@@ -92,7 +92,6 @@ export class LoginComponent implements OnInit, AfterViewInit {
       client_id: (environment as any).googleClientId,
       context: 'signin',
       itp_support: true,
-      use_fedcm_for_button: true,
       auto_select: false,
       callback: (response: any) => this.handleGoogleCredential(response),
       error_callback: () => this.ngZone.run(() => {
@@ -115,8 +114,10 @@ export class LoginComponent implements OnInit, AfterViewInit {
         this.googleError = this.translate.instant('AUTH.GOOGLE_FAILED');
         return;
       }
+      // Consent is captured implicitly by the notice rendered above the Google
+      // button; the backend still records the consent version + IP on first sign-up.
       this.isLoading = true;
-      this.authService.loginWithGoogle(response.credential).subscribe({
+      this.authService.loginWithGoogle(response.credential, true).subscribe({
         next: () => {
           this.isLoading = false;
         },

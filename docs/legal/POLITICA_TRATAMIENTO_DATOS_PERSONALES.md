@@ -46,7 +46,7 @@ SplitIt recolecta únicamente los datos necesarios para operar una aplicación d
 
 ## 6. Autorización
 
-Antes de recolectar los datos, SplitIt obtiene la **autorización previa, expresa e informada** del titular mediante una casilla **no premarcada** en el formulario de registro, junto con el enlace a esta política y al aviso de privacidad. La autorización puede ser revocada en cualquier momento, salvo cuando exista un deber legal de conservar el dato.
+Antes de recolectar los datos, SplitIt obtiene la **autorización previa, expresa e informada** del titular. En el registro se otorga mediante una casilla **no premarcada**; en el primer inicio de sesión con Google se otorga al continuar, tras leer el aviso de autorización mostrado sobre el botón de Google, junto con el enlace a esta política y al aviso de privacidad. La autorización puede ser revocada en cualquier momento, salvo cuando exista un deber legal de conservar el dato.
 
 ## 7. Derechos del titular
 

@@ -6,6 +6,18 @@
   margin-bottom: var(--space-4);
 }
 
+.google-consent-notice {
+  margin: 0 0 var(--space-4);
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--mat-sys-on-surface-variant, #49454f);
+
+  a {
+    color: var(--primary-color, #005cbb);
+  }
+}
+
 .google-error {
   display: flex;
   align-items: center;

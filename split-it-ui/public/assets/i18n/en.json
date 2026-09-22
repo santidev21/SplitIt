@@ -83,6 +83,7 @@
   "AUTH.PRIVACY_LINK": "Privacy Policy",
   "AUTH.TERMS_LINK": "Terms and Conditions",
   "AUTH.AND": "and",
+  "AUTH.GOOGLE_CONSENT_NOTICE": "By continuing with Google you confirm you are 18 or older and accept:",
 
   "ADMIN.TITLE": "Administration panel",
   "ADMIN.TAB_DASHBOARD": "Dashboard",

@@ -27,6 +27,12 @@
 
         <mat-divider class="full-width"></mat-divider>
 
+        <p class="google-consent-notice">
+          {{ 'AUTH.GOOGLE_CONSENT_NOTICE' | translate }}
+          <a routerLink="/legal/privacy" target="_blank" rel="noopener">{{ 'AUTH.PRIVACY_LINK' | translate }}</a>
+          {{ 'AUTH.AND' | translate }}
+          <a routerLink="/legal/terms" target="_blank" rel="noopener">{{ 'AUTH.TERMS_LINK' | translate }}</a>.
+        </p>
         <div id="google-signin-button" class="google-btn-wrapper"></div>
         <div *ngIf="googleError" class="google-error" role="alert">
           <span>{{ googleError }}</span>

@@ -14,6 +14,6 @@ Tus datos **no** se usan para publicidad, no se venden y no se comparten con ter
 
 Tienes derecho a **conocer, actualizar, rectificar y suprimir** tus datos, solicitar prueba de la autorización, **revocarla**, y presentar quejas ante la Superintendencia de Industria y Comercio (SIC). Puedes **exportar** tus datos y **eliminar tu cuenta** desde la aplicación, o escribir a `[correo@dominio]`.
 
-Al marcar la casilla de aceptación **autorizas de forma previa, expresa e informada** el tratamiento descrito. La autorización es revocable.
+Al marcar la casilla de aceptación en el registro, o al continuar en tu primer inicio de sesión con Google tras leer el aviso de autorización, **autorizas de forma previa, expresa e informada** el tratamiento descrito. La autorización es revocable.
 
 Puedes consultar el detalle en la Política de Tratamiento de Datos Personales: `[enlace]`.
