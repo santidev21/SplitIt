@@ -62,6 +62,7 @@ Angular 21 app in `split-it-ui/src/app`. Protected routes via JWT, admin panel b
 - `AGENTS.md` is the single source of truth; `docs/specs/` holds details and `docs/AUDIT_*.md` holds audit reports.
 
 ## Working Rules For This Repo
+- Language: all code, comments, XML docs, tests, commit messages, PR titles/descriptions, docs (`README`, `docs/`, `AGENTS.md`), and AI output must be in English. Only user-facing UI strings may be in Spanish (via i18n files), never hardcoded Spanish in code/comments.
 - Prefer small, focused changes.
 - Keep API contracts, frontend types, and tests aligned in the same pass.
 - EF migrations live in `SplitIt.Infrastructure`; never edit applied migrations, add a new one (`npm run db:migration:add -- <Name>` then `npm run db:migrate`).
