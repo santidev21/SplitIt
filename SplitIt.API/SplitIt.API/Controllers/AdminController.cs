@@ -197,7 +197,7 @@ namespace SplitIt.API.Controllers
             var exists = await _context.Currencies.AnyAsync(c => c.Name.ToLower() == dto.Name.ToLower());
             if (exists) return Conflict(new { message = "A currency with that name already exists." });
 
-            var currency = new Currency { Name = dto.Name.Trim(), Symbol = dto.Symbol.Trim() };
+            var currency = new Currency { Name = dto.Name.Trim(), Symbol = dto.Symbol.Trim(), DecimalPlaces = dto.DecimalPlaces };
             _context.Currencies.Add(currency);
             await _context.SaveChangesAsync();
             return Ok(currency);

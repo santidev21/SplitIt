@@ -11,6 +11,7 @@ import { LoadingSpinnerComponent } from '../../../../shared/components/loading-s
 import { PositiveNumberDirective } from '../../../../shared/directives/positive-number.directive';
 import { ExpenseParticipant } from '../../../../models/expense.model';
 import { ExpenseService } from '../../services/expense.service';
+import { CurrencyService } from '../../services/currency.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../../auth/services/auth.service';
@@ -36,11 +37,14 @@ export class AddExpenseDialogComponent implements OnInit {
   groupId : number = 0;
   expenseParticipants: ExpenseParticipant[] = [];
   currentUserId = 0;
+  /** Decimal precision of the group's currency (2 for USD, 0 for COP); defaults to 2 until resolved. */
+  decimalPlaces = 2;
 
   constructor(
     private fb: FormBuilder,
     private groupService: GroupService,
     private expenseService: ExpenseService,
+    private currencyService: CurrencyService,
     private dialog: MatDialog,
     private dialogRef: MatDialogRef<AddExpenseDialogComponent>,
     private notifications: NotificationService,
@@ -75,6 +79,45 @@ export class AddExpenseDialogComponent implements OnInit {
         this.notifications.toast(this.translate.instant('NOTIFICATIONS.COULD_NOT_LOAD_MEMBERS'), 'error');
       }
     });
+
+    // Resolve the group currency's decimal precision so the amount field and the
+    // split dialog respect it (e.g. whole pesos for COP, cents for USD).
+    this.groupService.getGroupDetails(this.groupId).subscribe({
+      next: (details) => {
+        if (!details?.currencyId) return;
+        this.currencyService.getCurrencies().subscribe({
+          next: (currencies) => {
+            const currency = currencies.find(c => Number(c.id) === details.currencyId);
+            if (currency?.decimalPlaces !== undefined && currency.decimalPlaces !== null) {
+              this.decimalPlaces = currency.decimalPlaces;
+            }
+            this.applyCurrencyValidation();
+          },
+          error: () => this.applyCurrencyValidation()
+        });
+      },
+      error: () => this.applyCurrencyValidation()
+    });
+  }
+
+  /** Keeps the expense amount within the currency's allowed decimal precision. */
+  private applyCurrencyValidation(): void {
+    const amountControl = this.expenseForm.get('amount');
+    if (!amountControl) return;
+    amountControl.addValidators((control) => {
+      const value = control.value;
+      if (value === null || value === undefined || value === '') return null;
+      if (Number.isFinite(Number(value)) && this.hasExcessPrecision(Number(value))) {
+        return { decimalPlaces: { decimals: this.decimalPlaces } };
+      }
+      return null;
+    });
+    amountControl.updateValueAndValidity();
+  }
+
+  private hasExcessPrecision(value: number): boolean {
+    const unit = Math.pow(10, this.decimalPlaces);
+    return Math.abs(value * unit - Math.round(value * unit)) > 1e-9;
   }
 
   openSplitMethod(){
@@ -86,7 +129,8 @@ export class AddExpenseDialogComponent implements OnInit {
       width: '450px',
       data: {
         members: this.members,
-        amount: this.expenseForm.value.amount
+        amount: this.expenseForm.value.amount,
+        decimalPlaces: this.decimalPlaces
       }
     });
 

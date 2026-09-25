@@ -47,5 +47,9 @@ namespace SplitIt.Application.DTOs
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.StringLength(10, MinimumLength = 1)]
         public string Symbol { get; set; } = string.Empty;
+
+        /// <summary>Monetary precision of the currency (e.g. 2 for USD cents, 0 for whole Colombian pesos).</summary>
+        [System.ComponentModel.DataAnnotations.Range(0, 4)]
+        public int DecimalPlaces { get; set; } = 2;
     }
 }

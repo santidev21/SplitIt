@@ -18,7 +18,7 @@ describe('SplitMethodDialogComponent', () => {
     { id: 3, name: 'Charlie' }
   ];
 
-  function createComponent(data: { members: any[]; amount: number }) {
+  function createComponent(data: { members: any[]; amount: number; decimalPlaces?: number }) {
     data.members.forEach(m => delete (m as any).amount);
     TestBed.resetTestingModule();
     dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
@@ -174,6 +174,60 @@ describe('SplitMethodDialogComponent', () => {
 
       const result = dialogRefSpy.close.calls.mostRecent().args[0];
       expect(result.expenseParticipant.map((p: any) => p.amountOwed)).toEqual([27, 63]);
+    });
+  });
+
+  describe('currency scale (decimalPlaces)', () => {
+    it('splits equally with whole units for a 0-decimal currency (COP) and conserves the total', () => {
+      createComponent({ members, amount: 100, decimalPlaces: 0 });
+      component.confirmSplit();
+
+      const result = dialogRefSpy.close.calls.mostRecent().args[0];
+      const amounts = result.expenseParticipant.map((p: any) => p.amountOwed);
+      expect(amounts).toEqual([34, 33, 33]);
+      expect(amounts.reduce((s: number, a: number) => s + a, 0)).toBe(100);
+    });
+
+    it('uses cents for a 2-decimal currency (USD)', () => {
+      createComponent({ members, amount: 100, decimalPlaces: 2 });
+      component.confirmSplit();
+
+      const result = dialogRefSpy.close.calls.mostRecent().args[0];
+      const amounts = result.expenseParticipant.map((p: any) => p.amountOwed);
+      expect(amounts).toEqual([33.34, 33.33, 33.33]);
+      expect(amounts.reduce((s: number, a: number) => s + a, 0)).toBe(100);
+    });
+
+    it('absorbs percentage rounding drift so the split sums exactly to awkward totals', () => {
+      createComponent({ members, amount: 99.99, decimalPlaces: 2 });
+      component.selectedTabIndex = 2;
+      component.members[0].amount = 50;
+      component.members[1].amount = 50;
+      component.confirmSplit();
+
+      const result = dialogRefSpy.close.calls.mostRecent().args[0];
+      const amounts = result.expenseParticipant.map((p: any) => p.amountOwed);
+      expect(amounts.reduce((s: number, a: number) => s + a, 0)).toBe(99.99);
+      expect(amounts).toContain(49.99);
+    });
+
+    it('rejects per-member amounts with more decimals than the currency allows', () => {
+      createComponent({ members, amount: 100, decimalPlaces: 0 });
+      component.selectedTabIndex = 1;
+      component.members[0].amount = 50.5;
+      component.members[1].amount = 49.5;
+      component.confirmSplit();
+
+      expect(dialogRefSpy.close).not.toHaveBeenCalled();
+      expect(component.validationError.length).toBeGreaterThan(0);
+    });
+
+    it('blocks an equal split too small for the participants (0-decimal)', () => {
+      createComponent({ members, amount: 0.5, decimalPlaces: 0 });
+      component.confirmSplit();
+
+      expect(dialogRefSpy.close).not.toHaveBeenCalled();
+      expect(component.validationError.length).toBeGreaterThan(0);
     });
   });
 });

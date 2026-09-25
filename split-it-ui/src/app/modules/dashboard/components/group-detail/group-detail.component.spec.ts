@@ -12,6 +12,7 @@ import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { of } from 'rxjs';
 import { ExpenseService } from '../../services/expense.service';
 import { GroupService } from '../../services/group.service';
+import { CurrencyService } from '../../services/currency.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 
 describe('GroupDetailComponent debt state', () => {
@@ -19,7 +20,7 @@ describe('GroupDetailComponent debt state', () => {
   let fixture: ComponentFixture<GroupDetailComponent>;
   let expenseSpy: jasmine.SpyObj<ExpenseService>;
 
-  function configure(debtsOwedByUser: any[], debtsOwedToUser: any[]) {
+  function configure(debtsOwedByUser: any[], debtsOwedToUser: any[], currencyId?: number) {
     TestBed.resetTestingModule();
     expenseSpy = jasmine.createSpyObj('ExpenseService', [
       'getGroupExpenses',
@@ -33,8 +34,13 @@ describe('GroupDetailComponent debt state', () => {
       'getUserGroupRole',
       'deleteGroup',
     ]);
-    groupSpy.getGroupDetails.and.returnValue(of({ name: 'G', description: 'D' }));
+    groupSpy.getGroupDetails.and.returnValue(of({ name: 'G', description: 'D', currencyId }));
     groupSpy.getUserGroupRole.and.returnValue(of({ role: 'creator' }));
+    const currencySpy = jasmine.createSpyObj('CurrencyService', ['getCurrencies']);
+    currencySpy.getCurrencies.and.returnValue(of([
+      { id: 1, name: 'Dólar', symbol: 'USD', decimalPlaces: 2 },
+      { id: 2, name: 'Peso Colombiano', symbol: 'COP', decimalPlaces: 0 }
+    ]));
 
     TestBed.configureTestingModule({
       imports: [GroupDetailComponent, NoopAnimationsModule, RouterTestingModule],
@@ -50,6 +56,7 @@ describe('GroupDetailComponent debt state', () => {
         },
         { provide: ExpenseService, useValue: expenseSpy },
         { provide: GroupService, useValue: groupSpy },
+        { provide: CurrencyService, useValue: currencySpy },
         provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
         provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
       ],
@@ -77,7 +84,9 @@ describe('GroupDetailComponent debt state', () => {
       [{ debtorUserId: 3, debtorUserName: 'Charlie', totalAmountOwed: 20 }]
     );
     expect(component.debtState).toBe('owe');
-    expect(component.debtAmount).toBe(30);
+    // Cents must be preserved: 30.4 USD is NOT rounded to 30.
+    expect(component.debtAmount).toBe(30.4);
+    expect(component.debtAmountLabel).toBe('30.40');
   });
 
   it('owed when the user is owed more than they owe', () => {
@@ -86,6 +95,28 @@ describe('GroupDetailComponent debt state', () => {
       [{ debtorUserId: 3, debtorUserName: 'Charlie', totalAmountOwed: 42.6 }]
     );
     expect(component.debtState).toBe('owed');
-    expect(component.debtAmount).toBe(43);
+    expect(component.debtAmount).toBe(42.6);
+    expect(component.debtAmountLabel).toBe('42.60');
+  });
+
+  it('formats per-member debt with the group currency precision', () => {
+    configure(
+      [],
+      [{ debtorUserId: 3, debtorUserName: 'Charlie', totalAmountOwed: 42.6 }],
+      1 // USD
+    );
+    const label = component.debtDetails.find(d => d.userId === 3)?.amountLabel;
+    expect(label).toBe('42.60');
+  });
+
+  it('uses whole units for a zero-decimal currency (COP)', () => {
+    configure(
+      [{ creditorUserId: 2, creditorUserName: 'Bob', totalAmountOwed: 100 }],
+      [{ debtorUserId: 3, debtorUserName: 'Charlie', totalAmountOwed: 60 }],
+      2 // COP
+    );
+    expect(component.debtAmountLabel).toBe('40');
+    const label = component.debtDetails.find(d => d.userId === 2)?.amountLabel;
+    expect(label).toBe('100');
   });
 });

@@ -2,7 +2,7 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![.NET](https://img.shields.io/badge/.NET-8-purple)
-![Angular](https://img.shields.io/badge/Angular-19-red)
+![Angular](https://img.shields.io/badge/Angular-21-red)
 
 **SplitIt** is a web application designed to help people manage shared expenses within groups. Whether you're on a trip with friends, splitting rent with roommates, or handling any shared bills, SplitIt simplifies the process of tracking expenses and settling debts fairly.
 
@@ -43,7 +43,7 @@ Internet → vps-gateway (:80/:443, private repo)
 | `splitit-db-init` | Creates least-privilege DB users on first run |
 | `splitit-migrator` | Runs EF Core migrations then exits |
 | `splitit-backend` | .NET 8 API (internal, not exposed publicly) |
-| `splitit-frontend` | Angular 19 via nginx (internal, not exposed publicly) |
+| `splitit-frontend` | Angular 21 via nginx (internal, not exposed publicly) |
 
 **Backend Clean Architecture:**
 - **`SplitIt.API`** → Controllers, Middleware, Program.cs
@@ -58,7 +58,7 @@ Internet → vps-gateway (:80/:443, private repo)
 
 | Layer | Technology |
 |---|---|
-| Frontend | Angular 19, Angular Material, SCSS, Bootstrap |
+| Frontend | Angular 21, Angular Material, SCSS, Bootstrap |
 | Backend | .NET 8 Web API (C#) |
 | Database | SQL Server 2022 (EF Core) |
 | Auth | JWT (HMAC-SHA256) |
@@ -74,7 +74,7 @@ Internet → vps-gateway (:80/:443, private repo)
 SplitIt/
 ├── SplitIt.API/       # .NET solution (API, Application, Domain, Infrastructure, Shared)
 ├── SplitIt.Tests/     # Backend tests (referenced from the solution)
-├── split-it-ui/       # Angular 19 frontend (src/app, e2e)
+├── split-it-ui/       # Angular 21 frontend (src/app, e2e)
 ├── docker/            # Docker configs (backend, frontend, proxy, sqlserver)
 ├── docs/              # Guides, reports, screenshots, specs (docs/specs/)
 ├── scripts/           # Deploy and helper scripts
@@ -233,6 +233,17 @@ Deploys happen automatically on push to `main` via GitHub Actions. For VPS setup
 - [x] Fix Google OAuth sign-up for new users on mobile — creating the account fails on mobile and only works after creating it on desktop first.
 - [x] Fix i18n on the group dashboard: "¡Estás todo liquidado!" is not translated to English when the app is in EN.
 - [x] Fix i18n on the add-expense dialog: "Pagado por You" hardcodes English "You" — it should be localized ("Tú" in ES).
+
+### Follow-ups (2026-09 audit)
+
+- [ ] **Currency precision & exact totals** (implemented in `AddCurrencyDecimalPlaces`): money is now validated at the group currency's decimal scale (COP 0, USD 2) and expense shares must conserve the total exactly; payments may not exceed the remaining debt. Remaining work: verify the migration applied to every environment (`npm run db:migrate` / migrator) and that existing data is reconciled (`scripts/db-integrity-audit.sql`).
+- [ ] **Group authorization** (global roles removed from group management): application `Admin`/`SuperAdmin` no longer override group permissions. Verify no stored super-admin workflows, UI flows, or support docs depend on the old behavior (see `docs/AUDIT_2026-09.md`).
+- [ ] **Payment retry safety / audit atomicity**: `AppDbContext` writes audit rows in a second save; a failure there can report a committed payment as failed, and `POST /api/expenses/settle` has no idempotency key. Investigate making audit+payment atomic and add a retry-safe idempotency mechanism.
+- [ ] **Reset-flow contract**: `POST /api/auth/reset-password` (no email) and `POST /api/auth/verify-reset-code` (email-bound) enforce different rules on the same 6-digit code. Decide the intended contract, then align routes and tests.
+- [ ] **API authorization regression tests**: add HTTP-level tests (WebApplicationFactory + SQL Server) covering cross-group reads/writes and forbidden group-role actions (current coverage is service-level only).
+- [ ] **Balance display precision**: summary and payment amounts now use the group currency's decimals. Verify rendering for USD cents and COP whole units across the dashboard (added component specs).
+- [ ] **Dependency & secret scans in CI**: address dev/test advisory backlog (`npm audit` 18 dev-only, `SSH.NET` transitive in `SplitIt.Tests`), add `npm audit`/`dotnet list package --vulnerable` gates, and replace the grep-based secret check with a maintained scanner.
+- [ ] **Update remaining docs**: `docs/SECURITY.md` still describes localStorage JWT and no refresh tokens; `docs/specs/auth.md` says BCrypt; `docs/TESTING.md` counts are stale. Align them with current source.
 
 ---
 

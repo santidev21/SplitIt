@@ -144,11 +144,7 @@ namespace SplitIt.Infrastructure.Services
         public async Task<bool> IsUserAdminOrCreatorAsync(int groupId, int userId)
         {
             var role = await GetUserGroupRoleAsync(groupId, userId);
-            if (role == "creator" || role == "admin")
-                return true;
-
-            var user = await _context.Users.FindAsync(userId);
-            return user != null && (user.RoleId == RoleConstants.SuperAdmin || user.RoleId == RoleConstants.Admin);
+            return role == "creator" || role == "admin";
         }
 
         public async Task<bool> IsUserCreatorAsync(int groupId, int userId)

@@ -21,6 +21,21 @@ namespace SplitIt.Infrastructure.Services
             _settingsService = settingsService;
         }
 
+        /// <summary>
+        /// True when <paramref name="value"/> has more significant decimal places than
+        /// the currency allows (e.g. 100.259 for a 2-decimal currency, or 50.50 for a
+        /// whole-unit currency). The check uses a scale multiplier, so it is exact for
+        /// decimal values with a small, controlled number of places.
+        /// </summary>
+        private static bool HasExcessPrecision(decimal value, int decimalPlaces)
+        {
+            if (decimalPlaces <= 0)
+                return value != decimal.Truncate(value);
+
+            var scale = (decimal)Math.Pow(10, decimalPlaces);
+            return value * scale != decimal.Round(value * scale);
+        }
+
         public async Task<Expense> AddExpenseAsync(CreateExpenseDto request, int createdById)
         {
             // Ownership check: createdBy must be member of group
@@ -28,10 +43,14 @@ namespace SplitIt.Infrastructure.Services
             if (!isMember)
                 throw new UnauthorizedAccessException("User is not a member of the group.");
 
-            // Validate group exists
-            var groupExists = await _context.Groups.AnyAsync(g => g.Id == request.GroupId);
-            if (!groupExists)
+            // Validate group exists and load its currency scale (fixed at group creation)
+            var group = await _context.Groups
+                .Include(g => g.Currency)
+                .FirstOrDefaultAsync(g => g.Id == request.GroupId);
+            if (group == null)
                 throw new KeyNotFoundException("Group not found.");
+
+            var currencyDecimalPlaces = group.Currency?.DecimalPlaces ?? 2;
 
             // Validate PaidBy is member
             var paidByMember = await _context.GroupMembers.AnyAsync(gm => gm.GroupId == request.GroupId && gm.UserId == request.PaidById);
@@ -48,22 +67,29 @@ namespace SplitIt.Infrastructure.Services
                 : 1000000m;
             if (request.Amount <= 0 || request.Amount > maxAmount)
                 throw new ArgumentException($"Invalid amount. Amount must be between 0.01 and {maxAmount:0}.");
+            if (HasExcessPrecision(request.Amount, currencyDecimalPlaces))
+                throw new ArgumentException($"Amount cannot have more than {currencyDecimalPlaces} decimal place(s) for this currency.");
 
-            // Validate participants are members and amounts >0
+            // Validate participants are members, amounts are positive and use the currency scale
             var participantIds = request.Participants.Select(p => p.UserId).Distinct().ToList();
             var memberCount = await _context.GroupMembers.CountAsync(gm => gm.GroupId == request.GroupId && participantIds.Contains(gm.UserId));
             if (memberCount != participantIds.Count)
                 throw new ArgumentException("One or more participants are not members of the group.");
 
-            var sumOwed = request.Participants.Sum(p => p.AmountOwed);
-            if (Math.Abs(sumOwed - request.Amount) > 0.02m)
-                throw new ArgumentException($"Sum of participant amounts ({sumOwed}) does not match expense amount ({request.Amount}).");
-
             foreach (var p in request.Participants)
             {
                 if (p.AmountOwed <= 0)
                     throw new ArgumentException("Participant amount must be positive.");
+                if (HasExcessPrecision(p.AmountOwed, currencyDecimalPlaces))
+                    throw new ArgumentException($"Participant amounts cannot have more than {currencyDecimalPlaces} decimal place(s) for this currency.");
             }
+
+            // The participant shares must conserve the expense total exactly at the
+            // currency's scale. Sums that differ (even by a cent) are rejected instead
+            // of being persisted as a phantom debt.
+            var sumOwed = request.Participants.Sum(p => p.AmountOwed);
+            if (sumOwed != request.Amount)
+                throw new ArgumentException($"Sum of participant amounts ({sumOwed}) must equal expense amount ({request.Amount}).");
 
             var expense = new Expense
             {
@@ -266,20 +292,27 @@ namespace SplitIt.Infrastructure.Services
             if (payerUserId == receiverUserId)
                 throw new ArgumentException("Payer and receiver must be different.");
 
-            var groupExists = await _context.Groups.AnyAsync(g => g.Id == groupId);
-            if (!groupExists)
-                throw new KeyNotFoundException("Group not found.");
+            var group = await _context.Groups
+                .Include(g => g.Currency)
+                .FirstOrDefaultAsync(g => g.Id == groupId) ?? throw new KeyNotFoundException("Group not found.");
+            var currencyDecimalPlaces = group.Currency?.DecimalPlaces ?? 2;
 
             var payerMember = await _context.GroupMembers.AnyAsync(gm => gm.GroupId == groupId && gm.UserId == payerUserId);
             var receiverMember = await _context.GroupMembers.AnyAsync(gm => gm.GroupId == groupId && gm.UserId == receiverUserId);
             if (!payerMember || !receiverMember)
                 throw new UnauthorizedAccessException("One or both users are not members of the group.");
 
+            if (HasExcessPrecision(amount, currencyDecimalPlaces))
+                throw new ArgumentException($"Payment amount cannot have more than {currencyDecimalPlaces} decimal place(s) for this currency.");
+
             var remainingDebt = await GetRemainingDebtAsync(payerUserId, receiverUserId, groupId);
             if (remainingDebt <= 0.009m)
                 throw new ArgumentException("No debt to settle between these users in this group.");
 
-            if (amount > remainingDebt + 0.01m)
+            // A payment must never exceed the actual remaining debt, otherwise the
+            // extra amount would be recorded as money transferred without reducing
+            // any debt.
+            if (amount > remainingDebt)
                 throw new ArgumentException($"Payment {amount} exceeds remaining debt {remainingDebt}.");
 
             var expense = new Expense

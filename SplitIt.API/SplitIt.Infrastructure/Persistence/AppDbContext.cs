@@ -217,6 +217,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
                 entity.HasKey(c => c.Id);
                 entity.Property(c => c.Name).IsRequired().HasMaxLength(100); 
                 entity.Property(c => c.Symbol).IsRequired().HasMaxLength(10);
+                entity.Property(c => c.DecimalPlaces).HasDefaultValue(2);
             });
 
             // Group table configuration
@@ -353,8 +354,8 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
         private static void SeedCurrency(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Currency>().HasData(
-                new Currency { Id = 1, Name = "Dólar", Symbol = "USD" },
-                new Currency { Id = 2, Name = "Peso Colombiano", Symbol = "COP" }
+                new Currency { Id = 1, Name = "Dólar", Symbol = "USD", DecimalPlaces = 2 },
+                new Currency { Id = 2, Name = "Peso Colombiano", Symbol = "COP", DecimalPlaces = 0 }
             );
         }
 

@@ -110,4 +110,77 @@ public class GroupAdminTests
         var svc = new GroupService(ctx);
         await Assert.ThrowsAsync<ArgumentException>(() => svc.UpdateMemberRoleAsync(gId, creatorId, "member", creatorId));
     }
+
+    // ---------------------------------------------------------------------------
+    // Application-wide roles must NOT grant group-level privileges. A global admin
+    // or super admin who is not a member (or is only a plain member) of the group
+    // cannot manage it. Group permissions are group-scoped only.
+    // ---------------------------------------------------------------------------
+
+    [Fact]
+    public async Task GlobalAdmin_NonMember_CannotUpdateGroup()
+    {
+        var (ctx, creatorId, _, _, gId) = await SetupAsync();
+        var globalAdmin = new User { Name = "GlobalAdmin", Email = "ga@group.com", PasswordHash = "h", RoleId = RoleConstants.Admin };
+        ctx.Users.Add(globalAdmin);
+        await ctx.SaveChangesAsync();
+
+        var svc = new GroupService(ctx);
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            svc.UpdateGroupAsync(gId, "New name", "New desc", false, globalAdmin.Id));
+    }
+
+    [Fact]
+    public async Task GlobalSuperAdmin_NonMember_CannotUpdateGroup()
+    {
+        var (ctx, creatorId, _, _, gId) = await SetupAsync();
+        var globalSuper = new User { Name = "GlobalSuper", Email = "gs@group.com", PasswordHash = "h", RoleId = RoleConstants.SuperAdmin };
+        ctx.Users.Add(globalSuper);
+        await ctx.SaveChangesAsync();
+
+        var svc = new GroupService(ctx);
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            svc.UpdateGroupAsync(gId, "New name", "New desc", false, globalSuper.Id));
+    }
+
+    [Fact]
+    public async Task GlobalAdmin_NonMember_CannotInvite()
+    {
+        var (ctx, creatorId, adminId, _, gId) = await SetupAsync();
+        var globalAdmin = new User { Name = "GlobalAdmin2", Email = "ga2@group.com", PasswordHash = "h", RoleId = RoleConstants.Admin };
+        ctx.Users.Add(globalAdmin);
+        await ctx.SaveChangesAsync();
+
+        var svc = new GroupService(ctx);
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => svc.AddMemberAsync(gId, adminId, globalAdmin.Id));
+    }
+
+    [Fact]
+    public async Task PlainMember_CannotUpdateGroup()
+    {
+        var (ctx, creatorId, _, memberId, gId) = await SetupAsync();
+        var svc = new GroupService(ctx);
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            svc.UpdateGroupAsync(gId, "New name", "New desc", false, memberId));
+    }
+
+    [Fact]
+    public async Task Creator_CanUpdateGroup()
+    {
+        var (ctx, creatorId, _, _, gId) = await SetupAsync();
+        var svc = new GroupService(ctx);
+        await svc.UpdateGroupAsync(gId, "Updated", "Updated desc", false, creatorId);
+        var details = await svc.GetGroupDetails(gId);
+        Assert.Equal("Updated", details.Name);
+    }
+
+    [Fact]
+    public async Task GroupAdmin_CanUpdateGroup()
+    {
+        var (ctx, _, adminId, _, gId) = await SetupAsync();
+        var svc = new GroupService(ctx);
+        await svc.UpdateGroupAsync(gId, "Updated by admin", "desc", false, adminId);
+        var details = await svc.GetGroupDetails(gId);
+        Assert.Equal("Updated by admin", details.Name);
+    }
 }

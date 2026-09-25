@@ -113,6 +113,6 @@ public class BolaTests
             }
         };
         var ex = await Assert.ThrowsAnyAsync<Exception>(() => expSvc.AddExpenseAsync(dto, userB.Id));
-        Assert.Contains("does not match", ex.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("must equal", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 }

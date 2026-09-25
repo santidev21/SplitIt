@@ -208,6 +208,8 @@
   "SPLIT.NO_PERCENTAGES": "Enter a percentage for at least one member.",
   "SPLIT.PERCENTAGE_INVALID": "Percentages must be between 0 and 100 ({{name}}: {{pct}}).",
   "SPLIT.PERCENTAGE_INVALID_TOTAL": "Percentages add up to {{sum}}% — they must add up to 100%.",
+  "SPLIT.AMOUNT_DECIMALS": "Amounts for this currency cannot have more than {{decimals}} decimal place(s).",
+  "SPLIT.AMOUNT_TOO_SMALL": "The amount is too small to split equally among the selected members.",
   "SPLIT.METHOD_EQUAL": "equally",
   "SPLIT.METHOD_UNEQUAL": "unequally",
   "SPLIT.METHOD_PERCENTAGE": "percentage",

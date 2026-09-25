@@ -11,6 +11,7 @@ import { Expense } from '../../../../models/expense.model';
 import { ExpenseService } from '../../services/expense.service';
 import { GroupDetails } from '../../../../models/group.model';
 import { GroupService } from '../../services/group.service';
+import { CurrencyService } from '../../services/currency.service';
 import { UserGroupRole } from '../../../../models/enums/user-group-role.enum';
 import { DebtDetails, DebtOwedByUserDto, DebtOwedToUserDto, FullDebtSummaryDto } from '../../../../models/debts-summary';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -36,8 +37,11 @@ export class GroupDetailComponent implements OnInit{
   // language changes (never freeze a translated string with instant() here).
   debtState: 'owe' | 'owed' | 'settled' = 'settled';
   debtAmount = 0;
+  debtAmountLabel = '0.00';
   totalOwedByUser = 0;
   totalOwedToUser = 0;
+  /** Decimal places of the group's currency (fixed at creation): 2 for USD, 0 for COP. */
+  currencyDecimals = 2;
 
   allExpenses: Expense[] = [];
   filteredExpenses: Expense[] = [];
@@ -55,7 +59,8 @@ export class GroupDetailComponent implements OnInit{
     private groupService: GroupService,
     private snackbar: MatSnackBar,
     private notifications: NotificationService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private currencyService: CurrencyService
   ) {}
 
   ngOnInit(): void {
@@ -129,7 +134,19 @@ export class GroupDetailComponent implements OnInit{
   getGroupDetails(){
     this.groupService.getGroupDetails(this.groupId).subscribe((resp) =>{
       if (resp){
-        this.group = resp
+        this.group = resp;
+        // Resolve the currency's decimal precision for money formatting.
+        if (resp.currencyId) {
+          this.currencyService.getCurrencies().subscribe({
+            next: (currencies) => {
+              const currency = currencies.find(c => Number(c.id) === resp.currencyId);
+              if (currency?.decimalPlaces !== undefined && currency.decimalPlaces !== null) {
+                this.currencyDecimals = currency.decimalPlaces;
+              }
+            },
+            error: () => { /* keep the 2-decimal default */ }
+          });
+        }
       }
     })
   }
@@ -155,14 +172,17 @@ export class GroupDetailComponent implements OnInit{
 
       if (this.totalOwedByUser > this.totalOwedToUser) {
         this.debtState = 'owe';
-        this.debtAmount = Math.round(this.totalOwedByUser - this.totalOwedToUser);
+        this.debtAmount = this.totalOwedByUser - this.totalOwedToUser;
       } else if (this.totalOwedToUser > this.totalOwedByUser) {
         this.debtState = 'owed';
-        this.debtAmount = Math.round(this.totalOwedToUser - this.totalOwedByUser);
+        this.debtAmount = this.totalOwedToUser - this.totalOwedByUser;
       } else {
         this.debtState = 'settled';
         this.debtAmount = 0;
       }
+      // Currency-aware: do not round whole currency units (e.g. a $42.60 USD balance
+      // must not be displayed as $43), and COP balances must not show cents.
+      this.debtAmountLabel = this.debtAmount.toFixed(this.currencyDecimals);
 
       // Combine debts into a single list with signed values
     const debtsToUser = resp.debtsOwedToUser.map(d => ({
@@ -178,8 +198,15 @@ export class GroupDetailComponent implements OnInit{
     }));
 
     // Order first debtsToUser
-    this.debtDetails = [...debtsToUser, ...debtsByUser].filter(d => d.amount !== 0);
+    this.debtDetails = [...debtsToUser, ...debtsByUser]
+      .filter(d => d.amount !== 0)
+      .map(d => ({ ...d, amountLabel: Math.abs(d.amount).toFixed(this.currencyDecimals) }));
     });
+  }
+
+  /** Formats a money value with the group currency's precision. */
+  formatMoney(value: number): string {
+    return Number.isFinite(value) ? value.toFixed(this.currencyDecimals) : '0';
   }
 
   getUserGroupRole(){
