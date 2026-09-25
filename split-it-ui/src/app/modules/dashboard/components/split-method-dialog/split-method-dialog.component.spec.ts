@@ -207,7 +207,8 @@ describe('SplitMethodDialogComponent', () => {
 
       const result = dialogRefSpy.close.calls.mostRecent().args[0];
       const amounts = result.expenseParticipant.map((p: any) => p.amountOwed);
-      expect(amounts.reduce((s: number, a: number) => s + a, 0)).toBe(99.99);
+      // Float-safe comparison: 49.99 + 50 is 99.99000000000001 in binary floats.
+      expect(Number(amounts.reduce((s: number, a: number) => s + a, 0).toFixed(2))).toBe(99.99);
       expect(amounts).toContain(49.99);
     });
 

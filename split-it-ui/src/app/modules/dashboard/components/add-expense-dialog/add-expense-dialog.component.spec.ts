@@ -30,6 +30,9 @@ describe('AddExpenseDialogComponent', () => {
       { id: 2, name: 'Peso Colombiano', symbol: 'COP', decimalPlaces: 0 }
     ]));
     dialogSpy = jasmine.createSpyObj('MatDialog', ['open']);
+    // openSplitMethod() subscribes to dialogRef.afterClosed(), so the stub must
+    // return a fake ref (previously unstubbed: no test ever called open() before).
+    dialogSpy.open.and.returnValue({ afterClosed: () => of(undefined) } as any);
 
     await TestBed.configureTestingModule({
       imports: [AddExpenseDialogComponent, NoopAnimationsModule],
@@ -47,6 +50,13 @@ describe('AddExpenseDialogComponent', () => {
         provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' })
       ]
     }).compileComponents();
+
+    // NOTE: MatDialog must be forced through TestBed.overrideProvider. A plain
+    // `{ provide: MatDialog, useValue: dialogSpy }` entry (kept above for
+    // documentation) was verified to be silently bypassed: the component
+    // received a real MatDialog (identity check false, ctor MatDialog) while
+    // TestBed.inject(MatDialog) resolved the spy. overrideProvider applies.
+    TestBed.overrideProvider(MatDialog, { useValue: dialogSpy });
 
     fixture = TestBed.createComponent(AddExpenseDialogComponent);
     component = fixture.componentInstance;
