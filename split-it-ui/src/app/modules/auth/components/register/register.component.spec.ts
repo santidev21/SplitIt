@@ -27,8 +27,8 @@ describe('RegisterComponent', () => {
         provideHttpClientTesting(),
         { provide: AuthService, useValue: authServiceSpy },
         provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
-        provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' })
-      ]
+        provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(RegisterComponent);
@@ -48,16 +48,31 @@ describe('RegisterComponent', () => {
   });
 
   it('register should call service and navigate when form is valid', () => {
-    component.registerForm.patchValue({ userName: 'Test', email: 'test@test.com', password: 'password123', acceptTerms: true });
+    component.registerForm.patchValue({
+      userName: 'Test',
+      email: 'test@test.com',
+      password: 'password123',
+      acceptTerms: true,
+    });
     const event = new Event('submit');
     spyOn(event, 'preventDefault');
     component.register(event);
-    expect(authServiceSpy.register).toHaveBeenCalledWith('Test', 'test@test.com', 'password123', true);
+    expect(authServiceSpy.register).toHaveBeenCalledWith(
+      'Test',
+      'test@test.com',
+      'password123',
+      true,
+    );
     expect(component.isLoading).toBeFalse();
   });
 
   it('register should not call service when terms are not accepted', () => {
-    component.registerForm.patchValue({ userName: 'Test', email: 'test@test.com', password: 'password123', acceptTerms: false });
+    component.registerForm.patchValue({
+      userName: 'Test',
+      email: 'test@test.com',
+      password: 'password123',
+      acceptTerms: false,
+    });
     const event = new Event('submit');
     spyOn(event, 'preventDefault');
     component.register(event);
@@ -66,7 +81,12 @@ describe('RegisterComponent', () => {
 
   it('register should handle error', () => {
     authServiceSpy.register.and.returnValue(throwError(() => new Error('Duplicate')));
-    component.registerForm.patchValue({ userName: 'Test', email: 'test@test.com', password: 'password123', acceptTerms: true });
+    component.registerForm.patchValue({
+      userName: 'Test',
+      email: 'test@test.com',
+      password: 'password123',
+      acceptTerms: true,
+    });
     const event = new Event('submit');
     spyOn(event, 'preventDefault');
     component.register(event);
@@ -74,7 +94,12 @@ describe('RegisterComponent', () => {
   });
 
   it('register should not call service when password is too short', () => {
-    component.registerForm.patchValue({ userName: 'Test', email: 'test@test.com', password: 'pass', acceptTerms: true });
+    component.registerForm.patchValue({
+      userName: 'Test',
+      email: 'test@test.com',
+      password: 'pass',
+      acceptTerms: true,
+    });
     const event = new Event('submit');
     spyOn(event, 'preventDefault');
     component.register(event);
@@ -82,7 +107,12 @@ describe('RegisterComponent', () => {
   });
 
   it('register should not call service when email is malformed', () => {
-    component.registerForm.patchValue({ userName: 'Test', email: 'not-an-email', password: 'password123', acceptTerms: true });
+    component.registerForm.patchValue({
+      userName: 'Test',
+      email: 'not-an-email',
+      password: 'password123',
+      acceptTerms: true,
+    });
     const event = new Event('submit');
     spyOn(event, 'preventDefault');
     component.register(event);

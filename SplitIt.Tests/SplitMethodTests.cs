@@ -48,7 +48,12 @@ public class SplitMethodTests
 
         var exp = await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "Equal", Amount = 100, Date = DateTime.UtcNow, PaidById = aliceId, Participants = participants
+            GroupId = gId,
+            Title = "Equal",
+            Amount = 100,
+            Date = DateTime.UtcNow,
+            PaidById = aliceId,
+            Participants = participants
         }, aliceId);
         Assert.True(exp.Id > 0);
     }
@@ -64,7 +69,12 @@ public class SplitMethodTests
         var participants = amounts.Select((a, i) => new SplitIt.Application.DTOs.ExpenseParticipantDto { UserId = ids[i], AmountOwed = (decimal)a }).ToList();
         var dto = new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "Fixed", Amount = total, Date = DateTime.UtcNow, PaidById = aliceId, Participants = participants
+            GroupId = gId,
+            Title = "Fixed",
+            Amount = total,
+            Date = DateTime.UtcNow,
+            PaidById = aliceId,
+            Participants = participants
         };
         var exp = await expSvc.AddExpenseAsync(dto, aliceId);
         Assert.True(exp.Id > 0);
@@ -77,7 +87,11 @@ public class SplitMethodTests
         var expSvc = new ExpensesService(ctx);
         var dto = new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "Bad", Amount = 100, Date = DateTime.UtcNow, PaidById = aliceId,
+            GroupId = gId,
+            Title = "Bad",
+            Amount = 100,
+            Date = DateTime.UtcNow,
+            PaidById = aliceId,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto>
             {
                 new() { UserId = aliceId, AmountOwed = 60 },
@@ -110,7 +124,12 @@ public class SplitMethodTests
         {
             var dto = new SplitIt.Application.DTOs.CreateExpenseDto
             {
-                GroupId = gId, Title = "PctBad", Amount = total, Date = DateTime.UtcNow, PaidById = aliceId, Participants = participants
+                GroupId = gId,
+                Title = "PctBad",
+                Amount = total,
+                Date = DateTime.UtcNow,
+                PaidById = aliceId,
+                Participants = participants
             };
             // If participants empty due to negative filter, also throw
             if (participants.Count == 0)
@@ -134,7 +153,12 @@ public class SplitMethodTests
         };
         var dto = new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "Pct", Amount = total, Date = DateTime.UtcNow, PaidById = aliceId, Participants = participants
+            GroupId = gId,
+            Title = "Pct",
+            Amount = total,
+            Date = DateTime.UtcNow,
+            PaidById = aliceId,
+            Participants = participants
         };
         var exp = await expSvc.AddExpenseAsync(dto, aliceId);
         Assert.True(exp.Id > 0);
@@ -147,7 +171,11 @@ public class SplitMethodTests
         var expSvc = new ExpensesService(ctx);
         var dto = new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "Neg", Amount = 100, Date = DateTime.UtcNow, PaidById = aliceId,
+            GroupId = gId,
+            Title = "Neg",
+            Amount = 100,
+            Date = DateTime.UtcNow,
+            PaidById = aliceId,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto>
             {
                 new() { UserId = aliceId, AmountOwed = -10 },

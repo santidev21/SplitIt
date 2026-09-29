@@ -92,12 +92,20 @@ public class SettlementCrossGroupTests
         var expSvc = new ExpensesService(ctx);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gA, Title = "EA", Amount = 100, Date = DateTime.UtcNow, PaidById = userB.Id,
+            GroupId = gA,
+            Title = "EA",
+            Amount = 100,
+            Date = DateTime.UtcNow,
+            PaidById = userB.Id,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = userA.Id, AmountOwed = 100 } }
         }, userB.Id);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gB, Title = "EB", Amount = 200, Date = DateTime.UtcNow, PaidById = userB.Id,
+            GroupId = gB,
+            Title = "EB",
+            Amount = 200,
+            Date = DateTime.UtcNow,
+            PaidById = userB.Id,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = userA.Id, AmountOwed = 200 } }
         }, userB.Id);
 

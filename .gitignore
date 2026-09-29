@@ -195,3 +195,6 @@ _ReSharper.Caches/
 
 # OS generated files
 Desktop.ini
+
+# CodeGraph local index (per-machine, not source)
+.codegraph/

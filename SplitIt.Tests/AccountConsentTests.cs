@@ -56,7 +56,11 @@ public class AccountConsentTests
         var expSvc = new ExpensesService(ctx);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "Dinner", Amount = 100, Date = DateTime.UtcNow, PaidById = ex.Id,
+            GroupId = gId,
+            Title = "Dinner",
+            Amount = 100,
+            Date = DateTime.UtcNow,
+            PaidById = ex.Id,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = other.Id, AmountOwed = 100 } }
         }, ex.Id);
 

@@ -6,10 +6,12 @@ import { of, Subject } from 'rxjs';
 import { authInterceptor } from './auth.interceptor';
 import { AuthService } from '../modules/auth/services/auth.service';
 
-function b64url(obj: any) { return btoa(JSON.stringify(obj)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_'); }
+function b64url(obj: any) {
+  return btoa(JSON.stringify(obj)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+}
 function makeToken() {
   const header = { alg: 'HS256', typ: 'JWT' };
-  const payload = { sub: '1', exp: Math.floor(Date.now()/1000)+3600 };
+  const payload = { sub: '1', exp: Math.floor(Date.now() / 1000) + 3600 };
   return `${b64url(header)}.${b64url(payload)}.sig`;
 }
 
@@ -27,8 +29,8 @@ describe('authInterceptor', () => {
         provideHttpClient(withInterceptors([authInterceptor])),
         provideHttpClientTesting(),
         { provide: Router, useValue: routerSpy },
-        { provide: AuthService, useValue: authServiceSpy }
-      ]
+        { provide: AuthService, useValue: authServiceSpy },
+      ],
     });
     http = TestBed.inject(HttpClient);
     httpMock = TestBed.inject(HttpTestingController);
@@ -86,7 +88,9 @@ describe('authInterceptor', () => {
     authServiceSpy.refreshSession.and.returnValue(of(null));
 
     http.get('/api/protected').subscribe({ error: () => {} });
-    httpMock.expectOne('/api/protected').flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+    httpMock
+      .expectOne('/api/protected')
+      .flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
 
     expect(authServiceSpy.logout).toHaveBeenCalled();
   });

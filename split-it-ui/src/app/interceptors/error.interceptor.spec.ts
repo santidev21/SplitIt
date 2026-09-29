@@ -1,5 +1,10 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClient, provideHttpClient, withInterceptors, HttpErrorResponse } from '@angular/common/http';
+import {
+  HttpClient,
+  provideHttpClient,
+  withInterceptors,
+  HttpErrorResponse,
+} from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import Swal from 'sweetalert2';
 import { errorInterceptor, extractBackendMessage } from './error.interceptor';
@@ -12,8 +17,8 @@ describe('errorInterceptor', () => {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([errorInterceptor])),
-        provideHttpClientTesting()
-      ]
+        provideHttpClientTesting(),
+      ],
     });
     http = TestBed.inject(HttpClient);
     httpMock = TestBed.inject(HttpTestingController);
@@ -38,7 +43,9 @@ describe('errorInterceptor', () => {
   it('toasts a 401 on an auth endpoint (e.g. wrong password)', () => {
     const fire = spyOn(Swal, 'fire');
     http.post('/api/auth/login', {}).subscribe({ error: () => {} });
-    httpMock.expectOne('/api/auth/login').flush('nope', { status: 401, statusText: 'Unauthorized' });
+    httpMock
+      .expectOne('/api/auth/login')
+      .flush('nope', { status: 401, statusText: 'Unauthorized' });
     expect(fire).toHaveBeenCalled();
   });
 

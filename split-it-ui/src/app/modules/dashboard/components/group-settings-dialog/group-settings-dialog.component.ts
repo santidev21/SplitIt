@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -20,30 +20,31 @@ export interface GroupSettingsDialogData {
   selector: 'app-group-settings-dialog',
   imports: [MATERIAL_IMPORTS, MatDialogModule, FormsModule, TranslatePipe],
   templateUrl: './group-settings-dialog.component.html',
-  styleUrls: ['./group-settings-dialog.component.scss']
+  styleUrls: ['./group-settings-dialog.component.scss'],
 })
 export class GroupSettingsDialogComponent implements OnInit {
+  data = inject<GroupSettingsDialogData>(MAT_DIALOG_DATA);
+  private fb = inject(FormBuilder);
+  private groupService = inject(GroupService);
+  private friendService = inject(FriendService);
+  private dialogRef = inject<MatDialogRef<GroupSettingsDialogComponent>>(MatDialogRef);
+  private notifications = inject(NotificationService);
+  private translate = inject(TranslateService);
+
   groupForm: FormGroup;
   members: GroupMember[] = [];
   friends: Friend[] = [];
   selectedTabIndex = 0;
   currentUserId: number;
 
-  constructor(
-    @Inject(MAT_DIALOG_DATA) public data: GroupSettingsDialogData,
-    private fb: FormBuilder,
-    private groupService: GroupService,
-    private friendService: FriendService,
-    private dialogRef: MatDialogRef<GroupSettingsDialogComponent>,
-    private notifications: NotificationService,
-    private translate: TranslateService,
-    authService: AuthService
-  ) {
+  constructor() {
+    const authService = inject(AuthService);
+
     this.currentUserId = authService.getCurrentUserId();
     this.groupForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]],
       description: ['', [Validators.required, Validators.maxLength(500)]],
-      allowToDeleteExpenses: [false]
+      allowToDeleteExpenses: [false],
     });
   }
 
@@ -59,33 +60,37 @@ export class GroupSettingsDialogComponent implements OnInit {
         this.groupForm.patchValue({
           name: details.name,
           description: details.description,
-          allowToDeleteExpenses: details.allowToDeleteExpenses ?? false
+          allowToDeleteExpenses: details.allowToDeleteExpenses ?? false,
         });
       },
-      error: () => {}
+      error: () => {},
     });
   }
 
   loadMembers(): void {
     this.groupService.getGroupMembers(this.data.groupId).subscribe({
-      next: (members) => { this.members = members; },
-      error: () => {}
+      next: (members) => {
+        this.members = members;
+      },
+      error: () => {},
     });
   }
 
   loadFriends(): void {
     this.friendService.getFriends().subscribe({
-      next: (friends) => { this.friends = friends; },
-      error: () => {}
+      next: (friends) => {
+        this.friends = friends;
+      },
+      error: () => {},
     });
   }
 
   get memberIds(): number[] {
-    return this.members.map(m => m.id);
+    return this.members.map((m) => m.id);
   }
 
   inviteableFriends(): Friend[] {
-    return this.friends.filter(f => !this.memberIds.includes(f.id));
+    return this.friends.filter((f) => !this.memberIds.includes(f.id));
   }
 
   canManageMember(member: GroupMember): boolean {
@@ -97,9 +102,7 @@ export class GroupSettingsDialogComponent implements OnInit {
 
   /** Localized label for a member: "You"/"Tú" for the current user, real name otherwise. */
   displayName(member: GroupMember): string {
-    return member.id === this.currentUserId
-      ? this.translate.instant('COMMON.YOU')
-      : member.name;
+    return member.id === this.currentUserId ? this.translate.instant('COMMON.YOU') : member.name;
   }
 
   save(): void {
@@ -115,56 +118,67 @@ export class GroupSettingsDialogComponent implements OnInit {
       error: (err: any) => {
         const msg = err.error?.message || this.translate.instant('GROUP_SETTINGS.UPDATE_FAILED');
         this.notifications.toast(msg, 'error');
-      }
+      },
     });
   }
 
   invite(friend: Friend): void {
     this.groupService.inviteMember(this.data.groupId, friend.id).subscribe({
       next: () => {
-        this.notifications.toast(this.translate.instant('GROUP_SETTINGS.ADDED_TO_GROUP', { name: friend.name }), 'success');
+        this.notifications.toast(
+          this.translate.instant('GROUP_SETTINGS.ADDED_TO_GROUP', { name: friend.name }),
+          'success',
+        );
         this.loadMembers();
       },
-      error: () => {}
+      error: () => {},
     });
   }
 
   promote(member: GroupMember): void {
     this.groupService.updateMemberRole(this.data.groupId, member.id, 'admin').subscribe({
       next: () => {
-        this.notifications.toast(this.translate.instant('GROUP_SETTINGS.PROMOTED', { name: member.name }), 'success');
+        this.notifications.toast(
+          this.translate.instant('GROUP_SETTINGS.PROMOTED', { name: member.name }),
+          'success',
+        );
         this.loadMembers();
       },
-      error: () => {}
+      error: () => {},
     });
   }
 
   demote(member: GroupMember): void {
     this.groupService.updateMemberRole(this.data.groupId, member.id, 'member').subscribe({
       next: () => {
-        this.notifications.toast(this.translate.instant('GROUP_SETTINGS.DEMOTED', { name: member.name }), 'success');
+        this.notifications.toast(
+          this.translate.instant('GROUP_SETTINGS.DEMOTED', { name: member.name }),
+          'success',
+        );
         this.loadMembers();
       },
-      error: () => {}
+      error: () => {},
     });
   }
 
   remove(member: GroupMember): void {
-    this.notifications.confirm(
-      this.translate.instant('GROUP_SETTINGS.REMOVE_TITLE'),
-      this.translate.instant('GROUP_SETTINGS.REMOVE_TEXT', { name: member.name }),
-      this.translate.instant('COMMON.YES_REMOVE')
-    ).then(result => {
-      if (result.isConfirmed) {
-        this.groupService.removeMember(this.data.groupId, member.id).subscribe({
-          next: () => {
-            this.notifications.toast(this.translate.instant('GROUP_SETTINGS.REMOVED'), 'success');
-            this.loadMembers();
-          },
-          error: () => {}
-        });
-      }
-    });
+    this.notifications
+      .confirm(
+        this.translate.instant('GROUP_SETTINGS.REMOVE_TITLE'),
+        this.translate.instant('GROUP_SETTINGS.REMOVE_TEXT', { name: member.name }),
+        this.translate.instant('COMMON.YES_REMOVE'),
+      )
+      .then((result) => {
+        if (result.isConfirmed) {
+          this.groupService.removeMember(this.data.groupId, member.id).subscribe({
+            next: () => {
+              this.notifications.toast(this.translate.instant('GROUP_SETTINGS.REMOVED'), 'success');
+              this.loadMembers();
+            },
+            error: () => {},
+          });
+        }
+      });
   }
 
   close(): void {

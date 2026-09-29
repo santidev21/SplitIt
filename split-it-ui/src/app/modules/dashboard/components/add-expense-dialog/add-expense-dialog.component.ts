@@ -1,6 +1,11 @@
-import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SplitMethodDialogComponent } from '../split-method-dialog/split-method-dialog.component';
 import { MatDatepicker } from '@angular/material/datepicker';
@@ -19,39 +24,49 @@ import { AuthService } from '../../../auth/services/auth.service';
 @Component({
   selector: 'app-add-expense-dialog',
   providers: [provideNativeDateAdapter()],
-  imports: [MATERIAL_IMPORTS, MatDialogModule, LoadingSpinnerComponent, PositiveNumberDirective, TranslatePipe],
+  imports: [
+    MATERIAL_IMPORTS,
+    MatDialogModule,
+    LoadingSpinnerComponent,
+    PositiveNumberDirective,
+    TranslatePipe,
+  ],
   templateUrl: './add-expense-dialog.component.html',
-  styleUrls: ['./add-expense-dialog.component.scss']
+  styleUrls: ['./add-expense-dialog.component.scss'],
 })
 export class AddExpenseDialogComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private groupService = inject(GroupService);
+  private expenseService = inject(ExpenseService);
+  private currencyService = inject(CurrencyService);
+  private dialog = inject(MatDialog);
+  private dialogRef = inject<MatDialogRef<AddExpenseDialogComponent>>(MatDialogRef);
+  private notifications = inject(NotificationService);
+  data = inject<{
+    groupId: number;
+  }>(MAT_DIALOG_DATA);
+  private translate = inject(TranslateService);
+
   @ViewChild('picker') picker!: MatDatepicker<Date>;
 
-  isLoading: boolean = true;
-  isSaving: boolean = false;
+  isLoading = true;
+  isSaving = false;
 
   expenseForm!: FormGroup;
   selectedDate: Date = new Date();
-  splitMethodLabel: string = 'EXPENSE.EQUALLY'
+  splitMethodLabel = 'EXPENSE.EQUALLY';
 
   members: GroupMember[] = [];
-  groupId : number = 0;
+  groupId = 0;
   expenseParticipants: ExpenseParticipant[] = [];
   currentUserId = 0;
   /** Decimal precision of the group's currency (2 for USD, 0 for COP); defaults to 2 until resolved. */
   decimalPlaces = 2;
 
-  constructor(
-    private fb: FormBuilder,
-    private groupService: GroupService,
-    private expenseService: ExpenseService,
-    private currencyService: CurrencyService,
-    private dialog: MatDialog,
-    private dialogRef: MatDialogRef<AddExpenseDialogComponent>,
-    private notifications: NotificationService,
-    @Inject(MAT_DIALOG_DATA) public data: { groupId: number },
-    private translate: TranslateService,
-    authService: AuthService
-  ) {
+  constructor() {
+    const data = this.data;
+    const authService = inject(AuthService);
+
     this.currentUserId = authService.getCurrentUserId();
     this.expenseForm = this.fb.group({
       title: ['', [Validators.required, Validators.maxLength(100)]],
@@ -64,8 +79,7 @@ export class AddExpenseDialogComponent implements OnInit {
 
   ngOnInit(): void {
     this.groupService.getGroupMembers(this.groupId).subscribe({
-      next: (resp : GroupMember[]) =>
-      {
+      next: (resp: GroupMember[]) => {
         this.members = resp;
         if (this.members.length > 0) {
           this.expenseForm.patchValue({
@@ -76,8 +90,11 @@ export class AddExpenseDialogComponent implements OnInit {
       },
       error: () => {
         this.isLoading = false;
-        this.notifications.toast(this.translate.instant('NOTIFICATIONS.COULD_NOT_LOAD_MEMBERS'), 'error');
-      }
+        this.notifications.toast(
+          this.translate.instant('NOTIFICATIONS.COULD_NOT_LOAD_MEMBERS'),
+          'error',
+        );
+      },
     });
 
     // Resolve the group currency's decimal precision so the amount field and the
@@ -87,16 +104,16 @@ export class AddExpenseDialogComponent implements OnInit {
         if (!details?.currencyId) return;
         this.currencyService.getCurrencies().subscribe({
           next: (currencies) => {
-            const currency = currencies.find(c => Number(c.id) === details.currencyId);
+            const currency = currencies.find((c) => Number(c.id) === details.currencyId);
             if (currency?.decimalPlaces !== undefined && currency.decimalPlaces !== null) {
               this.decimalPlaces = currency.decimalPlaces;
             }
             this.applyCurrencyValidation();
           },
-          error: () => this.applyCurrencyValidation()
+          error: () => this.applyCurrencyValidation(),
         });
       },
-      error: () => this.applyCurrencyValidation()
+      error: () => this.applyCurrencyValidation(),
     });
   }
 
@@ -120,9 +137,12 @@ export class AddExpenseDialogComponent implements OnInit {
     return Math.abs(value * unit - Math.round(value * unit)) > 1e-9;
   }
 
-  openSplitMethod(){
-    if (!this.expenseForm.value.amount || this.expenseForm.value.amount <= 0){
-      this.notifications.toast(this.translate.instant('NOTIFICATIONS.AMOUNT_GT_ZERO_SPLIT'), 'warning');
+  openSplitMethod() {
+    if (!this.expenseForm.value.amount || this.expenseForm.value.amount <= 0) {
+      this.notifications.toast(
+        this.translate.instant('NOTIFICATIONS.AMOUNT_GT_ZERO_SPLIT'),
+        'warning',
+      );
       return;
     }
     const dialogRef = this.dialog.open(SplitMethodDialogComponent, {
@@ -130,13 +150,13 @@ export class AddExpenseDialogComponent implements OnInit {
       data: {
         members: this.members,
         amount: this.expenseForm.value.amount,
-        decimalPlaces: this.decimalPlaces
-      }
+        decimalPlaces: this.decimalPlaces,
+      },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.expenseParticipants = result.expenseParticipant
+        this.expenseParticipants = result.expenseParticipant;
         this.splitMethodLabel = result.method;
       }
     });
@@ -146,7 +166,7 @@ export class AddExpenseDialogComponent implements OnInit {
     this.picker.open();
   }
 
-  pickDate(){
+  pickDate() {
     this.selectedDate = new Date();
   }
 
@@ -154,11 +174,14 @@ export class AddExpenseDialogComponent implements OnInit {
     this.selectedDate = event.value;
   }
 
-  saveExpense(){
+  saveExpense() {
     this.expenseForm.markAllAsTouched();
     if (this.expenseForm.valid) {
       if (this.expenseParticipants.length === 0) {
-        this.notifications.toast(this.translate.instant('NOTIFICATIONS.OPEN_SPLIT_OPTIONS'), 'warning');
+        this.notifications.toast(
+          this.translate.instant('NOTIFICATIONS.OPEN_SPLIT_OPTIONS'),
+          'warning',
+        );
         return;
       }
       if (this.isSaving) return;
@@ -168,18 +191,20 @@ export class AddExpenseDialogComponent implements OnInit {
         ...this.expenseForm.value,
         date: this.selectedDate,
         groupId: this.groupId,
-        participants: this.expenseParticipants
+        participants: this.expenseParticipants,
       };
 
       this.expenseService.addExpense(result).subscribe({
         next: (resp) => {
           this.isSaving = false;
-          if (resp){
+          if (resp) {
             this.dialogRef.close('saved');
             this.notifications.success(this.translate.instant('NOTIFICATIONS.EXPENSE_ADDED'));
           }
         },
-        error: () => { this.isSaving = false; }
+        error: () => {
+          this.isSaving = false;
+        },
       });
     }
   }

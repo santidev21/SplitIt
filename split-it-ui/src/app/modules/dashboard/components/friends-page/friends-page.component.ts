@@ -1,8 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { HeaderBarComponent } from '../header-bar/header-bar.component';
 import { FormsModule } from '@angular/forms';
-import { FriendService, Friend, FriendRequest, FriendRequestsResponse, SearchUser } from '../../services/friend.service';
+import {
+  FriendService,
+  Friend,
+  FriendRequest,
+  FriendRequestsResponse,
+  SearchUser,
+} from '../../services/friend.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
@@ -10,9 +16,13 @@ import { TranslateService, TranslatePipe } from '@ngx-translate/core';
   selector: 'app-friends-page',
   imports: [MATERIAL_IMPORTS, HeaderBarComponent, FormsModule, TranslatePipe],
   templateUrl: './friends-page.component.html',
-  styleUrls: ['./friends-page.component.scss']
+  styleUrls: ['./friends-page.component.scss'],
 })
 export class FriendsPageComponent implements OnInit {
+  private friendService = inject(FriendService);
+  private notifications = inject(NotificationService);
+  private translate = inject(TranslateService);
+
   selectedTab = 0;
   isLoading = true;
 
@@ -25,12 +35,6 @@ export class FriendsPageComponent implements OnInit {
   isSearching = false;
   addByEmail = '';
   pendingSearchUserId: number | null = null;
-
-  constructor(
-    private friendService: FriendService,
-    private notifications: NotificationService,
-    private translate: TranslateService
-  ) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -45,7 +49,7 @@ export class FriendsPageComponent implements OnInit {
       },
       error: () => {
         this.isLoading = false;
-      }
+      },
     });
   }
 
@@ -59,7 +63,7 @@ export class FriendsPageComponent implements OnInit {
       },
       error: () => {
         this.isLoading = false;
-      }
+      },
     });
   }
 
@@ -80,7 +84,7 @@ export class FriendsPageComponent implements OnInit {
       },
       error: () => {
         this.isSearching = false;
-      }
+      },
     });
   }
 
@@ -89,13 +93,16 @@ export class FriendsPageComponent implements OnInit {
     this.friendService.sendRequest({ userId: user.id }).subscribe({
       next: () => {
         this.pendingSearchUserId = null;
-        this.notifications.toast(this.translate.instant('FRIENDS.REQUEST_SENT_TO', { name: user.name }), 'success');
-        this.searchResults = this.searchResults.filter(r => r.id !== user.id);
+        this.notifications.toast(
+          this.translate.instant('FRIENDS.REQUEST_SENT_TO', { name: user.name }),
+          'success',
+        );
+        this.searchResults = this.searchResults.filter((r) => r.id !== user.id);
         this.loadRequests(false);
       },
       error: () => {
         this.pendingSearchUserId = null;
-      }
+      },
     });
   }
 
@@ -111,45 +118,50 @@ export class FriendsPageComponent implements OnInit {
         this.notifications.toast(this.translate.instant('FRIENDS.REQUEST_SENT'), 'success');
         this.loadRequests(false);
       },
-      error: () => {}
+      error: () => {},
     });
   }
 
   acceptRequest(request: FriendRequest): void {
     this.friendService.respond(request.friendshipId, true).subscribe({
       next: () => {
-        this.notifications.toast(this.translate.instant('FRIENDS.NOW_FRIEND', { name: request.name }), 'success');
+        this.notifications.toast(
+          this.translate.instant('FRIENDS.NOW_FRIEND', { name: request.name }),
+          'success',
+        );
         this.loadData();
       },
-      error: () => {}
+      error: () => {},
     });
   }
 
   rejectRequest(request: FriendRequest): void {
     this.friendService.respond(request.friendshipId, false).subscribe({
       next: () => {
-        this.incoming = this.incoming.filter(r => r.friendshipId !== request.friendshipId);
+        this.incoming = this.incoming.filter((r) => r.friendshipId !== request.friendshipId);
         this.notifications.toast(this.translate.instant('FRIENDS.REQUEST_REJECTED'), 'info');
       },
-      error: () => {}
+      error: () => {},
     });
   }
 
   removeFriend(friend: Friend): void {
-    this.notifications.confirm(
-      this.translate.instant('FRIENDS.REMOVE_TITLE'),
-      this.translate.instant('FRIENDS.REMOVE_TEXT', { name: friend.name }),
-      this.translate.instant('COMMON.YES_REMOVE')
-    ).then(result => {
-      if (result.isConfirmed) {
-        this.friendService.removeFriend(friend.id).subscribe({
-          next: () => {
-            this.friends = this.friends.filter(f => f.id !== friend.id);
-            this.notifications.toast(this.translate.instant('FRIENDS.FRIEND_REMOVED'), 'success');
-          },
-          error: () => {}
-        });
-      }
-    });
+    this.notifications
+      .confirm(
+        this.translate.instant('FRIENDS.REMOVE_TITLE'),
+        this.translate.instant('FRIENDS.REMOVE_TEXT', { name: friend.name }),
+        this.translate.instant('COMMON.YES_REMOVE'),
+      )
+      .then((result) => {
+        if (result.isConfirmed) {
+          this.friendService.removeFriend(friend.id).subscribe({
+            next: () => {
+              this.friends = this.friends.filter((f) => f.id !== friend.id);
+              this.notifications.toast(this.translate.instant('FRIENDS.FRIEND_REMOVED'), 'success');
+            },
+            error: () => {},
+          });
+        }
+      });
   }
 }

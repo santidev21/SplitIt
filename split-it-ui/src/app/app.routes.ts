@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './modules/auth/guards/auth.guard';
 import { inject } from '@angular/core';
 import { AuthService } from './modules/auth/services/auth.service';
 
@@ -12,34 +11,43 @@ function authAwareRedirect() {
     if (payload.exp && payload.exp > Math.floor(Date.now() / 1000)) {
       return '/dashboard/home';
     }
-  } catch {}
+  } catch {
+    // Ignore malformed tokens and fall through to the login redirect.
+  }
   return '/auth/login';
 }
 
 export const routes: Routes = [
-    {
-      path: 'auth',
-      loadChildren: () => import('./modules/auth/auth.module').then(m => m.AuthModule)
-    },
-    {
-      path: 'dashboard',
-      loadChildren: () => import('./modules/dashboard/dashboard.module').then(m => m.DashboardModule)
-    },
-    {
-      path: 'legal',
-      children: [
-        {
-          path: 'privacy',
-          loadComponent: () => import('./modules/legal/components/legal-page/legal-page.component').then(m => m.LegalPageComponent),
-          data: { doc: 'privacy' }
-        },
-        {
-          path: 'terms',
-          loadComponent: () => import('./modules/legal/components/legal-page/legal-page.component').then(m => m.LegalPageComponent),
-          data: { doc: 'terms' }
-        }
-      ]
-    },
-    { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
-    { path: '**', redirectTo: authAwareRedirect }
-  ];
+  {
+    path: 'auth',
+    loadChildren: () => import('./modules/auth/auth.module').then((m) => m.AuthModule),
+  },
+  {
+    path: 'dashboard',
+    loadChildren: () =>
+      import('./modules/dashboard/dashboard.module').then((m) => m.DashboardModule),
+  },
+  {
+    path: 'legal',
+    children: [
+      {
+        path: 'privacy',
+        loadComponent: () =>
+          import('./modules/legal/components/legal-page/legal-page.component').then(
+            (m) => m.LegalPageComponent,
+          ),
+        data: { doc: 'privacy' },
+      },
+      {
+        path: 'terms',
+        loadComponent: () =>
+          import('./modules/legal/components/legal-page/legal-page.component').then(
+            (m) => m.LegalPageComponent,
+          ),
+        data: { doc: 'terms' },
+      },
+    ],
+  },
+  { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
+  { path: '**', redirectTo: authAwareRedirect },
+];

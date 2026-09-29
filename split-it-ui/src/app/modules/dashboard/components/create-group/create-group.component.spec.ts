@@ -21,11 +21,17 @@ describe('CreateGroupComponent', () => {
     dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
     const currencySpy = jasmine.createSpyObj('CurrencyService', ['getCurrencies']);
     currencySpy.getCurrencies.and.returnValue(of([{ id: 1, name: 'USD', symbol: '$' }]));
-    const friendSpy = jasmine.createSpyObj('FriendService', ['getFriends', 'search', 'sendRequest']);
-    friendSpy.getFriends.and.returnValue(of([
-      { id: 2, name: 'Bob', email: 'bob@test.com' },
-      { id: 3, name: 'Alice', email: 'alice@test.com' }
-    ]));
+    const friendSpy = jasmine.createSpyObj('FriendService', [
+      'getFriends',
+      'search',
+      'sendRequest',
+    ]);
+    friendSpy.getFriends.and.returnValue(
+      of([
+        { id: 2, name: 'Bob', email: 'bob@test.com' },
+        { id: 3, name: 'Alice', email: 'alice@test.com' },
+      ]),
+    );
     const groupSpy = jasmine.createSpyObj('GroupService', ['createGroup']);
     groupSpy.createGroup.and.returnValue(of({ groupId: 99 }));
 
@@ -40,8 +46,8 @@ describe('CreateGroupComponent', () => {
         { provide: GroupService, useValue: groupSpy },
         { provide: Router, useValue: jasmine.createSpyObj('Router', ['navigate']) },
         provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
-        provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' })
-      ]
+        provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CreateGroupComponent);
@@ -60,7 +66,7 @@ describe('CreateGroupComponent', () => {
       name: 'Trip',
       description: 'Desc',
       currencyId: 1,
-      allowToDeleteExpenses: false
+      allowToDeleteExpenses: false,
     });
     expect(component.createGroupForm.valid).toBeTrue();
   });
@@ -83,15 +89,17 @@ describe('CreateGroupComponent', () => {
       name: 'Trip',
       description: 'Desc',
       currencyId: 1,
-      allowToDeleteExpenses: false
+      allowToDeleteExpenses: false,
     });
     component.toggleFriend(2);
     component.toggleFriend(3);
     component.onSubmit();
 
-    expect(groupSpy.createGroup).toHaveBeenCalledWith(jasmine.objectContaining({
-      members: [2, 3]
-    }));
+    expect(groupSpy.createGroup).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        members: [2, 3],
+      }),
+    );
     expect(dialogRefSpy.close).toHaveBeenCalled();
     expect(router.navigate).toHaveBeenCalledWith(['/dashboard/group', 99]);
   });

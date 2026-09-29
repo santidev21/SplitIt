@@ -1,10 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import Swal, { SweetAlertOptions, SweetAlertResult } from 'sweetalert2';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
-  constructor(private translate: TranslateService) {}
+  private translate = inject(TranslateService);
 
   success(title: string, text?: string): Promise<SweetAlertResult> {
     return Swal.fire({
@@ -13,7 +13,7 @@ export class NotificationService {
       text,
       timer: 2200,
       showConfirmButton: false,
-      timerProgressBar: true
+      timerProgressBar: true,
     } as SweetAlertOptions);
   }
 
@@ -23,7 +23,7 @@ export class NotificationService {
       title,
       text,
       confirmButtonText: this.translate.instant('COMMON.OK'),
-      confirmButtonColor: '#005cbb'
+      confirmButtonColor: '#005cbb',
     } as SweetAlertOptions);
   }
 
@@ -33,7 +33,7 @@ export class NotificationService {
       title,
       text,
       confirmButtonText: this.translate.instant('COMMON.OK'),
-      confirmButtonColor: '#005cbb'
+      confirmButtonColor: '#005cbb',
     } as SweetAlertOptions);
   }
 
@@ -46,7 +46,7 @@ export class NotificationService {
       confirmButtonText: confirmText ?? this.translate.instant('COMMON.YES_CONTINUE'),
       confirmButtonColor: '#d33',
       cancelButtonText: this.translate.instant('COMMON.CANCEL'),
-      cancelButtonColor: '#005cbb'
+      cancelButtonColor: '#005cbb',
     } as SweetAlertOptions);
   }
 
@@ -62,8 +62,8 @@ export class NotificationService {
       timer: undefined,
       timerProgressBar: false,
       customClass: {
-        popup: 'centered-toast'
-      }
+        popup: 'centered-toast',
+      },
     } as SweetAlertOptions);
   }
 }

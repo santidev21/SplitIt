@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -9,27 +9,27 @@ import { TranslatePipe } from '@ngx-translate/core';
   selector: 'app-forgot-password',
   imports: [MATERIAL_IMPORTS, RouterModule, ReactiveFormsModule, TranslatePipe],
   templateUrl: './forgot-password.component.html',
-  styleUrls: ['../../auth.styles.scss']
+  styleUrls: ['../../auth.styles.scss'],
 })
 export class ForgotPasswordComponent {
+  private authService = inject(AuthService);
+  private fb = inject(FormBuilder);
+  private router = inject(Router);
+
   step = 1;
   emailForm: FormGroup;
   codeForm: FormGroup;
   isLoading = false;
   errorMessage = '';
 
-  constructor(
-    private authService: AuthService,
-    private fb: FormBuilder,
-    private router: Router,
-  ) {
+  constructor() {
     this.emailForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]]
+      email: ['', [Validators.required, Validators.email]],
     });
     this.codeForm = this.fb.group({
       code: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
       newPassword: ['', [Validators.required, Validators.minLength(8)]],
-      confirmPassword: ['', [Validators.required]]
+      confirmPassword: ['', [Validators.required]],
     });
   }
 
@@ -48,7 +48,7 @@ export class ForgotPasswordComponent {
       error: () => {
         this.isLoading = false;
         this.step = 2;
-      }
+      },
     });
   }
 
@@ -63,19 +63,21 @@ export class ForgotPasswordComponent {
     }
     this.isLoading = true;
     this.errorMessage = '';
-    this.authService.verifyResetCode(
-      this.emailForm.value.email,
-      this.codeForm.value.code,
-      this.codeForm.value.newPassword
-    ).subscribe({
-      next: () => {
-        this.isLoading = false;
-        this.step = 3;
-      },
-      error: (err) => {
-        this.isLoading = false;
-        this.errorMessage = err.error?.message || 'Invalid or expired code.';
-      }
-    });
+    this.authService
+      .verifyResetCode(
+        this.emailForm.value.email,
+        this.codeForm.value.code,
+        this.codeForm.value.newPassword,
+      )
+      .subscribe({
+        next: () => {
+          this.isLoading = false;
+          this.step = 3;
+        },
+        error: (err) => {
+          this.isLoading = false;
+          this.errorMessage = err.error?.message || 'Invalid or expired code.';
+        },
+      });
   }
 }

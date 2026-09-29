@@ -8,25 +8,25 @@ export const dashboardRoutes: Routes = [
   {
     path: 'home',
     component: DashboardComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard],
   },
   {
     path: 'group/:id',
     component: GroupDetailComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard],
   },
   {
     path: 'friends',
     component: FriendsPageComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard],
   },
   {
     path: 'admin',
-    loadChildren: () => import('../admin/admin.module').then(m => m.AdminModule)
+    loadChildren: () => import('../admin/admin.module').then((m) => m.AdminModule),
   },
   {
     path: '',
     redirectTo: 'home',
     pathMatch: 'full',
-  }
+  },
 ];

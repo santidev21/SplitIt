@@ -1,13 +1,15 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({ providedIn: 'root' })
 export class LanguageService {
+  private translate = inject(TranslateService);
+
   private readonly STORAGE_KEY = 'lang';
   private readonly SUPPORTED_LANGS = ['en', 'es'];
   private readonly DEFAULT_LANG = 'en';
 
-  constructor(private translate: TranslateService) {
+  constructor() {
     this.translate.addLangs(this.SUPPORTED_LANGS);
     this.translate.setFallbackLang(this.DEFAULT_LANG);
 

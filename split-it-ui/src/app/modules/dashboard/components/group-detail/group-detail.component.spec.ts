@@ -37,10 +37,12 @@ describe('GroupDetailComponent debt state', () => {
     groupSpy.getGroupDetails.and.returnValue(of({ name: 'G', description: 'D', currencyId }));
     groupSpy.getUserGroupRole.and.returnValue(of({ role: 'creator' }));
     const currencySpy = jasmine.createSpyObj('CurrencyService', ['getCurrencies']);
-    currencySpy.getCurrencies.and.returnValue(of([
-      { id: 1, name: 'Dólar', symbol: 'USD', decimalPlaces: 2 },
-      { id: 2, name: 'Peso Colombiano', symbol: 'COP', decimalPlaces: 0 }
-    ]));
+    currencySpy.getCurrencies.and.returnValue(
+      of([
+        { id: 1, name: 'Dólar', symbol: 'USD', decimalPlaces: 2 },
+        { id: 2, name: 'Peso Colombiano', symbol: 'COP', decimalPlaces: 0 },
+      ]),
+    );
 
     TestBed.configureTestingModule({
       imports: [GroupDetailComponent, NoopAnimationsModule, RouterTestingModule],
@@ -81,7 +83,7 @@ describe('GroupDetailComponent debt state', () => {
   it('owe when the user owes more than they are owed', () => {
     configure(
       [{ creditorUserId: 2, creditorUserName: 'Bob', totalAmountOwed: 50.4 }],
-      [{ debtorUserId: 3, debtorUserName: 'Charlie', totalAmountOwed: 20 }]
+      [{ debtorUserId: 3, debtorUserName: 'Charlie', totalAmountOwed: 20 }],
     );
     expect(component.debtState).toBe('owe');
     // Cents must be preserved: 30.4 USD is NOT rounded to 30.
@@ -90,10 +92,7 @@ describe('GroupDetailComponent debt state', () => {
   });
 
   it('owed when the user is owed more than they owe', () => {
-    configure(
-      [],
-      [{ debtorUserId: 3, debtorUserName: 'Charlie', totalAmountOwed: 42.6 }]
-    );
+    configure([], [{ debtorUserId: 3, debtorUserName: 'Charlie', totalAmountOwed: 42.6 }]);
     expect(component.debtState).toBe('owed');
     expect(component.debtAmount).toBe(42.6);
     expect(component.debtAmountLabel).toBe('42.60');
@@ -103,9 +102,9 @@ describe('GroupDetailComponent debt state', () => {
     configure(
       [],
       [{ debtorUserId: 3, debtorUserName: 'Charlie', totalAmountOwed: 42.6 }],
-      1 // USD
+      1, // USD
     );
-    const label = component.debtDetails.find(d => d.userId === 3)?.amountLabel;
+    const label = component.debtDetails.find((d) => d.userId === 3)?.amountLabel;
     expect(label).toBe('42.60');
   });
 
@@ -113,10 +112,10 @@ describe('GroupDetailComponent debt state', () => {
     configure(
       [{ creditorUserId: 2, creditorUserName: 'Bob', totalAmountOwed: 100 }],
       [{ debtorUserId: 3, debtorUserName: 'Charlie', totalAmountOwed: 60 }],
-      2 // COP
+      2, // COP
     );
     expect(component.debtAmountLabel).toBe('40');
-    const label = component.debtDetails.find(d => d.userId === 2)?.amountLabel;
+    const label = component.debtDetails.find((d) => d.userId === 2)?.amountLabel;
     expect(label).toBe('100');
   });
 });

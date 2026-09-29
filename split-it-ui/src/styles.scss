@@ -4,22 +4,30 @@
 
 // ─── Material3 theme ───
 html {
-  @include mat.theme((
-    color: (
-      primary: mat.$blue-palette,
-    ),
-    density: (scale: 0),
-  ));
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$blue-palette,
+      ),
+      density: (
+        scale: 0,
+      ),
+    )
+  );
 }
 
 html[data-theme='dark'] {
-  @include mat.theme((
-    color: (
-      theme-type: dark,
-      primary: mat.$blue-palette,
-    ),
-    density: (scale: 0),
-  ));
+  @include mat.theme(
+    (
+      color: (
+        theme-type: dark,
+        primary: mat.$blue-palette,
+      ),
+      density: (
+        scale: 0,
+      ),
+    )
+  );
 }
 
 // ─── Global tokens (CSS custom properties) ───
@@ -88,7 +96,8 @@ html[data-theme='dark'] {
 }
 
 // ─── Base ───
-html, body {
+html,
+body {
   height: 100%;
 }
 
@@ -97,10 +106,14 @@ body {
   font-family: var(--font-family);
   background-color: var(--color-surface-variant);
   color: var(--color-on-surface);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -113,7 +126,9 @@ body {
 
 // ─── Reduced motion ───
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -140,7 +155,9 @@ body {
 .button-icon-color {
   color: var(--color-primary);
   cursor: pointer;
-  transition: color 0.15s ease, transform 0.15s ease;
+  transition:
+    color 0.15s ease,
+    transform 0.15s ease;
 
   &:hover {
     color: var(--color-primary-hover);
@@ -176,48 +193,104 @@ body {
 }
 
 // ─── Spacing utilities ───
-.m-0 { margin: 0; }
-.m-1 { margin: var(--space-2); }
-.mt-1 { margin-top: var(--space-2); }
-.mt-2 { margin-top: var(--space-4); }
-.mt-3 { margin-top: var(--space-6); }
-.mb-1 { margin-bottom: var(--space-2); }
-.mb-2 { margin-bottom: var(--space-4); }
-.mb-3 { margin-bottom: var(--space-6); }
-.mb-4 { margin-bottom: var(--space-8); }
-.p-2 { padding: var(--space-4); }
-.p-4 { padding: var(--space-8); }
+.m-0 {
+  margin: 0;
+}
+.m-1 {
+  margin: var(--space-2);
+}
+.mt-1 {
+  margin-top: var(--space-2);
+}
+.mt-2 {
+  margin-top: var(--space-4);
+}
+.mt-3 {
+  margin-top: var(--space-6);
+}
+.mb-1 {
+  margin-bottom: var(--space-2);
+}
+.mb-2 {
+  margin-bottom: var(--space-4);
+}
+.mb-3 {
+  margin-bottom: var(--space-6);
+}
+.mb-4 {
+  margin-bottom: var(--space-8);
+}
+.p-2 {
+  padding: var(--space-4);
+}
+.p-4 {
+  padding: var(--space-8);
+}
 
 // ─── Flex utilities ───
-.flex { display: flex; }
-.flex-col { flex-direction: column; }
-.flex-wrap { flex-wrap: wrap; }
-.items-center { align-items: center; }
-.justify-center { justify-content: center; }
-.justify-between { justify-content: space-between; }
-.gap-1 { gap: var(--space-2); }
-.gap-2 { gap: var(--space-4); }
-.gap-3 { gap: var(--space-6); }
+.flex {
+  display: flex;
+}
+.flex-col {
+  flex-direction: column;
+}
+.flex-wrap {
+  flex-wrap: wrap;
+}
+.items-center {
+  align-items: center;
+}
+.justify-center {
+  justify-content: center;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.gap-1 {
+  gap: var(--space-2);
+}
+.gap-2 {
+  gap: var(--space-4);
+}
+.gap-3 {
+  gap: var(--space-6);
+}
 
 // ─── Width ───
-.w-100 { width: 100%; }
+.w-100 {
+  width: 100%;
+}
 
 // ─── Text alignment ───
-.text-center { text-align: center; }
-.text-right { text-align: right; }
-.text-left { text-align: left; }
+.text-center {
+  text-align: center;
+}
+.text-right {
+  text-align: right;
+}
+.text-left {
+  text-align: left;
+}
 
 // ─── Semantic text colors ───
-.text-success { color: var(--color-success); }
-.text-danger { color: var(--color-danger); }
-.text-neutral { color: var(--color-on-surface-variant); }
+.text-success {
+  color: var(--color-success);
+}
+.text-danger {
+  color: var(--color-danger);
+}
+.text-neutral {
+  color: var(--color-on-surface-variant);
+}
 
 // ─── Material overrides ───
 .mat-mdc-card {
   border-radius: var(--radius-lg) !important;
   box-shadow: var(--shadow-sm) !important;
   border: 1px solid var(--color-outline) !important;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
   margin: var(--space-2) !important;
   padding: var(--space-2) !important;
 
@@ -272,11 +345,11 @@ body {
   }
 }
 
-form{
-    margin-top: var(--space-6);
+form {
+  margin-top: var(--space-6);
 }
 
-mat-card-actions{
-    align-items: center;
-    justify-content: center;
+mat-card-actions {
+  align-items: center;
+  justify-content: center;
 }

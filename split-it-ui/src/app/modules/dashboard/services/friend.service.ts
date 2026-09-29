@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -29,12 +29,12 @@ export interface SearchUser {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class FriendService {
-  private readonly API_URL = `${environment.apiUrl}/friends`;
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) {}
+  private readonly API_URL = `${environment.apiUrl}/friends`;
 
   getFriends(): Observable<Friend[]> {
     return this.http.get<Friend[]>(`${this.API_URL}`);

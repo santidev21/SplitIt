@@ -32,10 +32,16 @@ describe('LoginComponent', () => {
     // (which causes ExpressionChangedAfterItHasBeenCheckedError in tests).
     (environment as any).googleClientId = 'test-client-id';
 
-    authServiceSpy = jasmine.createSpyObj('AuthService', ['login', 'isAuthenticated', 'loginWithGoogle']);
+    authServiceSpy = jasmine.createSpyObj('AuthService', [
+      'login',
+      'isAuthenticated',
+      'loginWithGoogle',
+    ]);
     authServiceSpy.isAuthenticated.and.returnValue(false);
     authServiceSpy.login.and.returnValue(of({ token: 'fake', userName: 'Test', userId: 1 }));
-    authServiceSpy.loginWithGoogle.and.returnValue(of({ token: 'fake', userName: 'Test', userId: 1 }));
+    authServiceSpy.loginWithGoogle.and.returnValue(
+      of({ token: 'fake', userName: 'Test', userId: 1 }),
+    );
 
     await TestBed.configureTestingModule({
       imports: [LoginComponent, NoopAnimationsModule, RouterTestingModule],
@@ -44,8 +50,8 @@ describe('LoginComponent', () => {
         provideHttpClientTesting(),
         { provide: AuthService, useValue: authServiceSpy },
         provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
-        provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' })
-      ]
+        provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(LoginComponent);

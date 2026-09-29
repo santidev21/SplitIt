@@ -7,6 +7,6 @@ export const adminRoutes: Routes = [
   {
     path: '',
     component: AdminPageComponent,
-    canActivate: [authGuard, adminGuard]
-  }
+    canActivate: [authGuard, adminGuard],
+  },
 ];

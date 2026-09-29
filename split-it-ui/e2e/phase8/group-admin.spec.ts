@@ -9,16 +9,23 @@ test.describe('Phase 8 — Group Admin', () => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), creatorToken);
     await loginViaStorage(page, creatorToken);
     await page.goto('/auth/login');
-    await page.route('**/api/groups/1/members/3/role', async route => {
+    await page.route('**/api/groups/1/members/3/role', async (route) => {
       const body = route.request().postDataJSON();
       expect(body.role).toBe('admin');
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ message: 'Role updated.' }) });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: 'Role updated.' }),
+      });
     });
     const status = await page.evaluate(async () => {
       const r = await fetch('http://localhost:5120/api/groups/1/members/3/role', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + localStorage.getItem('token')! },
-        body: JSON.stringify({ role: 'admin' })
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + localStorage.getItem('token')!,
+        },
+        body: JSON.stringify({ role: 'admin' }),
       });
       return r.status;
     });
@@ -29,12 +36,17 @@ test.describe('Phase 8 — Group Admin', () => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), memberToken);
     await loginViaStorage(page, memberToken);
     await page.goto('/auth/login');
-    await page.route('**/api/groups/1/members/3/role', async route => route.fulfill({ status: 403 }));
+    await page.route('**/api/groups/1/members/3/role', async (route) =>
+      route.fulfill({ status: 403 }),
+    );
     const status = await page.evaluate(async () => {
       const r = await fetch('http://localhost:5120/api/groups/1/members/3/role', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + localStorage.getItem('token')! },
-        body: JSON.stringify({ role: 'admin' })
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + localStorage.getItem('token')!,
+        },
+        body: JSON.stringify({ role: 'admin' }),
       });
       return r.status;
     });
@@ -45,12 +57,17 @@ test.describe('Phase 8 — Group Admin', () => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), adminToken);
     await loginViaStorage(page, adminToken);
     await page.goto('/auth/login');
-    await page.route('**/api/groups/1/members/3/role', async route => route.fulfill({ status: 403 }));
+    await page.route('**/api/groups/1/members/3/role', async (route) =>
+      route.fulfill({ status: 403 }),
+    );
     const status = await page.evaluate(async () => {
       const r = await fetch('http://localhost:5120/api/groups/1/members/3/role', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + localStorage.getItem('token')! },
-        body: JSON.stringify({ role: 'admin' })
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + localStorage.getItem('token')!,
+        },
+        body: JSON.stringify({ role: 'admin' }),
       });
       return r.status;
     });
@@ -61,12 +78,19 @@ test.describe('Phase 8 — Group Admin', () => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), creatorToken);
     await loginViaStorage(page, creatorToken);
     await page.goto('/auth/login');
-    await page.route('**/api/groups/1/members/3', async route => {
+    await page.route('**/api/groups/1/members/3', async (route) => {
       expect(route.request().method()).toBe('DELETE');
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ message: 'Member removed.' }) });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: 'Member removed.' }),
+      });
     });
     let status = await page.evaluate(async () => {
-      const r = await fetch('http://localhost:5120/api/groups/1/members/3', { method: 'DELETE', headers: { Authorization: 'Bearer ' + localStorage.getItem('token')! } });
+      const r = await fetch('http://localhost:5120/api/groups/1/members/3', {
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer ' + localStorage.getItem('token')! },
+      });
       return r.status;
     });
     expect(status).toBe(200);
@@ -75,9 +99,12 @@ test.describe('Phase 8 — Group Admin', () => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), memberToken);
     await loginViaStorage(page, memberToken);
     await page.goto('/auth/login');
-    await page.route('**/api/groups/1/members/2', async route => route.fulfill({ status: 403 }));
+    await page.route('**/api/groups/1/members/2', async (route) => route.fulfill({ status: 403 }));
     status = await page.evaluate(async () => {
-      const r = await fetch('http://localhost:5120/api/groups/1/members/2', { method: 'DELETE', headers: { Authorization: 'Bearer ' + localStorage.getItem('token')! } });
+      const r = await fetch('http://localhost:5120/api/groups/1/members/2', {
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer ' + localStorage.getItem('token')! },
+      });
       return r.status;
     });
     expect(status).toBe(403);
@@ -87,9 +114,12 @@ test.describe('Phase 8 — Group Admin', () => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), memberToken);
     await loginViaStorage(page, memberToken);
     await page.goto('/auth/login');
-    await page.route('**/api/groups/1', async route => route.fulfill({ status: 403 }));
+    await page.route('**/api/groups/1', async (route) => route.fulfill({ status: 403 }));
     let status = await page.evaluate(async () => {
-      const r = await fetch('http://localhost:5120/api/groups/1', { method: 'DELETE', headers: { Authorization: 'Bearer ' + localStorage.getItem('token')! } });
+      const r = await fetch('http://localhost:5120/api/groups/1', {
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer ' + localStorage.getItem('token')! },
+      });
       return r.status;
     });
     expect(status).toBe(403);
@@ -97,9 +127,12 @@ test.describe('Phase 8 — Group Admin', () => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), creatorToken);
     await loginViaStorage(page, creatorToken);
     await page.goto('/auth/login');
-    await page.route('**/api/groups/1', async route => route.fulfill({ status: 200 }));
+    await page.route('**/api/groups/1', async (route) => route.fulfill({ status: 200 }));
     status = await page.evaluate(async () => {
-      const r = await fetch('http://localhost:5120/api/groups/1', { method: 'DELETE', headers: { Authorization: 'Bearer ' + localStorage.getItem('token')! } });
+      const r = await fetch('http://localhost:5120/api/groups/1', {
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer ' + localStorage.getItem('token')! },
+      });
       return r.status;
     });
     expect(status).toBe(200);

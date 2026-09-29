@@ -33,7 +33,11 @@ public class GroupDataIntegrityTests
         var expSvc = new ExpensesService(ctx);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "Dinner", Amount = 100, Date = DateTime.UtcNow, PaidById = aliceId,
+            GroupId = gId,
+            Title = "Dinner",
+            Amount = 100,
+            Date = DateTime.UtcNow,
+            PaidById = aliceId,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto>
             {
                 new() { UserId = aliceId, AmountOwed = 50 },
@@ -55,7 +59,11 @@ public class GroupDataIntegrityTests
         var expSvc = new ExpensesService(ctx);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "Dinner", Amount = 100, Date = DateTime.UtcNow, PaidById = aliceId,
+            GroupId = gId,
+            Title = "Dinner",
+            Amount = 100,
+            Date = DateTime.UtcNow,
+            PaidById = aliceId,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto>
             {
                 new() { UserId = aliceId, AmountOwed = 50 },
@@ -77,7 +85,11 @@ public class GroupDataIntegrityTests
         var expSvc = new ExpensesService(ctx);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "Trip", Amount = 100, Date = DateTime.UtcNow, PaidById = aliceId,
+            GroupId = gId,
+            Title = "Trip",
+            Amount = 100,
+            Date = DateTime.UtcNow,
+            PaidById = aliceId,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = bobId, AmountOwed = 100 } }
         }, aliceId);
 

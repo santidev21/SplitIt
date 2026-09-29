@@ -20,8 +20,12 @@ describe('GroupSettingsDialogComponent', () => {
     TestBed.resetTestingModule();
 
     const groupSpy = jasmine.createSpyObj('GroupService', [
-      'getGroupDetails', 'getGroupMembers', 'updateGroup', 'inviteMember',
-      'updateMemberRole', 'removeMember',
+      'getGroupDetails',
+      'getGroupMembers',
+      'updateGroup',
+      'inviteMember',
+      'updateMemberRole',
+      'removeMember',
     ]);
     groupSpy.getGroupDetails.and.returnValue(of({ name: 'Test', description: 'Desc' }));
     groupSpy.getGroupMembers.and.returnValue(of([]));
@@ -39,7 +43,10 @@ describe('GroupSettingsDialogComponent', () => {
         { provide: MatDialogRef, useValue: jasmine.createSpyObj('MatDialogRef', ['close']) },
         { provide: GroupService, useValue: groupSpy },
         { provide: FriendService, useValue: friendSpy },
-        { provide: NotificationService, useValue: jasmine.createSpyObj('NotificationService', ['toast', 'confirm', 'success']) },
+        {
+          provide: NotificationService,
+          useValue: jasmine.createSpyObj('NotificationService', ['toast', 'confirm', 'success']),
+        },
         { provide: AuthService, useValue: { getCurrentUserId: () => 1 } },
         provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
         provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
@@ -58,13 +65,20 @@ describe('GroupSettingsDialogComponent', () => {
 
   it('displayName does not return raw name for current user', () => {
     configure(true, true);
-    const result = component.displayName({ id: 1, name: 'Alice', role: 'creator', email: 'a@b.com' } as any);
+    const result = component.displayName({
+      id: 1,
+      name: 'Alice',
+      role: 'creator',
+      email: 'a@b.com',
+    } as any);
     expect(result).not.toBe('Alice');
   });
 
   it('displayName returns real name for other user', () => {
     configure(true, true);
-    expect(component.displayName({ id: 2, name: 'Bob', role: 'member', email: 'b@b.com' } as any)).toBe('Bob');
+    expect(
+      component.displayName({ id: 2, name: 'Bob', role: 'member', email: 'b@b.com' } as any),
+    ).toBe('Bob');
   });
 
   it('canManageMember returns false for self', () => {

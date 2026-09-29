@@ -45,7 +45,11 @@ public class ExpenseWorkflowIntegrationTests : IClassFixture<SqlServerFixture>
         var expSvc = new ExpensesService(ctx);
         var expense = await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "Dinner", Amount = 100, Date = DateTime.UtcNow, PaidById = alice.Id,
+            GroupId = gId,
+            Title = "Dinner",
+            Amount = 100,
+            Date = DateTime.UtcNow,
+            PaidById = alice.Id,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto>
             {
                 new() { UserId = alice.Id, AmountOwed = 50 },
@@ -89,12 +93,20 @@ public class ExpenseWorkflowIntegrationTests : IClassFixture<SqlServerFixture>
         var expSvc = new ExpensesService(ctx);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gA, Title = "EA", Amount = 100, Date = DateTime.UtcNow, PaidById = b.Id,
+            GroupId = gA,
+            Title = "EA",
+            Amount = 100,
+            Date = DateTime.UtcNow,
+            PaidById = b.Id,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = a.Id, AmountOwed = 100 } }
         }, b.Id);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gB, Title = "EB", Amount = 50, Date = DateTime.UtcNow, PaidById = b.Id,
+            GroupId = gB,
+            Title = "EB",
+            Amount = 50,
+            Date = DateTime.UtcNow,
+            PaidById = b.Id,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = a.Id, AmountOwed = 50 } }
         }, b.Id);
 

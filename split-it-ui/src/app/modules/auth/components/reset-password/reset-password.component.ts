@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -9,25 +9,25 @@ import { TranslatePipe } from '@ngx-translate/core';
   selector: 'app-reset-password',
   imports: [MATERIAL_IMPORTS, RouterModule, ReactiveFormsModule, TranslatePipe],
   templateUrl: './reset-password.component.html',
-  styleUrls: ['../../auth.styles.scss']
+  styleUrls: ['../../auth.styles.scss'],
 })
 export class ResetPasswordComponent {
+  private authService = inject(AuthService);
+  private fb = inject(FormBuilder);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
   resetForm: FormGroup;
   isLoading = false;
   submitted = false;
   success = false;
   token = '';
 
-  constructor(
-    private authService: AuthService,
-    private fb: FormBuilder,
-    private router: Router,
-    private route: ActivatedRoute,
-  ) {
+  constructor() {
     this.token = this.route.snapshot.queryParamMap.get('token') || '';
     this.resetForm = this.fb.group({
       newPassword: ['', [Validators.required, Validators.minLength(8)]],
-      confirmPassword: ['', [Validators.required]]
+      confirmPassword: ['', [Validators.required]],
     });
   }
 
@@ -50,7 +50,7 @@ export class ResetPasswordComponent {
       error: () => {
         this.isLoading = false;
         this.submitted = true;
-      }
+      },
     });
   }
 }

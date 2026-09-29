@@ -1,48 +1,68 @@
 <h2 mat-dialog-title class="heading-xl text-center">{{ 'SPLIT.TITLE' | translate }}</h2>
 
 <mat-dialog-content>
-  <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event.index)">
+  <mat-tab-group
+    [(selectedIndex)]="selectedTabIndex"
+    (selectedTabChange)="onTabChange($event.index)"
+  >
     <mat-tab [label]="'SPLIT.EQUALLY' | translate">
       <div class="tab-content">
-        <mat-checkbox *ngFor="let member of members" [(ngModel)]="equalSplitSelection[member.id]"
-                      [attr.aria-label]="'SPLIT.INCLUDE_IN_SPLIT' | translate: { name: member.name }">
-          {{ displayName(member) }}
-        </mat-checkbox>
+        @for (member of members; track member) {
+          <mat-checkbox
+            [(ngModel)]="equalSplitSelection[member.id]"
+            [attr.aria-label]="'SPLIT.INCLUDE_IN_SPLIT' | translate: { name: member.name }"
+          >
+            {{ displayName(member) }}
+          </mat-checkbox>
+        }
       </div>
     </mat-tab>
 
     <mat-tab [label]="'SPLIT.BY_AMOUNT' | translate">
       <div class="tab-content">
-        <div *ngFor="let member of members" class="split-input-row">
+        @for (member of members; track member) {
+          <div class="split-input-row">
             <span class="member-name">{{ displayName(member) }}</span>
             <mat-form-field class="member-input" appearance="fill">
               <mat-label>{{ 'SPLIT.AMOUNT_FOR' | translate: { name: member.name } }}</mat-label>
-              <input matInput type="number" [(ngModel)]="member.amount" appPositiveNumber/>
+              <input matInput type="number" [(ngModel)]="member.amount" appPositiveNumber />
             </mat-form-field>
           </div>
+        }
       </div>
     </mat-tab>
 
     <mat-tab [label]="'SPLIT.BY_PERCENTAGE' | translate">
       <div class="tab-content">
-        <div *ngFor="let member of members" class="split-input-row">
+        @for (member of members; track member) {
+          <div class="split-input-row">
             <span class="member-name">{{ displayName(member) }}</span>
             <mat-form-field class="member-input" appearance="fill">
               <mat-label>{{ 'SPLIT.PERCENTAGE_FOR' | translate: { name: member.name } }}</mat-label>
-              <input matInput type="number" [(ngModel)]="member.amount" appPercentage/>
+              <input matInput type="number" [(ngModel)]="member.amount" appPercentage />
             </mat-form-field>
           </div>
+        }
       </div>
     </mat-tab>
   </mat-tab-group>
 </mat-dialog-content>
 
-<div class="split-error-banner" *ngIf="validationError" role="alert">
-  <mat-icon color="warn">error_outline</mat-icon>
-  <span>{{ validationError }}</span>
-</div>
+@if (validationError) {
+  <div class="split-error-banner" role="alert">
+    <mat-icon color="warn">error_outline</mat-icon>
+    <span>{{ validationError }}</span>
+  </div>
+}
 
 <mat-dialog-actions align="end">
   <button mat-button mat-dialog-close>{{ 'COMMON.CANCEL' | translate }}</button>
-  <button mat-flat-button color="primary" (click)="confirmSplit()" [attr.aria-label]="'SPLIT.CONFIRM' | translate">{{ 'COMMON.OK' | translate }}</button>
+  <button
+    mat-flat-button
+    color="primary"
+    (click)="confirmSplit()"
+    [attr.aria-label]="'SPLIT.CONFIRM' | translate"
+  >
+    {{ 'COMMON.OK' | translate }}
+  </button>
 </mat-dialog-actions>

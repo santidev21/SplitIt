@@ -1,73 +1,128 @@
 <div class="create-group-form">
-    <div class="form-container">
-      <form [formGroup]="createGroupForm" class="form-group-container" (ngSubmit)="onSubmit()">
+  <div class="form-container">
+    <form [formGroup]="createGroupForm" class="form-group-container" (ngSubmit)="onSubmit()">
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'GROUPS.NAME' | translate }}</mat-label>
+        <input matInput formControlName="name" />
+        @if (createGroupForm.get('name')?.hasError('required')) {
+          <mat-error>{{ 'GROUPS.NAME_REQUIRED' | translate }}</mat-error>
+        }
+        @if (createGroupForm.get('name')?.hasError('minlength')) {
+          <mat-error>{{ 'GROUPS.NAME_MIN_LENGTH' | translate }}</mat-error>
+        }
+      </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>{{ 'GROUPS.NAME' | translate }}</mat-label>
-          <input matInput formControlName="name" />
-          <mat-error *ngIf="createGroupForm.get('name')?.hasError('required')">{{ 'GROUPS.NAME_REQUIRED' | translate }}</mat-error>
-          <mat-error *ngIf="createGroupForm.get('name')?.hasError('minlength')">{{ 'GROUPS.NAME_MIN_LENGTH' | translate }}</mat-error>
-        </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'GROUPS.DESCRIPTION' | translate }}</mat-label>
+        <textarea matInput formControlName="description" required></textarea>
+        @if (createGroupForm.get('description')?.hasError('required')) {
+          <mat-error>{{ 'GROUPS.DESCRIPTION_REQUIRED' | translate }}</mat-error>
+        }
+      </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>{{ 'GROUPS.DESCRIPTION' | translate }}</mat-label>
-          <textarea matInput formControlName="description" required></textarea>
-          <mat-error *ngIf="createGroupForm.get('description')?.hasError('required')">{{ 'GROUPS.DESCRIPTION_REQUIRED' | translate }}</mat-error>
-        </mat-form-field>
+      <span class="field-label">{{ 'GROUPS.MEMBERS_LABEL' | translate }}</span>
+      @if (friends.length > 0) {
+        <div class="friends-select">
+          @for (friend of friends; track friend) {
+            <mat-checkbox
+              [checked]="selectedFriendIds.has(friend.id)"
+              (change)="toggleFriend(friend.id)"
+              [attr.aria-label]="'GROUPS.ADD_TO_GROUP' | translate: { name: friend.name }"
+            >
+              {{ friend.name }} <span class="friend-email-label">({{ friend.email }})</span>
+            </mat-checkbox>
+          }
+        </div>
+      }
+      @if (friends.length === 0) {
+        <p class="no-friends-hint">
+          {{ 'GROUPS.NO_FRIENDS' | translate }}
+        </p>
+      }
 
-      <label class="field-label">{{ 'GROUPS.MEMBERS_LABEL' | translate }}</label>
-      <div class="friends-select" *ngIf="friends.length > 0">
-        <mat-checkbox *ngFor="let friend of friends"
-                      [checked]="selectedFriendIds.has(friend.id)"
-                      (change)="toggleFriend(friend.id)"
-                      [attr.aria-label]="'GROUPS.ADD_TO_GROUP' | translate: { name: friend.name }">
-          {{ friend.name }} <span class="friend-email-label">({{ friend.email }})</span>
-        </mat-checkbox>
-      </div>
-      <p class="no-friends-hint" *ngIf="friends.length === 0">
-        {{ 'GROUPS.NO_FRIENDS' | translate }}
-      </p>
-
-      <label class="field-label">{{ 'GROUPS.FIND_FRIENDS' | translate }}</label>
+      <span class="field-label">{{ 'GROUPS.FIND_FRIENDS' | translate }}</span>
       <div class="inline-search">
         <mat-form-field appearance="outline" class="inline-search-field">
           <mat-label>{{ 'GROUPS.SEARCH_PLACEHOLDER' | translate }}</mat-label>
-          <input matInput [(ngModel)]="searchTerm" [ngModelOptions]="{standalone: true}" (keyup.enter)="searchUsers()" />
+          <input
+            matInput
+            [(ngModel)]="searchTerm"
+            [ngModelOptions]="{ standalone: true }"
+            (keyup.enter)="searchUsers()"
+          />
         </mat-form-field>
-        <button mat-flat-button color="primary" type="button" (click)="searchUsers()" [disabled]="isSearching" [attr.aria-label]="'COMMON.SEARCH' | translate">{{ 'COMMON.SEARCH' | translate }}</button>
-      </div>
-      <div *ngFor="let user of searchResults" class="search-result-row">
-        <span>{{ user.name }}<ng-container *ngIf="user.email"> ({{ user.email }})</ng-container></span>
-        <button mat-button color="primary" type="button" (click)="sendFriendRequest(user)"
-                [attr.aria-label]="'GROUPS.SEND_REQUEST_TO' | translate: { name: user.name }">
-          {{ 'GROUPS.SEND_FRIEND_REQUEST' | translate }}
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          (click)="searchUsers()"
+          [disabled]="isSearching"
+          [attr.aria-label]="'COMMON.SEARCH' | translate"
+        >
+          {{ 'COMMON.SEARCH' | translate }}
         </button>
       </div>
-
-       <div class="allow-delete-expenses">
-        <mat-checkbox formControlName="allowToDeleteExpenses" [checked]="false" [attr.aria-label]="'GROUPS.ALLOW_DELETE_EXPENSES' | translate"></mat-checkbox>
-        <label class="field-label">{{ 'GROUPS.ALLOW_DELETE_EXPENSES' | translate }}</label>
-       </div>
-
-        <mat-form-field appearance="outline">
-          <mat-label>{{ 'GROUPS.CURRENCY' | translate }}</mat-label>
-          <mat-select formControlName="currencyId" required>
-            <mat-option *ngFor="let currency of currencies" [value]="currency.id">
-              {{ currency.name }} ({{ currency.symbol }})
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="createGroupForm.get('currencyId')?.hasError('required')">{{ 'GROUPS.CURRENCY_REQUIRED' | translate }}</mat-error>
-        </mat-form-field>
-
-        <div class="action-buttons">
-          <button mat-icon-button type="button" (click)="close()" [attr.aria-label]="'COMMON.CANCEL' | translate">
-            <mat-icon class="button-icon-color">cancel</mat-icon>
-          </button>
-          <button mat-icon-button type="submit" [disabled]="isSaving" [attr.aria-label]="'COMMON.SAVE' | translate">
-            <mat-icon class="button-icon-color">save</mat-icon>
+      @for (user of searchResults; track user) {
+        <div class="search-result-row">
+          <span
+            >{{ user.name }}
+            @if (user.email) {
+              ({{ user.email }})
+            }
+          </span>
+          <button
+            mat-button
+            color="primary"
+            type="button"
+            (click)="sendFriendRequest(user)"
+            [attr.aria-label]="'GROUPS.SEND_REQUEST_TO' | translate: { name: user.name }"
+          >
+            {{ 'GROUPS.SEND_FRIEND_REQUEST' | translate }}
           </button>
         </div>
+      }
 
+      <div class="allow-delete-expenses">
+        <mat-checkbox
+          formControlName="allowToDeleteExpenses"
+          [checked]="false"
+          [attr.aria-label]="'GROUPS.ALLOW_DELETE_EXPENSES' | translate"
+        ></mat-checkbox>
+        <span class="field-label">{{ 'GROUPS.ALLOW_DELETE_EXPENSES' | translate }}</span>
+      </div>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'GROUPS.CURRENCY' | translate }}</mat-label>
+        <mat-select formControlName="currencyId" required>
+          @for (currency of currencies; track currency) {
+            <mat-option [value]="currency.id">
+              {{ currency.name }} ({{ currency.symbol }})
+            </mat-option>
+          }
+        </mat-select>
+        @if (createGroupForm.get('currencyId')?.hasError('required')) {
+          <mat-error>{{ 'GROUPS.CURRENCY_REQUIRED' | translate }}</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="action-buttons">
+        <button
+          mat-icon-button
+          type="button"
+          (click)="close()"
+          [attr.aria-label]="'COMMON.CANCEL' | translate"
+        >
+          <mat-icon class="button-icon-color">cancel</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          type="submit"
+          [disabled]="isSaving"
+          [attr.aria-label]="'COMMON.SAVE' | translate"
+        >
+          <mat-icon class="button-icon-color">save</mat-icon>
+        </button>
+      </div>
     </form>
-    </div>
   </div>
+</div>

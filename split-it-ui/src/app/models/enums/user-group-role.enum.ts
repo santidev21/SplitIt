@@ -1,5 +1,5 @@
 export enum UserGroupRole {
-    Creator = 'creator',
-    Admin = 'admin',
-    Member = 'member'
+  Creator = 'creator',
+  Admin = 'admin',
+  Member = 'member',
 }

@@ -10,4 +10,3 @@ export interface UserGroup {
   description: string;
   role: string;
 }
-  

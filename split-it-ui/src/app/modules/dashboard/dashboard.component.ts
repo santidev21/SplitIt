@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { HeaderBarComponent } from './components/header-bar/header-bar.component';
@@ -16,33 +16,30 @@ import { AuthService } from '../auth/services/auth.service';
   selector: 'app-dashboard',
   imports: [MATERIAL_IMPORTS, HeaderBarComponent, GroupCardComponent, RouterModule, TranslatePipe],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss']
+  styleUrls: ['./dashboard.component.scss'],
 })
-export class DashboardComponent implements OnInit{
-  userName: string | null = null;
-  userHasGroups: boolean = false;
-  userGroups: UserGroup[] = [];
+export class DashboardComponent implements OnInit {
+  private dialog = inject(MatDialog);
+  private groupService = inject(GroupService);
+  private friendService = inject(FriendService);
+  private notifications = inject(NotificationService);
+  private translate = inject(TranslateService);
+  private authService = inject(AuthService);
 
-  constructor(
-    private dialog: MatDialog,
-    private groupService: GroupService,
-    private friendService: FriendService,
-    private notifications: NotificationService,
-    private translate: TranslateService,
-    private authService: AuthService
-  ) {}
+  userName: string | null = null;
+  userHasGroups = false;
+  userGroups: UserGroup[] = [];
 
   ngOnInit(): void {
     this.userName = this.authService.getUserName();
     const userId = this.authService.getCurrentUserId();
     if (userId) {
-      this.groupService.getUserGroups(userId).subscribe((resp : UserGroup[]) => {
-        if (resp && resp.length)
-        {
+      this.groupService.getUserGroups(userId).subscribe((resp: UserGroup[]) => {
+        if (resp && resp.length) {
           this.userHasGroups = true;
           this.userGroups = resp;
         }
-      })
+      });
       this.checkPendingFriendRequests();
     }
   }
@@ -52,21 +49,24 @@ export class DashboardComponent implements OnInit{
       next: (resp) => {
         if (resp.incoming && resp.incoming.length > 0) {
           const names = resp.incoming.map((r: any) => r.name).join(', ');
-          const msg = resp.incoming.length === 1
-            ? this.translate.instant('DASHBOARD.FRIEND_REQUEST_SINGLE', { name: names })
-            : this.translate.instant('DASHBOARD.FRIEND_REQUEST_PLURAL', { count: resp.incoming.length, names });
+          const msg =
+            resp.incoming.length === 1
+              ? this.translate.instant('DASHBOARD.FRIEND_REQUEST_SINGLE', { name: names })
+              : this.translate.instant('DASHBOARD.FRIEND_REQUEST_PLURAL', {
+                  count: resp.incoming.length,
+                  names,
+                });
           setTimeout(() => {
             this.notifications.info(this.translate.instant('DASHBOARD.FRIEND_REQUESTS'), msg);
           }, 1500);
         }
-      }
+      },
     });
   }
 
   openCreateGroupDialog() {
     this.dialog.open(CreateGroupComponent, {
-      width: '600px'
+      width: '600px',
     });
   }
-
 }

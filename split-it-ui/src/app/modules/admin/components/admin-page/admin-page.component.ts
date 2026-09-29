@@ -1,8 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { HeaderBarComponent } from '../../../dashboard/components/header-bar/header-bar.component';
 import { FormsModule } from '@angular/forms';
-import { AdminService, AdminStats, UserAdmin, UsersPage, GroupAdmin, PasswordResetToken } from '../../services/admin.service';
+import {
+  AdminService,
+  AdminStats,
+  UserAdmin,
+  UsersPage,
+  GroupAdmin,
+  PasswordResetToken,
+} from '../../services/admin.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
@@ -11,9 +18,14 @@ import { TranslateService, TranslatePipe } from '@ngx-translate/core';
   selector: 'app-admin-page',
   imports: [MATERIAL_IMPORTS, HeaderBarComponent, FormsModule, TranslatePipe],
   templateUrl: './admin-page.component.html',
-  styleUrls: ['./admin-page.component.scss']
+  styleUrls: ['./admin-page.component.scss'],
 })
 export class AdminPageComponent implements OnInit {
+  private adminService = inject(AdminService);
+  private notifications = inject(NotificationService);
+  private translate = inject(TranslateService);
+  private authService = inject(AuthService);
+
   selectedTab = 0;
 
   stats?: AdminStats;
@@ -26,7 +38,7 @@ export class AdminPageComponent implements OnInit {
   readonly roles = [
     { id: 1, label: 'SuperAdmin' },
     { id: 2, label: 'Admin' },
-    { id: 3, label: 'User' }
+    { id: 3, label: 'User' },
   ];
   isSuperAdmin = false;
   currentUserId = 0;
@@ -40,13 +52,6 @@ export class AdminPageComponent implements OnInit {
   newCurrencySymbol = '';
 
   resetTokens: PasswordResetToken[] = [];
-
-  constructor(
-    private adminService: AdminService,
-    private notifications: NotificationService,
-    private translate: TranslateService,
-    private authService: AuthService
-  ) {}
 
   ngOnInit(): void {
     this.isSuperAdmin = this.authService.isSuperAdminRole();
@@ -62,8 +67,10 @@ export class AdminPageComponent implements OnInit {
 
   loadStats(): void {
     this.adminService.getStats().subscribe({
-      next: (stats) => { this.stats = stats; },
-      error: () => {}
+      next: (stats) => {
+        this.stats = stats;
+      },
+      error: () => {},
     });
   }
 
@@ -73,7 +80,7 @@ export class AdminPageComponent implements OnInit {
         this.users = page.items;
         this.usersTotal = page.total;
       },
-      error: () => {}
+      error: () => {},
     });
   }
 
@@ -101,10 +108,13 @@ export class AdminPageComponent implements OnInit {
     this.adminService.updateUserRole(user.id, roleId).subscribe({
       next: () => {
         user.roleId = roleId;
-        user.roleName = this.roles.find(r => r.id === roleId)?.label ?? user.roleName;
-        this.notifications.toast(this.translate.instant('NOTIFICATIONS.ROLE_UPDATED', { name: user.name }), 'success');
+        user.roleName = this.roles.find((r) => r.id === roleId)?.label ?? user.roleName;
+        this.notifications.toast(
+          this.translate.instant('NOTIFICATIONS.ROLE_UPDATED', { name: user.name }),
+          'success',
+        );
       },
-      error: () => {}
+      error: () => {},
     });
   }
 
@@ -113,16 +123,23 @@ export class AdminPageComponent implements OnInit {
     this.adminService.setUserActive(user.id, newValue).subscribe({
       next: () => {
         user.isActive = newValue;
-        this.notifications.toast(newValue ? this.translate.instant('NOTIFICATIONS.USER_ACTIVATED', { name: user.name }) : this.translate.instant('NOTIFICATIONS.USER_DEACTIVATED', { name: user.name }), 'success');
+        this.notifications.toast(
+          newValue
+            ? this.translate.instant('NOTIFICATIONS.USER_ACTIVATED', { name: user.name })
+            : this.translate.instant('NOTIFICATIONS.USER_DEACTIVATED', { name: user.name }),
+          'success',
+        );
       },
-      error: () => {}
+      error: () => {},
     });
   }
 
   loadGroups(): void {
     this.adminService.getGroups(this.groupSearch).subscribe({
-      next: (groups: GroupAdmin[]) => { this.groups = groups; },
-      error: () => {}
+      next: (groups: GroupAdmin[]) => {
+        this.groups = groups;
+      },
+      error: () => {},
     });
   }
 
@@ -132,18 +149,19 @@ export class AdminPageComponent implements OnInit {
         this.registrationEnabled = (settings['RegistrationEnabled'] ?? 'true') === 'true';
         this.maxExpenseAmount = Number(settings['MaxExpenseAmount'] ?? 1000000);
       },
-      error: () => {}
+      error: () => {},
     });
   }
 
   saveSettings(): void {
     const settings: Record<string, string> = {
       RegistrationEnabled: String(this.registrationEnabled),
-      MaxExpenseAmount: String(this.maxExpenseAmount)
+      MaxExpenseAmount: String(this.maxExpenseAmount),
     };
     this.adminService.updateSettings(settings).subscribe({
-      next: () => this.notifications.success(this.translate.instant('NOTIFICATIONS.SETTINGS_UPDATED')),
-      error: () => {}
+      next: () =>
+        this.notifications.success(this.translate.instant('NOTIFICATIONS.SETTINGS_UPDATED')),
+      error: () => {},
     });
   }
 
@@ -151,33 +169,41 @@ export class AdminPageComponent implements OnInit {
     const name = this.newCurrencyName.trim();
     const symbol = this.newCurrencySymbol.trim();
     if (!name || !symbol) {
-      this.notifications.toast(this.translate.instant('NOTIFICATIONS.CURRENCY_NAME_SYMBOL_REQUIRED'), 'warning');
+      this.notifications.toast(
+        this.translate.instant('NOTIFICATIONS.CURRENCY_NAME_SYMBOL_REQUIRED'),
+        'warning',
+      );
       return;
     }
     this.adminService.createCurrency(name, symbol).subscribe({
       next: () => {
-        this.notifications.toast(this.translate.instant('NOTIFICATIONS.CURRENCY_CREATED', { name }), 'success');
+        this.notifications.toast(
+          this.translate.instant('NOTIFICATIONS.CURRENCY_CREATED', { name }),
+          'success',
+        );
         this.newCurrencyName = '';
         this.newCurrencySymbol = '';
       },
-      error: () => {}
+      error: () => {},
     });
   }
 
   loadResetTokens(): void {
     this.adminService.getResetTokens().subscribe({
-      next: (tokens) => { this.resetTokens = tokens; },
-      error: () => {}
+      next: (tokens) => {
+        this.resetTokens = tokens;
+      },
+      error: () => {},
     });
   }
 
   deleteResetToken(token: PasswordResetToken): void {
     this.adminService.deleteResetToken(token.id).subscribe({
       next: () => {
-        this.resetTokens = this.resetTokens.filter(t => t.id !== token.id);
+        this.resetTokens = this.resetTokens.filter((t) => t.id !== token.id);
         this.notifications.toast(this.translate.instant('NOTIFICATIONS.TOKEN_DELETED'), 'success');
       },
-      error: () => {}
+      error: () => {},
     });
   }
 }

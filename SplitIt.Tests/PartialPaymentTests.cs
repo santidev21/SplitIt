@@ -33,7 +33,11 @@ public class PartialPaymentTests
         var expSvc = new ExpensesService(ctx);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "Dinner", Amount = 100, Date = DateTime.UtcNow, PaidById = bobId,
+            GroupId = gId,
+            Title = "Dinner",
+            Amount = 100,
+            Date = DateTime.UtcNow,
+            PaidById = bobId,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = aliceId, AmountOwed = 100 } }
         }, bobId);
 
@@ -59,7 +63,11 @@ public class PartialPaymentTests
         var expSvc = new ExpensesService(ctx);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "Trip", Amount = 100, Date = DateTime.UtcNow, PaidById = bobId,
+            GroupId = gId,
+            Title = "Trip",
+            Amount = 100,
+            Date = DateTime.UtcNow,
+            PaidById = bobId,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = aliceId, AmountOwed = 100 } }
         }, bobId);
 
@@ -81,7 +89,11 @@ public class PartialPaymentTests
         var expSvc = new ExpensesService(ctx);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "Lunch", Amount = 50, Date = DateTime.UtcNow, PaidById = bobId,
+            GroupId = gId,
+            Title = "Lunch",
+            Amount = 50,
+            Date = DateTime.UtcNow,
+            PaidById = bobId,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = aliceId, AmountOwed = 50 } }
         }, bobId);
         await expSvc.RegisterPayment(aliceId, bobId, gId, 50);
@@ -95,7 +107,11 @@ public class PartialPaymentTests
         var expSvc = new ExpensesService(ctx);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "Coffee", Amount = 20, Date = DateTime.UtcNow, PaidById = bobId,
+            GroupId = gId,
+            Title = "Coffee",
+            Amount = 20,
+            Date = DateTime.UtcNow,
+            PaidById = bobId,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = aliceId, AmountOwed = 20 } }
         }, bobId);
         await Assert.ThrowsAsync<ArgumentException>(() => expSvc.RegisterPayment(aliceId, bobId, gId, 30));
@@ -111,7 +127,11 @@ public class PartialPaymentTests
         var expSvc = new ExpensesService(ctx);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "Test", Amount = 100, Date = DateTime.UtcNow, PaidById = bobId,
+            GroupId = gId,
+            Title = "Test",
+            Amount = 100,
+            Date = DateTime.UtcNow,
+            PaidById = bobId,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = aliceId, AmountOwed = 100 } }
         }, bobId);
         await Assert.ThrowsAsync<ArgumentException>(() => expSvc.RegisterPayment(aliceId, bobId, gId, amount));
@@ -133,12 +153,20 @@ public class PartialPaymentTests
         // Two expenses: 60 and 40, total 100
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "E1", Amount = 60, Date = DateTime.UtcNow.AddDays(-1), PaidById = bobId,
+            GroupId = gId,
+            Title = "E1",
+            Amount = 60,
+            Date = DateTime.UtcNow.AddDays(-1),
+            PaidById = bobId,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = aliceId, AmountOwed = 60 } }
         }, bobId);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "E2", Amount = 40, Date = DateTime.UtcNow, PaidById = bobId,
+            GroupId = gId,
+            Title = "E2",
+            Amount = 40,
+            Date = DateTime.UtcNow,
+            PaidById = bobId,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = aliceId, AmountOwed = 40 } }
         }, bobId);
 
@@ -165,7 +193,11 @@ public class PartialPaymentTests
         var expSvc = new ExpensesService(ctx);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "Groceries", Amount = 100.01m, Date = DateTime.UtcNow, PaidById = bobId,
+            GroupId = gId,
+            Title = "Groceries",
+            Amount = 100.01m,
+            Date = DateTime.UtcNow,
+            PaidById = bobId,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto>
             {
                 new() { UserId = aliceId, AmountOwed = 50.00m },
@@ -192,7 +224,11 @@ public class PartialPaymentTests
         var expSvc = new ExpensesService(ctx);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "Taxi", Amount = 50, Date = DateTime.UtcNow, PaidById = bobId,
+            GroupId = gId,
+            Title = "Taxi",
+            Amount = 50,
+            Date = DateTime.UtcNow,
+            PaidById = bobId,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = aliceId, AmountOwed = 50 } }
         }, bobId);
 
