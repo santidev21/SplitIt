@@ -22,7 +22,7 @@ You audit the **entire SplitIt repository** and report on code quality, architec
 
 ## Method
 
-1. **Map the repo.** Read `AGENTS.md` and `docs/specs/` first — they are the source of truth. Then read the prior reports (`docs/PRODUCTION_AUDIT.md`, `docs/SECURITY.md`, `docs/REMEDIATION_REPORT_PHASE_0.5.md`) so you don't re-report already-remediated findings — verify them instead. Inventory `SplitIt.API/` (API, Application, Domain, Infrastructure, Shared) and `split-it-ui/src/app`.
+1. **Map the repo.** Read `AGENTS.md` and `docs/specs/` first — they are the source of truth. Then read the prior reports (`docs/PRODUCTION_AUDIT.md`, `docs/SECURITY.md`) so you don't re-report already-remediated findings — verify them instead. Inventory `SplitIt.API/` (API, Application, Domain, Infrastructure, Shared) and `split-it-ui/src/app`.
 2. **Load the relevant skills** before judging an area: `dotnet-best-practices`, `aspnet-core`, `csharp-async`, `dotnet-design-pattern-review`, `api-contract`, `angular-best-practices`, `security-review`, `data-integrity-audit`, `i18n`, `accessibility`, `db-migrations`.
 3. **Read the real code** — controllers, services, entities, `AppDbContext`, migrations, Angular components/services/guards/interceptors, specs, configs, Dockerfiles and CI. Don't judge from file names or from the docs alone.
 4. **Verify, don't guess.** Run `npm run build`, `npm run test` (or per side) when useful, and report the actual result. If you can't run something, say so.

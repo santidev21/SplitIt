@@ -20,7 +20,7 @@ SplitIt/
 ├─ SplitIt.Tests/   # Backend tests (referenced from SplitIt.API/SplitIt.Back.sln)
 ├─ split-it-ui/     # Angular application (src/app, e2e)
 ├─ docker/          # Docker configs (backend, frontend, proxy, sqlserver)
-├─ docs/            # Guides, reports, screenshots, specs (docs/specs/)
+├─ docs/            # Guides, runbooks, specs, ADRs (docs/specs/, docs/adr/)
 ├─ scripts/         # Deploy, helper and local-dev orchestration scripts (run-splitit.mjs)
 ├─ package.json     # Root orchestration scripts (dev, db:*, docker:dev, build, test)
 ├─ .opencode/       # AI home: agent/, command/, skills/ (tracked; local plugin scaffold ignored)
@@ -59,7 +59,19 @@ Angular 21 app in `split-it-ui/src/app`. Protected routes via JWT, admin panel b
 - Skills: `api-contract`, `i18n`, `db-migrations`, `backend-test`, `frontend-test`, `run-e2e`, `docker-dev`, `security-review`, `angular-best-practices`, `dotnet-best-practices`, `data-integrity-audit`, plus imported generic ones.
 - Two review modes: `/review <diff>` → **reviewer** agent (per-change); `/review repo` → **repo-auditor** agent (whole-repo graded report, read-only).
 - `opencode.json` holds instructions, MCP servers and permissions. Skills, agents and commands need no config — opencode auto-discovers `.opencode/`.
-- `AGENTS.md` is the single source of truth; `docs/specs/` holds details and `docs/AUDIT_*.md` holds audit reports.
+- `AGENTS.md` is the single source of truth; `docs/specs/` holds details, `docs/adr/` holds decisions and `docs/AUDIT_*.md` holds the current audit.
+
+## Documentation Policy
+
+Docs capture decisions and current state, never session narration.
+
+- **Allowed:** `README` (how to run), `docs/adr/NNN-*.md` (one decision: context, options, decision,
+  consequences), `docs/specs/*.md` (current design and business rules), runbooks
+  (`DEPLOYMENT`, `BACKUPS`, `CICD`, `DOCKER`, `HTTPS`, `NGINX`, `TESTING`), and the current
+  `docs/AUDIT_*.md` / `docs/PRODUCTION_AUDIT.md` / `docs/SECURITY.md`.
+- **Forbidden:** phase reports, progress logs, "what I did" narration and per-session summaries.
+  When a change needs a durable record, update the relevant spec or add an ADR — do not create a
+  report file. This applies to AI output too.
 
 ## Working Rules For This Repo
 - Language: all code, comments, XML docs, tests, commit messages, PR titles/descriptions, docs (`README`, `docs/`, `AGENTS.md`), and AI output must be in English. Only user-facing UI strings may be in Spanish (via i18n files), never hardcoded Spanish in code/comments.

@@ -350,9 +350,11 @@ Violación: Services en `Infrastructure` contienen lógica de negocio (debt calc
 
 ---
 
-## 10. Exact Implementation Plan (fases obligatorias)
+## 10. Historical Implementation Plan
 
-> No se avanza de fase sin **reporte** `Changed files / Tests / Security improvements / Remaining risks / Next`.
+> History only — kept to explain how the audit-driven work was sequenced. It is no longer a
+> working process: each item is delivered as its own change and its durable outcome lives in
+> `docs/specs/`, `docs/SECURITY.md`, the runbooks or an ADR. Per-phase reports are not maintained.
 
 ```
 Phase 0  ✅ AUDIT (este documento)
@@ -386,11 +388,11 @@ Phase 27 Final Quality Gate — checklist 27 ítems
 Phase 28 Docs — README, .env.example, ARCHITECTURE.md, etc.
 ```
 
-**Próximo paso inmediato (sin tu aprobación no se ejecuta):**  
+**Historical next step (from the audit):**  
 **Phase 1 — Secrets & Configuration:**  
-- Crear `docs/SECURITY.md` parcial, `.env.example`, actualizar `.gitignore`, mover `JwtSettings` y `ConnectionStrings` a env vars con fallback, añadir `appsettings.Production.json` template, documentar rotación, instalar `gitleaks` pre-commit.
-
-¿Apruebas avanzar a Phase 1? Responde `sí` o indica ajustes a esta auditoría.
+- Create `.env.example`, update `.gitignore`, move `JwtSettings` and `ConnectionStrings` to env vars
+  with fallback, add `appsettings.Production.json` template, document rotation in
+  `docs/SECURITY.md`.
 
 ---
 
