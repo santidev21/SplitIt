@@ -20,7 +20,7 @@ RUN node scripts/set-env.js
 RUN npm run build -- --configuration production
 
 # Stage 2: Serve static files with Nginx Alpine
-FROM nginx:1.27-alpine AS final
+FROM nginx:1.31-alpine AS final
 
 # Install wget and upgrade Alpine packages to patch base OS vulnerabilities
 RUN apk add --no-cache wget && apk upgrade --no-cache
