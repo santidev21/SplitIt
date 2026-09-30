@@ -1,6 +1,12 @@
+import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import Swal from 'sweetalert2';
 import { HeaderBarComponent } from './header-bar.component';
+import { AuthService } from '../../../auth/services/auth.service';
+import { AccountService } from '../../services/account.service';
+import { LanguageService } from '../../../../shared/services/language.service';
 
 describe('HeaderBarComponent', () => {
   let authService: any;
@@ -13,12 +19,24 @@ describe('HeaderBarComponent', () => {
     authService = { isAdminRole: () => false, logout: jasmine.createSpy('logout') };
     accountService = {
       exportData: jasmine.createSpy('exportData').and.returnValue(of({ id: 1 })),
-      deleteAccount: jasmine.createSpy('deleteAccount').and.returnValue(of({ message: 'ok' }))
+      deleteAccount: jasmine.createSpy('deleteAccount').and.returnValue(of({ message: 'ok' })),
     };
     translate = { instant: (key: string) => key };
     languageService = { currentLang: 'en', toggleLanguage: jasmine.createSpy('toggleLanguage') };
     router = { navigate: jasmine.createSpy('navigate') };
-    return new HeaderBarComponent(router, authService, accountService, translate, languageService);
+    // The component uses inject(), so it must be created inside an injection
+    // context with the fakes provided through DI.
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Router, useValue: router },
+        { provide: AuthService, useValue: authService },
+        { provide: AccountService, useValue: accountService },
+        { provide: TranslateService, useValue: translate },
+        { provide: LanguageService, useValue: languageService },
+      ],
+    });
+    return TestBed.runInInjectionContext(() => new HeaderBarComponent());
   }
 
   it('creates with admin flag from AuthService', () => {
@@ -73,7 +91,9 @@ describe('HeaderBarComponent', () => {
 
   it('deleteAccount deletes and logs out when confirmed with a password', async () => {
     const component = build();
-    spyOn(Swal, 'fire').and.returnValue(Promise.resolve({ isConfirmed: true, value: 'Pass123!' } as any));
+    spyOn(Swal, 'fire').and.returnValue(
+      Promise.resolve({ isConfirmed: true, value: 'Pass123!' } as any),
+    );
     await component.deleteAccount();
     expect(accountService.deleteAccount).toHaveBeenCalledWith('Pass123!');
     expect(authService.logout).toHaveBeenCalled();

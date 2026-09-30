@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
@@ -14,9 +14,18 @@ import { TranslateService, TranslatePipe } from '@ngx-translate/core';
   selector: 'app-create-group',
   imports: [MATERIAL_IMPORTS, RouterModule, FormsModule, TranslatePipe],
   templateUrl: './create-group.component.html',
-  styleUrls: ['./create-group.component.scss']
+  styleUrls: ['./create-group.component.scss'],
 })
-export class CreateGroupComponent implements OnInit{
+export class CreateGroupComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private dialogRef = inject<MatDialogRef<CreateGroupComponent>>(MatDialogRef);
+  private currencyService = inject(CurrencyService);
+  private friendService = inject(FriendService);
+  private groupService = inject(GroupService);
+  private router = inject(Router);
+  private notifications = inject(NotificationService);
+  private translate = inject(TranslateService);
+
   createGroupForm: FormGroup;
   friends: Friend[] = [];
   selectedFriendIds: Set<number> = new Set<number>();
@@ -27,36 +36,39 @@ export class CreateGroupComponent implements OnInit{
   searchResults: SearchUser[] = [];
   isSearching = false;
 
-  constructor(
-    private fb: FormBuilder,
-    private dialogRef: MatDialogRef<CreateGroupComponent>,
-    private currencyService: CurrencyService,
-    private friendService: FriendService,
-    private groupService: GroupService,
-    private router: Router,
-    private notifications: NotificationService,
-    private translate: TranslateService
-  ) {
+  constructor() {
     this.createGroupForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]],
       description: ['', [Validators.required, Validators.maxLength(500)]],
       currencyId: [null, Validators.required],
-      allowToDeleteExpenses: [false]
+      allowToDeleteExpenses: [false],
     });
   }
 
   ngOnInit(): void {
     this.currencyService.getCurrencies().subscribe({
-      next: (currencies) => { this.currencies = currencies; },
-      error: () => this.notifications.toast(this.translate.instant('NOTIFICATIONS.COULD_NOT_LOAD_CURRENCIES'), 'error')
+      next: (currencies) => {
+        this.currencies = currencies;
+      },
+      error: () =>
+        this.notifications.toast(
+          this.translate.instant('NOTIFICATIONS.COULD_NOT_LOAD_CURRENCIES'),
+          'error',
+        ),
     });
     this.loadFriends();
   }
 
   loadFriends(): void {
     this.friendService.getFriends().subscribe({
-      next: (friends) => { this.friends = friends; },
-      error: () => this.notifications.toast(this.translate.instant('NOTIFICATIONS.COULD_NOT_LOAD_FRIENDS'), 'error')
+      next: (friends) => {
+        this.friends = friends;
+      },
+      error: () =>
+        this.notifications.toast(
+          this.translate.instant('NOTIFICATIONS.COULD_NOT_LOAD_FRIENDS'),
+          'error',
+        ),
     });
   }
 
@@ -77,17 +89,22 @@ export class CreateGroupComponent implements OnInit{
         this.searchResults = results;
         this.isSearching = false;
       },
-      error: () => { this.isSearching = false; }
+      error: () => {
+        this.isSearching = false;
+      },
     });
   }
 
   sendFriendRequest(user: SearchUser): void {
     this.friendService.sendRequest({ userId: user.id }).subscribe({
       next: () => {
-        this.notifications.toast(this.translate.instant('NOTIFICATIONS.FRIEND_REQUEST_SENT_TO', { name: user.name }), 'success');
-        this.searchResults = this.searchResults.filter(r => r.id !== user.id);
+        this.notifications.toast(
+          this.translate.instant('NOTIFICATIONS.FRIEND_REQUEST_SENT_TO', { name: user.name }),
+          'success',
+        );
+        this.searchResults = this.searchResults.filter((r) => r.id !== user.id);
       },
-      error: () => {}
+      error: () => {},
     });
   }
 
@@ -100,7 +117,7 @@ export class CreateGroupComponent implements OnInit{
 
     const groupData = {
       ...this.createGroupForm.value,
-      members: Array.from(this.selectedFriendIds)
+      members: Array.from(this.selectedFriendIds),
     };
 
     this.groupService.createGroup(groupData).subscribe({
@@ -110,7 +127,9 @@ export class CreateGroupComponent implements OnInit{
         this.notifications.success(this.translate.instant('NOTIFICATIONS.GROUP_CREATED'));
         this.router.navigate(['/dashboard/group', resp.groupId]);
       },
-      error: () => { this.isSaving = false; }
+      error: () => {
+        this.isSaving = false;
+      },
     });
   }
 

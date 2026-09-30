@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { authGuard } from './auth.guard';
 import { AuthService } from '../services/auth.service';
-import { of, throwError } from 'rxjs';
+import { throwError } from 'rxjs';
 
 function b64url(obj: any): string {
   return btoa(JSON.stringify(obj)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
@@ -24,15 +24,17 @@ describe('authGuard', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: Router, useValue: routerSpy },
-        { provide: AuthService, useValue: authServiceSpy }
-      ]
+        { provide: AuthService, useValue: authServiceSpy },
+      ],
     });
   });
 
   it('should allow activation when valid token present', () => {
     const token = makeToken({ sub: '1' });
     authServiceSpy.getToken.and.returnValue(token);
-    const result = TestBed.runInInjectionContext(() => authGuard({} as any, { url: '/dashboard/home' } as any));
+    const result = TestBed.runInInjectionContext(() =>
+      authGuard({} as any, { url: '/dashboard/home' } as any),
+    );
     expect(result).toBe(true);
     expect(routerSpy.navigate).not.toHaveBeenCalled();
   });
@@ -40,7 +42,9 @@ describe('authGuard', () => {
   it('should try refresh and deny when no token and refresh fails', () => {
     authServiceSpy.getToken.and.returnValue(null);
     authServiceSpy.refreshSession.and.returnValue(throwError(() => new Error('no token')));
-    const result = TestBed.runInInjectionContext(() => authGuard({} as any, { url: '/dashboard/home' } as any));
+    const result = TestBed.runInInjectionContext(() =>
+      authGuard({} as any, { url: '/dashboard/home' } as any),
+    );
     expect(result instanceof Promise || (result as any)?.subscribe).toBeTruthy();
   });
 

@@ -1,27 +1,21 @@
 import { Directive, HostListener } from '@angular/core';
 
 @Directive({
-  selector: '[appPositiveNumber]'
+  selector: '[appPositiveNumber]',
 })
 export class PositiveNumberDirective {
   @HostListener('keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
-    const allowedKeys = [
-      'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'
-    ];
+    const allowedKeys = ['Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'];
 
     // Allow digits and allowed control keys
-    if (
-      allowedKeys.includes(event.key) ||
-      /^[0-9]$/.test(event.key)
-    ) {
+    if (allowedKeys.includes(event.key) || /^[0-9]$/.test(event.key)) {
       return;
     }
 
     // Block everything else
     event.preventDefault();
   }
-  
 
   @HostListener('paste', ['$event'])
   onPaste(event: ClipboardEvent) {

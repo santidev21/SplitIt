@@ -1,13 +1,33 @@
+import { TestBed } from '@angular/core/testing';
+import { ActivatedRoute } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { Location } from '@angular/common';
+import { TranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 import { LegalPageComponent } from './legal-page.component';
 
 describe('LegalPageComponent', () => {
+  // The component uses inject(), so it must be created inside an injection
+  // context. We configure the TestBed with the fakes and instantiate via DI.
+  function instantiate(route: any, http: any, translate: any, location: any) {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ActivatedRoute, useValue: route },
+        { provide: HttpClient, useValue: http },
+        { provide: TranslateService, useValue: translate },
+        { provide: Location, useValue: location },
+      ],
+    });
+    return TestBed.runInInjectionContext(() => new LegalPageComponent());
+  }
+
   function build(doc: string, html = '<h1>Doc</h1>') {
     const route = { snapshot: { data: { doc } } } as any;
     const http = { get: jasmine.createSpy('get').and.returnValue(of(html)) } as any;
     const translate = { getCurrentLang: () => 'en', onLangChange: of({}) } as any;
     const location = { back: jasmine.createSpy('back') } as any;
-    const component = new LegalPageComponent(route, http, translate, location);
+    const component = instantiate(route, http, translate, location);
     return { component, http, location };
   }
 
@@ -33,7 +53,7 @@ describe('LegalPageComponent', () => {
     const http = { get: () => throwError(() => new Error('network')) } as any;
     const translate = { getCurrentLang: () => 'en', onLangChange: of({}) } as any;
     const location = { back: () => {} } as any;
-    const component = new LegalPageComponent(route, http, translate, location);
+    const component = instantiate(route, http, translate, location);
 
     component.ngOnInit();
     expect(component.loadError).toBeTrue();

@@ -35,7 +35,11 @@ public class AuthorizationIntegrationTests : IClassFixture<SqlServerFixture>
         // A trying to add expense to B's group should throw Unauthorized
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gB, Title = "Hack", Amount = 10, Date = DateTime.UtcNow, PaidById = a.Id,
+            GroupId = gB,
+            Title = "Hack",
+            Amount = 10,
+            Date = DateTime.UtcNow,
+            PaidById = a.Id,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = a.Id, AmountOwed = 10 } }
         }, a.Id));
     }

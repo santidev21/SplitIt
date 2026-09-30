@@ -3,7 +3,7 @@
 // ─── Brand palettes ───
 
 $brand-primary: (
-  50:  #e3f0fb,
+  50: #e3f0fb,
   100: #b8d9f4,
   200: #8ec1ec,
   300: #5da5e1,
@@ -36,7 +36,7 @@ $brand-primary: (
 );
 
 $brand-secondary: (
-  50:  #e6e9ef,
+  50: #e6e9ef,
   100: #b3bcc8,
   200: #808fa1,
   300: #4d627a,
@@ -69,7 +69,7 @@ $brand-secondary: (
 );
 
 $brand-danger: (
-  50:  #fee2e2,
+  50: #fee2e2,
   100: #fecaca,
   200: #fca5a5,
   300: #f87171,
@@ -84,28 +84,46 @@ $brand-danger: (
   A400: #dc2626,
   A700: #b91c1c,
   contrast: (
-    50: #000000, 100: #000000, 200: #000000, 300: #000000,
-    400: #ffffff, 500: #ffffff, 600: #ffffff, 700: #ffffff,
-    800: #ffffff, 900: #ffffff,
-    A100: #000000, A200: #ffffff, A400: #ffffff, A700: #ffffff,
+    50: #000000,
+    100: #000000,
+    200: #000000,
+    300: #000000,
+    400: #ffffff,
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+    A100: #000000,
+    A200: #ffffff,
+    A400: #ffffff,
+    A700: #ffffff,
   ),
 );
 
 // ─── Theme definition ───
-$light-theme: mat.define-theme((
-  color: (
-    theme-type: light,
-    primary: mat.$blue-palette,
-    tertiary: $brand-danger,
-  ),
-  density: (scale: 0),
-));
+$light-theme: mat.define-theme(
+  (
+    color: (
+      theme-type: light,
+      primary: mat.$blue-palette,
+      tertiary: $brand-danger,
+    ),
+    density: (
+      scale: 0,
+    ),
+  )
+);
 
-$dark-theme: mat.define-theme((
-  color: (
-    theme-type: dark,
-    primary: mat.$blue-palette,
-    tertiary: $brand-danger,
-  ),
-  density: (scale: 0),
-));
+$dark-theme: mat.define-theme(
+  (
+    color: (
+      theme-type: dark,
+      primary: mat.$blue-palette,
+      tertiary: $brand-danger,
+    ),
+    density: (
+      scale: 0,
+    ),
+  )
+);

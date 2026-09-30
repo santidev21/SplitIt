@@ -1,19 +1,14 @@
 import { Directive, HostListener } from '@angular/core';
 
 @Directive({
-  selector: '[appPercentage]'
+  selector: '[appPercentage]',
 })
 export class PercentageDirective {
   @HostListener('keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
-    const allowedKeys = [
-      'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'
-    ];
+    const allowedKeys = ['Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'];
 
-    if (
-      allowedKeys.includes(event.key) ||
-      /^[0-9]$/.test(event.key)
-    ) {
+    if (allowedKeys.includes(event.key) || /^[0-9]$/.test(event.key)) {
       return;
     }
 

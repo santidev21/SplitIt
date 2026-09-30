@@ -4,61 +4,92 @@
 
 <mat-dialog-content>
   <form [formGroup]="expenseForm" class="expense-form">
-
     <mat-form-field appearance="outline" class="full-width-field">
-        <mat-label>{{ 'EXPENSE.TITLE_LABEL' | translate }}</mat-label>
-        <input matInput formControlName="title" />
-        <mat-error *ngIf="expenseForm.get('title')?.hasError('required')">{{ 'EXPENSE.TITLE_REQUIRED' | translate }}</mat-error>
-        <mat-error *ngIf="expenseForm.get('title')?.hasError('maxlength')">{{ 'EXPENSE.TITLE_MAX_LENGTH' | translate }}</mat-error>
+      <mat-label>{{ 'EXPENSE.TITLE_LABEL' | translate }}</mat-label>
+      <input matInput formControlName="title" />
+      @if (expenseForm.get('title')?.hasError('required')) {
+        <mat-error>{{ 'EXPENSE.TITLE_REQUIRED' | translate }}</mat-error>
+      }
+      @if (expenseForm.get('title')?.hasError('maxlength')) {
+        <mat-error>{{ 'EXPENSE.TITLE_MAX_LENGTH' | translate }}</mat-error>
+      }
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width-field">
-        <mat-label>{{ 'EXPENSE.NOTES' | translate }}</mat-label>
-        <textarea matInput formControlName="note" rows="1"></textarea>
-        <mat-error *ngIf="expenseForm.get('note')?.hasError('maxlength')">{{ 'EXPENSE.NOTES_MAX_LENGTH' | translate }}</mat-error>
+      <mat-label>{{ 'EXPENSE.NOTES' | translate }}</mat-label>
+      <textarea matInput formControlName="note" rows="1"></textarea>
+      @if (expenseForm.get('note')?.hasError('maxlength')) {
+        <mat-error>{{ 'EXPENSE.NOTES_MAX_LENGTH' | translate }}</mat-error>
+      }
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width-field">
       <mat-label>{{ 'EXPENSE.AMOUNT' | translate }}</mat-label>
-      <input matInput type="number" formControlName="amount" appPositiveNumber/>
-      <mat-error *ngIf="expenseForm.get('amount')?.hasError('required')">{{ 'EXPENSE.AMOUNT_REQUIRED' | translate }}</mat-error>
-      <mat-error *ngIf="expenseForm.get('amount')?.hasError('min')">{{ 'EXPENSE.AMOUNT_GT_ZERO' | translate }}</mat-error>
-      <mat-error *ngIf="expenseForm.get('amount')?.hasError('max')">{{ 'EXPENSE.AMOUNT_MAX' | translate }}</mat-error>
+      <input matInput type="number" formControlName="amount" appPositiveNumber />
+      @if (expenseForm.get('amount')?.hasError('required')) {
+        <mat-error>{{ 'EXPENSE.AMOUNT_REQUIRED' | translate }}</mat-error>
+      }
+      @if (expenseForm.get('amount')?.hasError('min')) {
+        <mat-error>{{ 'EXPENSE.AMOUNT_GT_ZERO' | translate }}</mat-error>
+      }
+      @if (expenseForm.get('amount')?.hasError('max')) {
+        <mat-error>{{ 'EXPENSE.AMOUNT_MAX' | translate }}</mat-error>
+      }
     </mat-form-field>
 
     <div class="datepicker-section">
-        <button #dateButton mat-button (click)="openDatepicker()" class="datepicker-btn" type="button" [attr.aria-label]="'EXPENSE.SELECT_DATE' | translate">
-            <mat-icon>calendar_month</mat-icon>
-            {{ selectedDate | date: 'mediumDate' }}
-          </button>
+      <button
+        #dateButton
+        mat-button
+        (click)="openDatepicker()"
+        class="datepicker-btn"
+        type="button"
+        [attr.aria-label]="'EXPENSE.SELECT_DATE' | translate"
+      >
+        <mat-icon>calendar_month</mat-icon>
+        {{ selectedDate | date: 'mediumDate' }}
+      </button>
 
-          <input
-            #hiddenDateInput
-            matInput
-            [matDatepicker]="picker"
-            [value]="selectedDate"
-            (dateChange)="onDateChange($event)"
-            readonly
-            class="hidden-datepicker-input"
-          />
+      <input
+        #hiddenDateInput
+        matInput
+        [matDatepicker]="picker"
+        [value]="selectedDate"
+        (dateChange)="onDateChange($event)"
+        readonly
+        class="hidden-datepicker-input"
+      />
 
-          <mat-datepicker #picker></mat-datepicker>
+      <mat-datepicker #picker></mat-datepicker>
     </div>
 
-    <div class="split-expense-info" *ngIf="!isLoading && members.length > 0">
+    @if (!isLoading && members.length > 0) {
+      <div class="split-expense-info">
         <span>{{ 'EXPENSE.PAID_BY' | translate }}</span>
-        <mat-select formControlName="paidById" panelClass="wide-select-panel" [attr.aria-label]="'EXPENSE.PAID_BY' | translate">
-            <mat-option *ngFor="let member of members" [value]="member.id">
-                {{ member.id === currentUserId ? ('COMMON.YOU' | translate) : member.name }}
+        <mat-select
+          formControlName="paidById"
+          panelClass="wide-select-panel"
+          [attr.aria-label]="'EXPENSE.PAID_BY' | translate"
+        >
+          @for (member of members; track member) {
+            <mat-option [value]="member.id">
+              {{ member.id === currentUserId ? ('COMMON.YOU' | translate) : member.name }}
             </mat-option>
+          }
         </mat-select>
-
         <span>{{ 'EXPENSE.AND_SPLIT' | translate }}</span>
-        <span class="split-method-button" (click)="openSplitMethod()" role="button" tabindex="0" (keydown.enter)="openSplitMethod()" [attr.aria-label]="'EXPENSE.CHOOSE_SPLIT' | translate">
+        <span
+          class="split-method-button"
+          (click)="openSplitMethod()"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="openSplitMethod()"
+          [attr.aria-label]="'EXPENSE.CHOOSE_SPLIT' | translate"
+        >
           {{ splitMethodLabel | translate }}
         </span>
-    </div>
-
+      </div>
+    }
   </form>
 </mat-dialog-content>
 

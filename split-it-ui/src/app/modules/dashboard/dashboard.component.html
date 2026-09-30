@@ -1,26 +1,35 @@
 <app-header-bar></app-header-bar>
 <div class="dashboard-container">
-    <span class="user-title">{{ 'DASHBOARD.HI' | translate: { name: userName } }}</span>
-    <div class="dashboard-section">
-        <span class="my-groups-title">{{ 'DASHBOARD.MY_GROUPS' | translate }}</span>
-        <div class="groups-card-container">
-                <mat-card appearance="outlined">
-                    <mat-card-content class="groups-card">
-                        <div *ngIf="userHasGroups; else elseBlock">
-                            <div class="user-groups-container">
-                                <div *ngFor="let group of userGroups">
-                                    <app-group-card [group]="group"></app-group-card>
-                                </div>
-                            </div>
-                        </div>
-                        <ng-template #elseBlock>
-                            <span class="warning-text">{{ 'DASHBOARD.NO_GROUPS' | translate }}</span>
-                        </ng-template>
-                        <button mat-icon-button color="primary" class="button-icon-color" (click)="openCreateGroupDialog()" [attr.aria-label]="'DASHBOARD.CREATE_GROUP' | translate">
-                            <mat-icon>add_circle_outline</mat-icon>
-                        </button>
-                    </mat-card-content>
-                </mat-card>
-        </div>
-      </div>
+  <span class="user-title">{{ 'DASHBOARD.HI' | translate: { name: userName } }}</span>
+  <div class="dashboard-section">
+    <span class="my-groups-title">{{ 'DASHBOARD.MY_GROUPS' | translate }}</span>
+    <div class="groups-card-container">
+      <mat-card appearance="outlined">
+        <mat-card-content class="groups-card">
+          @if (userHasGroups) {
+            <div>
+              <div class="user-groups-container">
+                @for (group of userGroups; track group) {
+                  <div>
+                    <app-group-card [group]="group"></app-group-card>
+                  </div>
+                }
+              </div>
+            </div>
+          } @else {
+            <span class="warning-text">{{ 'DASHBOARD.NO_GROUPS' | translate }}</span>
+          }
+          <button
+            mat-icon-button
+            color="primary"
+            class="button-icon-color"
+            (click)="openCreateGroupDialog()"
+            [attr.aria-label]="'DASHBOARD.CREATE_GROUP' | translate"
+          >
+            <mat-icon>add_circle_outline</mat-icon>
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
 </div>

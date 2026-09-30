@@ -89,7 +89,11 @@ public class AuditLogTests
         var expSvc = new ExpensesService(ctx);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "E", Amount = 100, Date = DateTime.UtcNow, PaidById = b.Id,
+            GroupId = gId,
+            Title = "E",
+            Amount = 100,
+            Date = DateTime.UtcNow,
+            PaidById = b.Id,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = a.Id, AmountOwed = 100 } }
         }, b.Id);
 

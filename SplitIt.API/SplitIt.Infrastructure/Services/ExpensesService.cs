@@ -1,4 +1,4 @@
-﻿    using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SplitIt.Application.DTOs;
 using SplitIt.Domain.Entities;
 using SplitIt.Infrastructure.Persistence;
@@ -153,7 +153,7 @@ namespace SplitIt.Infrastructure.Services
                 }).ToList()
             }).ToList();
 
-            
+
             return expenseDetails;
         }
 
@@ -375,6 +375,6 @@ namespace SplitIt.Infrastructure.Services
 
             return paymentShare.Id;
         }
-            
+
     }
 }

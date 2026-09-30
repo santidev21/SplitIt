@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { Router, RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -10,23 +10,23 @@ import { TranslatePipe } from '@ngx-translate/core';
   selector: 'app-register',
   imports: [MATERIAL_IMPORTS, RouterModule, LoadingSpinnerComponent, TranslatePipe],
   templateUrl: './register.component.html',
-  styleUrls: ['./register.component.scss']
+  styleUrls: ['./register.component.scss'],
 })
 export class RegisterComponent {
+  private authService = inject(AuthService);
+  private fb = inject(FormBuilder);
+  private router = inject(Router);
+
   registerForm: FormGroup;
-  isLoading: boolean = false;
+  isLoading = false;
   submitAttempted = false;
 
-  constructor(
-    private authService: AuthService,
-    private fb: FormBuilder,
-    private router: Router,
-  ){
+  constructor() {
     this.registerForm = this.fb.group({
       userName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
       password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(100)]],
-      acceptTerms: [false, [Validators.requiredTrue]]
+      acceptTerms: [false, [Validators.requiredTrue]],
     });
   }
 
@@ -41,13 +41,13 @@ export class RegisterComponent {
 
     const { userName, email, password, acceptTerms } = this.registerForm.value;
     this.authService.register(userName, email, password, acceptTerms === true).subscribe({
-      next: (response) => {
+      next: () => {
         this.isLoading = false;
         this.router.navigate(['/dashboard']);
       },
-      error: (err) => {
+      error: () => {
         this.isLoading = false;
-      }
+      },
     });
   }
 }

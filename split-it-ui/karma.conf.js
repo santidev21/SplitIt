@@ -8,14 +8,14 @@ module.exports = function (config) {
       require('karma-chrome-launcher'),
       require('karma-jasmine-html-reporter'),
       require('karma-coverage'),
-      require('@angular-devkit/build-angular/plugins/karma')
+      require('@angular-devkit/build-angular/plugins/karma'),
     ],
     client: {
       jasmine: {},
-      clearContext: false
+      clearContext: false,
     },
     jasmineHtmlReporter: {
-      suppressAll: true
+      suppressAll: true,
     },
     coverageReporter: {
       dir: require('path').join(__dirname, './coverage/split-it-ui'),
@@ -24,7 +24,7 @@ module.exports = function (config) {
         { type: 'html' },
         { type: 'text-summary' },
         { type: 'lcovonly' },
-        { type: 'cobertura' }
+        { type: 'cobertura' },
       ],
       check: {
         global: {
@@ -32,26 +32,34 @@ module.exports = function (config) {
           branches: 20,
           functions: 30,
           lines: 45,
-          excludes: ['src/main.ts', 'src/environments/**']
+          excludes: ['src/main.ts', 'src/environments/**'],
         },
         each: {
           statements: 2,
           branches: 0,
           lines: 2,
-          excludes: ['src/**/*.spec.ts', 'src/app/modules/dashboard/components/split-method-dialog/**']
-        }
-      }
+          excludes: [
+            'src/**/*.spec.ts',
+            'src/app/modules/dashboard/components/split-method-dialog/**',
+          ],
+        },
+      },
     },
     reporters: ['progress', 'kjhtml', 'coverage'],
     browsers: ['ChromeHeadlessNoSandbox'],
     customLaunchers: {
       ChromeHeadlessNoSandbox: {
         base: 'ChromeHeadless',
-        flags: ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--disable-setuid-sandbox']
-      }
+        flags: [
+          '--no-sandbox',
+          '--disable-gpu',
+          '--disable-dev-shm-usage',
+          '--disable-setuid-sandbox',
+        ],
+      },
     },
     restartOnFileChange: true,
     singleRun: false,
-    browserNoActivityTimeout: 60000
+    browserNoActivityTimeout: 60000,
   });
 };

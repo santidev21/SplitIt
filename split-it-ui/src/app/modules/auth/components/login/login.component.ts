@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, NgZone } from '@angular/core';
+import { Component, OnInit, AfterViewInit, NgZone, inject } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -8,35 +8,34 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../../../environments/environment';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
-declare var google: any;
+declare let google: any;
 
 @Component({
   selector: 'app-login',
   imports: [MATERIAL_IMPORTS, RouterModule, LoadingSpinnerComponent, TranslatePipe],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+  styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent implements OnInit, AfterViewInit {
+  private authService = inject(AuthService);
+  private fb = inject(FormBuilder);
+  private router = inject(Router);
+  private ngZone = inject(NgZone);
+  private snackBar = inject(MatSnackBar);
+  private translate = inject(TranslateService);
 
   loginForm: FormGroup;
-  isLoading: boolean = false;
+  isLoading = false;
   submitAttempted = false;
   googleReady = false;
   googleError: string | null = null;
   private googleInitAttempts = 0;
   private readonly maxGoogleInitAttempts = 25;
 
-  constructor(
-    private authService: AuthService,
-    private fb: FormBuilder,
-    private router: Router,
-    private ngZone: NgZone,
-    private snackBar: MatSnackBar,
-    private translate: TranslateService,
-  ){
+  constructor() {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(6)]],
     });
   }
 
@@ -94,14 +93,17 @@ export class LoginComponent implements OnInit, AfterViewInit {
       itp_support: true,
       auto_select: false,
       callback: (response: any) => this.handleGoogleCredential(response),
-      error_callback: () => this.ngZone.run(() => {
-        this.googleError = this.translate.instant('AUTH.GOOGLE_UNAVAILABLE');
-      }),
+      error_callback: () =>
+        this.ngZone.run(() => {
+          this.googleError = this.translate.instant('AUTH.GOOGLE_UNAVAILABLE');
+        }),
     });
-    google.accounts.id.renderButton(
-      document.getElementById('google-signin-button'),
-      { theme: 'outline', size: 'large', width: '100%', text: 'signin_with' }
-    );
+    google.accounts.id.renderButton(document.getElementById('google-signin-button'), {
+      theme: 'outline',
+      size: 'large',
+      width: '100%',
+      text: 'signin_with',
+    });
     this.googleReady = true;
   }
 
@@ -128,7 +130,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
             ? `${this.translate.instant('AUTH.GOOGLE_FAILED')} (${backendMsg})`
             : this.translate.instant('AUTH.GOOGLE_FAILED');
           this.snackBar.open(msg, 'OK', { duration: 5000 });
-        }
+        },
       });
     });
   }
@@ -149,7 +151,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
       },
       error: () => {
         this.isLoading = false;
-      }
+      },
     });
   }
 }

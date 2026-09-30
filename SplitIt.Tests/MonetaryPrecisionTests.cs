@@ -48,7 +48,11 @@ public class MonetaryPrecisionTests
         // Use tricky decimals 33.33, 33.33, 33.34
         var exp = await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "Tricky", Amount = 100m, Date = DateTime.UtcNow, PaidById = alice.Id,
+            GroupId = gId,
+            Title = "Tricky",
+            Amount = 100m,
+            Date = DateTime.UtcNow,
+            PaidById = alice.Id,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto>
             {
                 new() { UserId = alice.Id, AmountOwed = 33.33m },
@@ -77,7 +81,11 @@ public class MonetaryPrecisionTests
         var expSvc = new ExpensesService(ctx);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "E", Amount = 100.01m, Date = DateTime.UtcNow, PaidById = b.Id,
+            GroupId = gId,
+            Title = "E",
+            Amount = 100.01m,
+            Date = DateTime.UtcNow,
+            PaidById = b.Id,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = a.Id, AmountOwed = 100.01m } }
         }, b.Id);
         await expSvc.RegisterPayment(a.Id, b.Id, gId, 33.33m);
@@ -106,7 +114,11 @@ public class MonetaryPrecisionTests
         var expSvc = new ExpensesService(ctx);
         await expSvc.AddExpenseAsync(new SplitIt.Application.DTOs.CreateExpenseDto
         {
-            GroupId = gId, Title = "E", Amount = 100, Date = DateTime.UtcNow, PaidById = b.Id,
+            GroupId = gId,
+            Title = "E",
+            Amount = 100,
+            Date = DateTime.UtcNow,
+            PaidById = b.Id,
             Participants = new List<SplitIt.Application.DTOs.ExpenseParticipantDto> { new() { UserId = a.Id, AmountOwed = 100 } }
         }, b.Id);
         if (amount <= 0 || amount > 100)

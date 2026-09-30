@@ -1,46 +1,89 @@
 <app-loading-spinner [isLoading]="isLoading"></app-loading-spinner>
 
 <div class="auth-container">
-    <mat-card class="auth-card" appearance="outlined">
-      <mat-card-title class="auth-text">{{ 'AUTH.LOGIN_TITLE' | translate }}</mat-card-title>
-      <mat-card-content>
-        <form [formGroup]="loginForm" (ngSubmit)="login($event)">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ 'AUTH.EMAIL' | translate }}</mat-label>
-            <input matInput type="email" formControlName="email" [placeholder]="'AUTH.EMAIL_PLACEHOLDER' | translate" required aria-required="true" />
-            <mat-error *ngIf="loginForm.get('email')?.hasError('required')">{{ 'AUTH.EMAIL_REQUIRED' | translate }}</mat-error>
-            <mat-error *ngIf="loginForm.get('email')?.hasError('email') && !loginForm.get('email')?.hasError('required')">{{ 'AUTH.EMAIL_INVALID' | translate }}</mat-error>
-          </mat-form-field>
+  <mat-card class="auth-card" appearance="outlined">
+    <mat-card-title class="auth-text">{{ 'AUTH.LOGIN_TITLE' | translate }}</mat-card-title>
+    <mat-card-content>
+      <form [formGroup]="loginForm" (ngSubmit)="login($event)">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'AUTH.EMAIL' | translate }}</mat-label>
+          <input
+            matInput
+            type="email"
+            formControlName="email"
+            [placeholder]="'AUTH.EMAIL_PLACEHOLDER' | translate"
+            required
+            aria-required="true"
+          />
+          @if (loginForm.get('email')?.hasError('required')) {
+            <mat-error>{{ 'AUTH.EMAIL_REQUIRED' | translate }}</mat-error>
+          }
+          @if (
+            loginForm.get('email')?.hasError('email') &&
+            !loginForm.get('email')?.hasError('required')
+          ) {
+            <mat-error>{{ 'AUTH.EMAIL_INVALID' | translate }}</mat-error>
+          }
+        </mat-form-field>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ 'AUTH.PASSWORD' | translate }}</mat-label>
-            <input matInput type="password" formControlName="password" [placeholder]="'AUTH.PASSWORD_PLACEHOLDER' | translate" required aria-required="true" />
-            <mat-error *ngIf="loginForm.get('password')?.hasError('required')">{{ 'AUTH.PASSWORD_REQUIRED' | translate }}</mat-error>
-            <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">{{ 'AUTH.PASSWORD_MIN_LENGTH' | translate }}</mat-error>
-          </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'AUTH.PASSWORD' | translate }}</mat-label>
+          <input
+            matInput
+            type="password"
+            formControlName="password"
+            [placeholder]="'AUTH.PASSWORD_PLACEHOLDER' | translate"
+            required
+            aria-required="true"
+          />
+          @if (loginForm.get('password')?.hasError('required')) {
+            <mat-error>{{ 'AUTH.PASSWORD_REQUIRED' | translate }}</mat-error>
+          }
+          @if (loginForm.get('password')?.hasError('minlength')) {
+            <mat-error>{{ 'AUTH.PASSWORD_MIN_LENGTH' | translate }}</mat-error>
+          }
+        </mat-form-field>
 
-          <button mat-raised-button color="primary" class="full-width" type="submit">{{ 'AUTH.LOGIN_BUTTON' | translate }}</button>
-        </form>
-        <div class="auth-links-row">
-          <a routerLink="/auth/forgot-password" class="auth-link">{{ 'AUTH.FORGOT_PASSWORD' | translate }}</a>
-        </div>
+        <button mat-raised-button color="primary" class="full-width" type="submit">
+          {{ 'AUTH.LOGIN_BUTTON' | translate }}
+        </button>
+      </form>
+      <div class="auth-links-row">
+        <a routerLink="/auth/forgot-password" class="auth-link">{{
+          'AUTH.FORGOT_PASSWORD' | translate
+        }}</a>
+      </div>
 
-        <mat-divider class="full-width"></mat-divider>
+      <mat-divider class="full-width"></mat-divider>
 
-        <p class="google-consent-notice">
-          {{ 'AUTH.GOOGLE_CONSENT_NOTICE' | translate }}
-          <a routerLink="/legal/privacy" target="_blank" rel="noopener">{{ 'AUTH.PRIVACY_LINK' | translate }}</a>
-          {{ 'AUTH.AND' | translate }}
-          <a routerLink="/legal/terms" target="_blank" rel="noopener">{{ 'AUTH.TERMS_LINK' | translate }}</a>.
-        </p>
-        <div id="google-signin-button" class="google-btn-wrapper"></div>
-        <div *ngIf="googleError" class="google-error" role="alert">
+      <p class="google-consent-notice">
+        {{ 'AUTH.GOOGLE_CONSENT_NOTICE' | translate }}
+        <a routerLink="/legal/privacy" target="_blank" rel="noopener">{{
+          'AUTH.PRIVACY_LINK' | translate
+        }}</a>
+        {{ 'AUTH.AND' | translate }}
+        <a routerLink="/legal/terms" target="_blank" rel="noopener">{{
+          'AUTH.TERMS_LINK' | translate
+        }}</a
+        >.
+      </p>
+      <div id="google-signin-button" class="google-btn-wrapper"></div>
+      @if (googleError) {
+        <div class="google-error" role="alert">
           <span>{{ googleError }}</span>
-          <button mat-button color="primary" type="button" (click)="retryGoogle()">{{ 'AUTH.GOOGLE_RETRY' | translate }}</button>
+          <button mat-button color="primary" type="button" (click)="retryGoogle()">
+            {{ 'AUTH.GOOGLE_RETRY' | translate }}
+          </button>
         </div>
-      </mat-card-content>
-      <mat-card-actions>
-        <span class="auth-action-text">{{ 'AUTH.NO_ACCOUNT' | translate }} <a routerLink="/auth/register" class="auth-link">{{ 'AUTH.CREATE_ACCOUNT' | translate }}</a></span>
-      </mat-card-actions>
-    </mat-card>
-  </div>
+      }
+    </mat-card-content>
+    <mat-card-actions>
+      <span class="auth-action-text"
+        >{{ 'AUTH.NO_ACCOUNT' | translate }}
+        <a routerLink="/auth/register" class="auth-link">{{
+          'AUTH.CREATE_ACCOUNT' | translate
+        }}</a></span
+      >
+    </mat-card-actions>
+  </mat-card>
+</div>

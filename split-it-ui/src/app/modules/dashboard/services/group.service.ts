@@ -1,17 +1,16 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { GroupDetails, GroupMember } from '../../../models/group.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class GroupService {
+  private http = inject(HttpClient);
 
-    private API_URL = `${environment.apiUrl}/groups`;
-  
-  constructor(private http: HttpClient) { }
+  private API_URL = `${environment.apiUrl}/groups`;
 
   createGroup(groupData: {
     name: string;
@@ -40,11 +39,14 @@ export class GroupService {
     return this.http.get<any>(`${this.API_URL}/${groupId}/userrole`);
   }
 
-  updateGroup(groupId: number, data: {
-    name: string;
-    description: string;
-    allowToDeleteExpenses: boolean;
-  }): Observable<any> {
+  updateGroup(
+    groupId: number,
+    data: {
+      name: string;
+      description: string;
+      allowToDeleteExpenses: boolean;
+    },
+  ): Observable<any> {
     return this.http.put(`${this.API_URL}/${groupId}`, data);
   }
 

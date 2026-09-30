@@ -33,8 +33,8 @@ namespace SplitIt.Infrastructure.Persistence
         public DbSet<Currency> Currencies { get; set; }
         public DbSet<Group> Groups { get; set; }
         public DbSet<GroupMember> GroupMembers { get; set; }
-        public DbSet<Expense> Expense{get; set;}
-        public DbSet<ExpenseShare> ExpenseShare{get; set;}
+        public DbSet<Expense> Expense { get; set; }
+        public DbSet<ExpenseShare> ExpenseShare { get; set; }
         public DbSet<Friendship> Friendships { get; set; }
         public DbSet<AppSetting> AppSettings { get; set; }
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
@@ -186,7 +186,7 @@ namespace SplitIt.Infrastructure.Persistence
             }
         }
 
-protected override void OnModelCreating(ModelBuilder modelBuilder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
@@ -215,7 +215,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
             modelBuilder.Entity<Currency>(entity =>
             {
                 entity.HasKey(c => c.Id);
-                entity.Property(c => c.Name).IsRequired().HasMaxLength(100); 
+                entity.Property(c => c.Name).IsRequired().HasMaxLength(100);
                 entity.Property(c => c.Symbol).IsRequired().HasMaxLength(10);
                 entity.Property(c => c.DecimalPlaces).HasDefaultValue(2);
             });
@@ -268,7 +268,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
             // Expense Share table configuration
             modelBuilder.Entity<ExpenseShare>(entity =>
             {
-                entity.HasKey(es => es.Id);entity.Property(es => es.AmountOwed).HasColumnType("decimal(18,2)");
+                entity.HasKey(es => es.Id); entity.Property(es => es.AmountOwed).HasColumnType("decimal(18,2)");
                 entity.Property(es => es.AmountPaid).HasColumnType("decimal(18,2)").HasDefaultValue(0m);
                 entity.HasOne(es => es.Expense).WithMany(e => e.Shares).HasForeignKey(es => es.ExpenseId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(es => es.User).WithMany().HasForeignKey(es => es.UserId).OnDelete(DeleteBehavior.Restrict);

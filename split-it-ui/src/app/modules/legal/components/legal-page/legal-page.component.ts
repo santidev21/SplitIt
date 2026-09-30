@@ -1,5 +1,5 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Location } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
@@ -8,24 +8,22 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-legal-page',
-  imports: [CommonModule, RouterModule, MatCardModule, TranslatePipe],
+  imports: [RouterModule, MatCardModule, TranslatePipe],
   templateUrl: './legal-page.component.html',
-  styleUrls: ['./legal-page.component.scss']
+  styleUrls: ['./legal-page.component.scss'],
 })
 export class LegalPageComponent implements OnInit, OnDestroy {
+  private route = inject(ActivatedRoute);
+  private http = inject(HttpClient);
+  private translate = inject(TranslateService);
+  private location = inject(Location);
+
   content: string | null = null;
   titleKey = 'LEGAL.PRIVACY_TITLE';
   loadError = false;
 
   private doc = 'privacy';
   private langSub?: Subscription;
-
-  constructor(
-    private route: ActivatedRoute,
-    private http: HttpClient,
-    private translate: TranslateService,
-    private location: Location,
-  ) {}
 
   goBack(): void {
     this.location.back();

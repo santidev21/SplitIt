@@ -15,11 +15,11 @@ describe('SplitMethodDialogComponent', () => {
   const members = [
     { id: 1, name: 'Alice' },
     { id: 2, name: 'Bob' },
-    { id: 3, name: 'Charlie' }
+    { id: 3, name: 'Charlie' },
   ];
 
   function createComponent(data: { members: any[]; amount: number; decimalPlaces?: number }) {
-    data.members.forEach(m => delete (m as any).amount);
+    data.members.forEach((m) => delete (m as any).amount);
     TestBed.resetTestingModule();
     dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
     TestBed.configureTestingModule({
@@ -31,8 +31,8 @@ describe('SplitMethodDialogComponent', () => {
         provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
         provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
         provideHttpClient(),
-        provideHttpClientTesting()
-      ]
+        provideHttpClientTesting(),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SplitMethodDialogComponent);
@@ -52,7 +52,9 @@ describe('SplitMethodDialogComponent', () => {
       expect(dialogRefSpy.close).toHaveBeenCalled();
       const result = dialogRefSpy.close.calls.mostRecent().args[0];
       expect(result.method).toBe('SPLIT.METHOD_EQUAL');
-      expect(result.expenseParticipant.map((p: any) => p.amountOwed)).toEqual([33.34, 33.33, 33.33]);
+      expect(result.expenseParticipant.map((p: any) => p.amountOwed)).toEqual([
+        33.34, 33.33, 33.33,
+      ]);
     });
 
     it('splits 100 among 2 exactly', () => {

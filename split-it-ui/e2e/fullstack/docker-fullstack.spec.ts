@@ -2,8 +2,16 @@ import { test, expect } from '@playwright/test';
 
 test.describe.serial('Real Docker Full-Stack E2E through Nginx HTTPS (No Mocks)', () => {
   const timestamp = Date.now();
-  const userA = { name: `UserA_${timestamp}`, email: `usera_${timestamp}@e2e.local`, password: 'Password123!' };
-  const userB = { name: `UserB_${timestamp}`, email: `userb_${timestamp}@e2e.local`, password: 'Password123!' };
+  const userA = {
+    name: `UserA_${timestamp}`,
+    email: `usera_${timestamp}@e2e.local`,
+    password: 'Password123!',
+  };
+  const userB = {
+    name: `UserB_${timestamp}`,
+    email: `userb_${timestamp}@e2e.local`,
+    password: 'Password123!',
+  };
 
   let tokenA: string = '';
   let userAId: number = 0;
@@ -24,8 +32,8 @@ test.describe.serial('Real Docker Full-Stack E2E through Nginx HTTPS (No Mocks)'
   test('2. Real User A Registration via UI', async ({ page }) => {
     await page.goto(`${baseUrl}/auth/register`);
 
-    const respPromise = page.waitForResponse(r =>
-      r.url().includes('/api/auth/register') && r.request().method() === 'POST'
+    const respPromise = page.waitForResponse(
+      (r) => r.url().includes('/api/auth/register') && r.request().method() === 'POST',
     );
 
     await page.getByPlaceholder('Enter your name').fill(userA.name);
@@ -46,7 +54,7 @@ test.describe.serial('Real Docker Full-Stack E2E through Nginx HTTPS (No Mocks)'
 
   test('3. Real User B Registration via API & Login via UI', async ({ request, page }) => {
     const regRes = await request.post(`${baseUrl}/api/auth/register`, {
-      data: { name: userB.name, email: userB.email, password: userB.password, acceptTerms: true }
+      data: { name: userB.name, email: userB.email, password: userB.password, acceptTerms: true },
     });
     expect(regRes.ok()).toBeTruthy();
     const regBody = await regRes.json();
@@ -73,8 +81,8 @@ test.describe.serial('Real Docker Full-Stack E2E through Nginx HTTPS (No Mocks)'
         description: 'Fullstack E2E Group',
         currencyId: 1,
         members: [userBId],
-        allowToDeleteExpenses: true
-      }
+        allowToDeleteExpenses: true,
+      },
     });
     expect(grpRes.ok()).toBeTruthy();
     const grpBody = await grpRes.json();
@@ -93,9 +101,9 @@ test.describe.serial('Real Docker Full-Stack E2E through Nginx HTTPS (No Mocks)'
         paidById: userAId,
         participants: [
           { userId: userAId, amountOwed: 50.0 },
-          { userId: userBId, amountOwed: 50.0 }
-        ]
-      }
+          { userId: userBId, amountOwed: 50.0 },
+        ],
+      },
     });
     expect(expRes.ok()).toBeTruthy();
     const expBody = await expRes.json();
@@ -103,7 +111,7 @@ test.describe.serial('Real Docker Full-Stack E2E through Nginx HTTPS (No Mocks)'
     expect(expenseId).toBeGreaterThan(0);
 
     const debtRes = await request.get(`${baseUrl}/api/expenses/debt-summary?groupId=${groupId}`, {
-      headers: { Authorization: `Bearer ${tokenA}` }
+      headers: { Authorization: `Bearer ${tokenA}` },
     });
     expect(debtRes.ok()).toBeTruthy();
   });
@@ -114,8 +122,8 @@ test.describe.serial('Real Docker Full-Stack E2E through Nginx HTTPS (No Mocks)'
       data: {
         payerUserId: userBId,
         groupId: groupId,
-        amount: 30.0
-      }
+        amount: 30.0,
+      },
     });
     expect(payRes.ok()).toBeTruthy();
     const payBody = await payRes.json();
@@ -128,8 +136,8 @@ test.describe.serial('Real Docker Full-Stack E2E through Nginx HTTPS (No Mocks)'
       data: {
         payerUserId: userBId,
         groupId: groupId,
-        amount: 20.0
-      }
+        amount: 20.0,
+      },
     });
     expect(setRes.ok()).toBeTruthy();
     const setBody = await setRes.json();
@@ -143,15 +151,18 @@ test.describe.serial('Real Docker Full-Stack E2E through Nginx HTTPS (No Mocks)'
         name: `SecretGroup_${timestamp}`,
         description: 'Private Isolated Group',
         currencyId: 1,
-        members: []
-      }
+        members: [],
+      },
     });
     expect(isoGroupRes.ok()).toBeTruthy();
     const isoGroup = await isoGroupRes.json();
 
-    const bolaRes = await request.get(`${baseUrl}/api/expenses/debt-summary?groupId=${isoGroup.groupId}`, {
-      headers: { Authorization: `Bearer ${tokenB}` }
-    });
+    const bolaRes = await request.get(
+      `${baseUrl}/api/expenses/debt-summary?groupId=${isoGroup.groupId}`,
+      {
+        headers: { Authorization: `Bearer ${tokenB}` },
+      },
+    );
     expect(bolaRes.status()).toBe(403);
   });
 

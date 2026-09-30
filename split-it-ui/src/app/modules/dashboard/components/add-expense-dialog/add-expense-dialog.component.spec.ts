@@ -20,15 +20,22 @@ describe('AddExpenseDialogComponent', () => {
 
   beforeEach(async () => {
     groupSpy = jasmine.createSpyObj('GroupService', ['getGroupMembers', 'getGroupDetails']);
-    groupSpy.getGroupMembers.and.returnValue(of([{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }]));
+    groupSpy.getGroupMembers.and.returnValue(
+      of([
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+      ]),
+    );
     groupSpy.getGroupDetails.and.returnValue(of({ name: 'G', description: 'D', currencyId: 1 }));
     const expenseSpy = jasmine.createSpyObj('ExpenseService', ['addExpense']);
     expenseSpy.addExpense.and.returnValue(of({ id: 1 }));
     const currencySpy = jasmine.createSpyObj('CurrencyService', ['getCurrencies']);
-    currencySpy.getCurrencies.and.returnValue(of([
-      { id: 1, name: 'Dólar', symbol: 'USD', decimalPlaces: 2 },
-      { id: 2, name: 'Peso Colombiano', symbol: 'COP', decimalPlaces: 0 }
-    ]));
+    currencySpy.getCurrencies.and.returnValue(
+      of([
+        { id: 1, name: 'Dólar', symbol: 'USD', decimalPlaces: 2 },
+        { id: 2, name: 'Peso Colombiano', symbol: 'COP', decimalPlaces: 0 },
+      ]),
+    );
     dialogSpy = jasmine.createSpyObj('MatDialog', ['open']);
     // openSplitMethod() subscribes to dialogRef.afterClosed(), so the stub must
     // return a fake ref (previously unstubbed: no test ever called open() before).
@@ -47,8 +54,8 @@ describe('AddExpenseDialogComponent', () => {
         { provide: CurrencyService, useValue: currencySpy },
         { provide: AuthService, useValue: { getCurrentUserId: () => 1 } },
         provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
-        provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' })
-      ]
+        provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
+      ],
     }).compileComponents();
 
     // NOTE: MatDialog must be forced through TestBed.overrideProvider. A plain

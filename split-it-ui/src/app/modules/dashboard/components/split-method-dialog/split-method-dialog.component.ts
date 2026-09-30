@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
@@ -10,29 +10,38 @@ import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-split-method-dialog',
-  imports: [MATERIAL_IMPORTS, FormsModule, MatDialogModule, PositiveNumberDirective, PercentageDirective, TranslatePipe],
+  imports: [
+    MATERIAL_IMPORTS,
+    FormsModule,
+    MatDialogModule,
+    PositiveNumberDirective,
+    PercentageDirective,
+    TranslatePipe,
+  ],
   templateUrl: './split-method-dialog.component.html',
-  styleUrls: ['./split-method-dialog.component.scss']
+  styleUrls: ['./split-method-dialog.component.scss'],
 })
 export class SplitMethodDialogComponent {
+  data = inject(MAT_DIALOG_DATA);
+  private dialogRef = inject<MatDialogRef<SplitMethodDialogComponent>>(MatDialogRef);
+  private translate = inject(TranslateService);
+
   selectedTabIndex = 0;
 
   members: any[] = [];
-  equalSplitSelection: { [key: string]: boolean } = {};
-  amountSplit: { [key: string]: number } = {};
-  percentageSplit: { [key: string]: number } = {};
-  amount: number = 0;
-  validationError: string = '';
+  equalSplitSelection: Record<string, boolean> = {};
+  amountSplit: Record<string, number> = {};
+  percentageSplit: Record<string, number> = {};
+  amount = 0;
+  validationError = '';
   currentUserId = 0;
   /** Currency precision (2 for USD cents, 0 for whole Colombian pesos); resolved from the group's currency. */
   decimalPlaces = 2;
 
-  constructor(
-    @Inject(MAT_DIALOG_DATA) public data: any,
-    private dialogRef: MatDialogRef<SplitMethodDialogComponent>,
-    private translate: TranslateService,
-    authService: AuthService
-  ) {
+  constructor() {
+    const data = this.data;
+    const authService = inject(AuthService);
+
     this.currentUserId = authService.getCurrentUserId();
     this.members = data.members || [];
     this.members.forEach((m) => {
@@ -41,7 +50,8 @@ export class SplitMethodDialogComponent {
       this.percentageSplit[m.id] = 0;
     });
     this.amount = data.amount;
-    this.decimalPlaces = data.decimalPlaces !== undefined && data.decimalPlaces !== null ? data.decimalPlaces : 2;
+    this.decimalPlaces =
+      data.decimalPlaces !== undefined && data.decimalPlaces !== null ? data.decimalPlaces : 2;
   }
 
   /** Size of one minor unit of the currency: 0.01 for 2 decimals, 1 for 0. */
@@ -89,26 +99,27 @@ export class SplitMethodDialogComponent {
 
   /** Localized label for a member: "You"/"Tú" for the current user, real name otherwise. */
   displayName(member: any): string {
-    return member?.id === this.currentUserId
-      ? this.translate.instant('COMMON.YOU')
-      : member?.name;
+    return member?.id === this.currentUserId ? this.translate.instant('COMMON.YOU') : member?.name;
   }
 
   validateEqualSplit(): string {
-    if (this.hasExcessPrecision(this.amount)) return this.translate.instant('SPLIT.AMOUNT_DECIMALS', { decimals: this.decimalPlaces });
-    const selected = this.members.filter(m => this.equalSplitSelection[m.id]);
+    if (this.hasExcessPrecision(this.amount))
+      return this.translate.instant('SPLIT.AMOUNT_DECIMALS', { decimals: this.decimalPlaces });
+    const selected = this.members.filter((m) => this.equalSplitSelection[m.id]);
     if (selected.length === 0) return this.translate.instant('SPLIT.NO_MEMBERS');
     // Whole-unit floor of an equal split: each participant must receive at least one minor unit.
     const unit = this.scaleUnit();
     const perPerson = Math.floor((this.amount / selected.length) * unit) / unit;
     const remainder = Math.round((this.amount - perPerson * selected.length) * unit);
-    if (perPerson <= 0 && remainder < selected.length) return this.translate.instant('SPLIT.AMOUNT_TOO_SMALL');
+    if (perPerson <= 0 && remainder < selected.length)
+      return this.translate.instant('SPLIT.AMOUNT_TOO_SMALL');
     return '';
   }
 
   validateByAmount(): string {
-    if (this.hasExcessPrecision(this.amount)) return this.translate.instant('SPLIT.AMOUNT_DECIMALS', { decimals: this.decimalPlaces });
-    const entered = this.members.filter(m => m.amount != null && Number(m.amount) > 0);
+    if (this.hasExcessPrecision(this.amount))
+      return this.translate.instant('SPLIT.AMOUNT_DECIMALS', { decimals: this.decimalPlaces });
+    const entered = this.members.filter((m) => m.amount != null && Number(m.amount) > 0);
     if (entered.length === 0) return this.translate.instant('SPLIT.NO_AMOUNTS');
     for (const m of entered) {
       if (this.hasExcessPrecision(Number(m.amount))) {
@@ -119,20 +130,30 @@ export class SplitMethodDialogComponent {
     if (Math.abs(sum - this.amount) > 0.01) {
       const diff = Math.abs(sum - this.amount);
       if (sum < this.amount) {
-        return this.translate.instant('SPLIT.AMOUNTS_UNDER', { sum: sum.toFixed(2), diff: diff.toFixed(2), total: this.amount.toFixed(2) });
+        return this.translate.instant('SPLIT.AMOUNTS_UNDER', {
+          sum: sum.toFixed(2),
+          diff: diff.toFixed(2),
+          total: this.amount.toFixed(2),
+        });
       }
-      return this.translate.instant('SPLIT.AMOUNTS_OVER', { sum: sum.toFixed(2), diff: diff.toFixed(2), total: this.amount.toFixed(2) });
+      return this.translate.instant('SPLIT.AMOUNTS_OVER', {
+        sum: sum.toFixed(2),
+        diff: diff.toFixed(2),
+        total: this.amount.toFixed(2),
+      });
     }
     return '';
   }
 
   validateByPercentage(): string {
-    if (this.hasExcessPrecision(this.amount)) return this.translate.instant('SPLIT.AMOUNT_DECIMALS', { decimals: this.decimalPlaces });
-    const entered = this.members.filter(m => m.amount != null && Number(m.amount) !== 0);
+    if (this.hasExcessPrecision(this.amount))
+      return this.translate.instant('SPLIT.AMOUNT_DECIMALS', { decimals: this.decimalPlaces });
+    const entered = this.members.filter((m) => m.amount != null && Number(m.amount) !== 0);
     if (entered.length === 0) return this.translate.instant('SPLIT.NO_PERCENTAGES');
     for (const m of entered) {
       const pct = Number(m.amount);
-      if (pct < 0 || pct > 100) return this.translate.instant('SPLIT.PERCENTAGE_INVALID', { name: m.name, pct });
+      if (pct < 0 || pct > 100)
+        return this.translate.instant('SPLIT.PERCENTAGE_INVALID', { name: m.name, pct });
     }
     const sumPct = entered.reduce((s, m) => s + Number(m.amount), 0);
     if (Math.abs(sumPct - 100) > 0.01) {
@@ -161,60 +182,60 @@ export class SplitMethodDialogComponent {
     if (this.selectedTabIndex === 0) {
       result = {
         method: 'SPLIT.METHOD_EQUAL',
-        expenseParticipant: this.calculateEqualSplit()
+        expenseParticipant: this.calculateEqualSplit(),
       };
     } else if (this.selectedTabIndex === 1) {
       result = {
         method: 'SPLIT.METHOD_UNEQUAL',
-        expenseParticipant: this.calculateSplitByAmount()
+        expenseParticipant: this.calculateSplitByAmount(),
       };
     } else {
       result = {
         method: 'SPLIT.METHOD_PERCENTAGE',
-        expenseParticipant: this.calculateSplitByPercentage()
+        expenseParticipant: this.calculateSplitByPercentage(),
       };
     }
 
     if (result.expenseParticipant.length > 0) this.dialogRef.close(result);
   }
 
-    calculateEqualSplit(): ExpenseParticipant[] {
-      const selectedMembers = this.members.filter(m => this.equalSplitSelection[m.id]);
-      if (selectedMembers.length === 0) return [];
-      // Split at the currency's precision: floor the base amount and distribute the
-      // leftover minor units to the first participants (e.g. 100/3 => 33.34,33.33,33.33
-      // for USD; 100/3 => 34,33,33 for COP). The result always sums exactly to the total.
-      const unit = this.scaleUnit();
-      const count = selectedMembers.length;
-      const perPerson = Math.floor((this.amount / count) * unit) / unit;
-      const remainder = Math.round((this.amount - perPerson * count) * unit);
-      return selectedMembers.map((m, idx) => {
-        const extra = idx < remainder ? 1 / unit : 0;
-        const amountOwed = this.toUnit(perPerson + extra);
-        return { userId: m.id, amountOwed };
-      });
-    }
+  calculateEqualSplit(): ExpenseParticipant[] {
+    const selectedMembers = this.members.filter((m) => this.equalSplitSelection[m.id]);
+    if (selectedMembers.length === 0) return [];
+    // Split at the currency's precision: floor the base amount and distribute the
+    // leftover minor units to the first participants (e.g. 100/3 => 33.34,33.33,33.33
+    // for USD; 100/3 => 34,33,33 for COP). The result always sums exactly to the total.
+    const unit = this.scaleUnit();
+    const count = selectedMembers.length;
+    const perPerson = Math.floor((this.amount / count) * unit) / unit;
+    const remainder = Math.round((this.amount - perPerson * count) * unit);
+    return selectedMembers.map((m, idx) => {
+      const extra = idx < remainder ? 1 / unit : 0;
+      const amountOwed = this.toUnit(perPerson + extra);
+      return { userId: m.id, amountOwed };
+    });
+  }
 
-    calculateSplitByAmount() : ExpenseParticipant[] {
-      const filtered = this.members.filter(m => m.amount != null && m.amount > 0);
-      if (Math.abs(filtered.reduce((s, m) => s + Number(m.amount), 0) - this.amount) > 0.01) return [];
-      const parts = filtered.map((m) =>({
-        userId: m.id,
-        amountOwed: this.toUnit(Number(m.amount))
-      }));
-      return this.driftCorrect(parts, this.amount);
-    }
+  calculateSplitByAmount(): ExpenseParticipant[] {
+    const filtered = this.members.filter((m) => m.amount != null && m.amount > 0);
+    if (Math.abs(filtered.reduce((s, m) => s + Number(m.amount), 0) - this.amount) > 0.01)
+      return [];
+    const parts = filtered.map((m) => ({
+      userId: m.id,
+      amountOwed: this.toUnit(Number(m.amount)),
+    }));
+    return this.driftCorrect(parts, this.amount);
+  }
 
-    calculateSplitByPercentage() : ExpenseParticipant[] {
-      const filtered = this.members.filter(m => m.amount != null && m.amount > 0);
-      if (Math.abs(filtered.reduce((s, m) => s + Number(m.amount), 0) - 100) > 0.01) return [];
-      // Round each percentage share to the currency's precision, then absorb any
-      // rounding drift into the last participant so the total is conserved exactly.
-      const parts = filtered.map((m) =>({
-        userId: m.id,
-        amountOwed: this.toUnit((Number(m.amount) / 100) * this.amount)
-      }));
-      return this.driftCorrect(parts, this.amount);
-    }
-
+  calculateSplitByPercentage(): ExpenseParticipant[] {
+    const filtered = this.members.filter((m) => m.amount != null && m.amount > 0);
+    if (Math.abs(filtered.reduce((s, m) => s + Number(m.amount), 0) - 100) > 0.01) return [];
+    // Round each percentage share to the currency's precision, then absorb any
+    // rounding drift into the last participant so the total is conserved exactly.
+    const parts = filtered.map((m) => ({
+      userId: m.id,
+      amountOwed: this.toUnit((Number(m.amount) / 100) * this.amount),
+    }));
+    return this.driftCorrect(parts, this.amount);
+  }
 }

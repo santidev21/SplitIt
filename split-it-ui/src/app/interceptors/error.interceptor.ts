@@ -22,13 +22,20 @@ export function extractBackendMessage(err: HttpErrorResponse): string {
     }
   }
   switch (err.status) {
-    case 0: return 'Cannot connect to the server. Check your connection.';
-    case 400: return 'Invalid request.';
-    case 401: return 'Incorrect email or password.';
-    case 403: return 'You do not have permission to do this.';
-    case 404: return 'Resource not found.';
-    case 429: return 'Too many requests. Please try again later.';
-    default: return 'An unexpected error occurred. Please try again.';
+    case 0:
+      return 'Cannot connect to the server. Check your connection.';
+    case 400:
+      return 'Invalid request.';
+    case 401:
+      return 'Incorrect email or password.';
+    case 403:
+      return 'You do not have permission to do this.';
+    case 404:
+      return 'Resource not found.';
+    case 429:
+      return 'Too many requests. Please try again later.';
+    default:
+      return 'An unexpected error occurred. Please try again.';
   }
 }
 
@@ -57,9 +64,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         confirmButtonColor: '#005cbb',
         timer: undefined,
         timerProgressBar: false,
-        customClass: { popup: 'centered-toast' }
+        customClass: { popup: 'centered-toast' },
       });
       return throwError(() => error);
-    })
+    }),
   );
 };

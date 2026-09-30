@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { NgIf } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+
 import { Router, RouterModule } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import Swal from 'sweetalert2';
@@ -10,23 +10,23 @@ import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-header-bar',
-  imports: [RouterModule, MatIconModule, NgIf, TranslatePipe],
+  imports: [RouterModule, MatIconModule, TranslatePipe],
   templateUrl: './header-bar.component.html',
-  styleUrls: ['./header-bar.component.scss']
+  styleUrls: ['./header-bar.component.scss'],
 })
 export class HeaderBarComponent implements OnInit {
+  private router = inject(Router);
+  private authService = inject(AuthService);
+  private accountService = inject(AccountService);
+  private translate = inject(TranslateService);
+  languageService = inject(LanguageService);
+
   isAdmin = false;
   isDark = false;
   menuOpen = false;
   accountOpen = false;
 
-  constructor(
-    private router: Router,
-    private authService: AuthService,
-    private accountService: AccountService,
-    private translate: TranslateService,
-    public languageService: LanguageService
-  ){
+  constructor() {
     this.isAdmin = this.authService.isAdminRole();
   }
 
@@ -67,7 +67,7 @@ export class HeaderBarComponent implements OnInit {
           showConfirmButton: false,
           timer: 2500,
         });
-      }
+      },
     });
   }
 
@@ -97,11 +97,11 @@ export class HeaderBarComponent implements OnInit {
           timer: 2500,
         });
         this.authService.logout();
-      }
+      },
     });
   }
 
-  logout(){
+  logout() {
     this.authService.logout();
   }
 }

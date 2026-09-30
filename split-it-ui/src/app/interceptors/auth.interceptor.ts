@@ -25,8 +25,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
       if (!refreshInFlight) {
         refreshInFlight = authService.refreshSession().pipe(
-          finalize(() => { refreshInFlight = null; }),
-          shareReplay({ bufferSize: 1, refCount: false })
+          finalize(() => {
+            refreshInFlight = null;
+          }),
+          shareReplay({ bufferSize: 1, refCount: false }),
         );
       }
 
@@ -37,10 +39,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             return throwError(() => error);
           }
           const newToken = authService.getToken();
-          const retryReq = newToken ? req.clone({ setHeaders: { Authorization: `Bearer ${newToken}` } }) : req;
+          const retryReq = newToken
+            ? req.clone({ setHeaders: { Authorization: `Bearer ${newToken}` } })
+            : req;
           return next(retryReq);
-        })
+        }),
       );
-    })
+    }),
   );
 };

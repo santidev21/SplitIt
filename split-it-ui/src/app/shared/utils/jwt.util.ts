@@ -3,7 +3,7 @@ const ROLE_CLAIM = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role
 function decodePayload(token: string): any {
   let base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
   while (base64.length % 4 !== 0) base64 += '=';
-  const bytes = Uint8Array.from(atob(base64), ch => ch.charCodeAt(0));
+  const bytes = Uint8Array.from(atob(base64), (ch) => ch.charCodeAt(0));
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 

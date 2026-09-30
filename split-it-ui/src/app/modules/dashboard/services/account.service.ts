@@ -1,13 +1,13 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
-  private readonly API = `${environment.apiUrl}/users/me`;
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) {}
+  private readonly API = `${environment.apiUrl}/users/me`;
 
   exportData(): Observable<unknown> {
     return this.http.get(`${this.API}/export`);

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -53,12 +53,12 @@ export interface PasswordResetToken {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AdminService {
-  private readonly API_URL = `${environment.apiUrl}/admin`;
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) {}
+  private readonly API_URL = `${environment.apiUrl}/admin`;
 
   getStats(): Observable<AdminStats> {
     return this.http.get<AdminStats>(`${this.API_URL}/stats`);
@@ -66,7 +66,7 @@ export class AdminService {
 
   getUsers(q = '', page = 1, pageSize = 20): Observable<UsersPage> {
     return this.http.get<UsersPage>(`${this.API_URL}/users`, {
-      params: { q, page, pageSize }
+      params: { q, page, pageSize },
     });
   }
 

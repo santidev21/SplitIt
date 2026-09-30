@@ -9,9 +9,11 @@ test.describe('Phase 8 — Application Admin', () => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), userToken);
     await loginViaStorage(page, userToken);
     await page.goto('/auth/login');
-    await page.route('**/api/admin/users', async route => route.fulfill({ status: 403 }));
+    await page.route('**/api/admin/users', async (route) => route.fulfill({ status: 403 }));
     const status = await page.evaluate(async () => {
-      const r = await fetch('http://localhost:5120/api/admin/users', { headers: { Authorization: 'Bearer ' + localStorage.getItem('token')! } });
+      const r = await fetch('http://localhost:5120/api/admin/users', {
+        headers: { Authorization: 'Bearer ' + localStorage.getItem('token')! },
+      });
       return r.status;
     });
     expect(status).toBe(403);
@@ -21,9 +23,17 @@ test.describe('Phase 8 — Application Admin', () => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), adminToken);
     await loginViaStorage(page, adminToken);
     await page.goto('/auth/login');
-    await page.route('**/api/admin/users', async route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id: 1, name: 'User' }]) }));
+    await page.route('**/api/admin/users', async (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([{ id: 1, name: 'User' }]),
+      }),
+    );
     const status = await page.evaluate(async () => {
-      const r = await fetch('http://localhost:5120/api/admin/users', { headers: { Authorization: 'Bearer ' + localStorage.getItem('token')! } });
+      const r = await fetch('http://localhost:5120/api/admin/users', {
+        headers: { Authorization: 'Bearer ' + localStorage.getItem('token')! },
+      });
       return r.status;
     });
     expect(status).toBe(200);
@@ -33,12 +43,15 @@ test.describe('Phase 8 — Application Admin', () => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), userToken);
     await loginViaStorage(page, userToken);
     await page.goto('/auth/login');
-    await page.route('**/api/admin/users/3/role', async route => route.fulfill({ status: 403 }));
+    await page.route('**/api/admin/users/3/role', async (route) => route.fulfill({ status: 403 }));
     const status = await page.evaluate(async () => {
       const r = await fetch('http://localhost:5120/api/admin/users/3/role', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + localStorage.getItem('token')! },
-        body: JSON.stringify({ roleId: 2 })
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + localStorage.getItem('token')!,
+        },
+        body: JSON.stringify({ roleId: 2 }),
       });
       return r.status;
     });
@@ -49,15 +62,22 @@ test.describe('Phase 8 — Application Admin', () => {
     await page.addInitScript((t: string) => localStorage.setItem('token', t), superToken);
     await loginViaStorage(page, superToken);
     await page.goto('/auth/login');
-    await page.route('**/api/admin/users/3/role', async route => {
+    await page.route('**/api/admin/users/3/role', async (route) => {
       expect(route.request().postDataJSON().roleId).toBe(2);
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ message: 'Role updated.' }) });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: 'Role updated.' }),
+      });
     });
     const status = await page.evaluate(async () => {
       const r = await fetch('http://localhost:5120/api/admin/users/3/role', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + localStorage.getItem('token')! },
-        body: JSON.stringify({ roleId: 2 })
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + localStorage.getItem('token')!,
+        },
+        body: JSON.stringify({ roleId: 2 }),
       });
       return r.status;
     });

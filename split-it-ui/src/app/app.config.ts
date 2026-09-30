@@ -10,12 +10,13 @@ import { errorInterceptor } from './interceptors/error.interceptor';
 import { AuthService } from './modules/auth/services/auth.service';
 
 export function restoreSessionFactory(authService: AuthService): () => Promise<boolean> {
-  return () => new Promise<boolean>((resolve) => {
-    authService.tryRestoreSession().subscribe({
-      next: () => resolve(true),
-      error: () => resolve(true),
+  return () =>
+    new Promise<boolean>((resolve) => {
+      authService.tryRestoreSession().subscribe({
+        next: () => resolve(true),
+        error: () => resolve(true),
+      });
     });
-  });
 }
 
 export const appConfig: ApplicationConfig = {
@@ -25,11 +26,11 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
     provideTranslateService({
       fallbackLang: 'en',
-      lang: 'en'
+      lang: 'en',
     }),
     provideTranslateHttpLoader({
       prefix: './assets/i18n/',
-      suffix: '.json'
+      suffix: '.json',
     }),
     {
       provide: APP_INITIALIZER,
@@ -37,5 +38,5 @@ export const appConfig: ApplicationConfig = {
       deps: [AuthService],
       multi: true,
     },
-  ]
+  ],
 };
