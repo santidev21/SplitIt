@@ -293,6 +293,5 @@ CI/CD does not include monitoring. Future phases may add:
 scripts/
 └── deploy.sh                 # VPS deployment script
 docs/
-├── CICD.md                   # This file
-└── PHASE_13_REPORT.md        # Phase report
+└── CICD.md                   # This file
 ```
