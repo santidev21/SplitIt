@@ -1,7 +1,7 @@
 # Production reverse proxy for SplitIt
 # Based on nginx:alpine. Serves as the ONLY internet-facing container.
 # Exposes 80 (ACME + redirect) and 443 (HTTPS + application traffic).
-FROM nginx:1.27-alpine
+FROM nginx:1.31-alpine
 
 # Install openssl for self-signed certificate generation in local/test mode.
 # gettext provides envsubst for rendering the nginx template at runtime.
