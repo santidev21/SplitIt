@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for SplitIt .NET 8 Web API
 # Build stage using .NET 9 SDK (backwards-compatible with net8.0 targets,
 # and matches EF Core 9.x tooling for proper migration discovery)
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy solution and project files first to leverage Docker layer caching for restore
