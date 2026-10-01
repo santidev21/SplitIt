@@ -1,0 +1,15 @@
+{
+  "stryker-config": {
+    "project": "SplitIt.API/SplitIt.Infrastructure/SplitIt.Infrastructure.csproj",
+    "test-projects": ["SplitIt.Tests/SplitIt.Tests.csproj"],
+    "mutate": ["Services/SplitCalculator.cs"],
+    "test-case-filter": "FullyQualifiedName~SplitCalculator",
+    "thresholds": {
+      "high": 80,
+      "low": 70,
+      "break": 65
+    },
+    "reporters": ["progress", "html", "json"],
+    "concurrency": 4
+  }
+}
