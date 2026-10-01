@@ -198,3 +198,6 @@ Desktop.ini
 
 # CodeGraph local index (per-machine, not source)
 .codegraph/
+
+# SonarScanner for .NET working directory
+.sonarqube/
