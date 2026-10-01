@@ -1,0 +1,105 @@
+name: SonarCloud
+
+# SonarCloud analysis (Clean as You Code): the "Sonar way" Quality Gate is
+# evaluated on NEW CODE only.
+#
+# Design notes:
+# - `sonar.qualitygate.wait=true` is set for pull_request events ONLY: the gate
+#   then fails this job when new code introduces issues. On the very first push
+#   to main the whole codebase counts as new code (baseline), so blocking there
+#   would fail on pre-existing debt by design.
+# - The scanner does not auto-detect GitHub Actions, so PR parameters are passed
+#   explicitly below.
+# - Skipped for Dependabot and fork PRs: repository secrets are not available to
+#   those events, so the job would fail without a token.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sonarcloud:
+    name: SonarCloud analysis
+    runs-on: ubuntu-latest
+    if: >-
+      github.actor != 'dependabot[bot]' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          SA_PASSWORD: Strong_Passw0rd123!
+          ACCEPT_EULA: Y
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Strong_Passw0rd123!' -C -Q 'SELECT 1' || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Strong_Passw0rd123!' -Q 'SELECT 1' || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+          --health-start-period 20s
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history: SonarCloud needs blame data to decide which lines are
+          # "new code" for the Quality Gate.
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install SonarScanner
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Restore dependencies
+        run: dotnet restore SplitIt.API/SplitIt.Back.sln
+
+      - name: Begin analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          PR_KEY: ${{ github.event.pullrequest.number }}
+          PR_BRANCH: ${{ github.head_ref }}
+          PR_BASE: ${{ github.base_ref }}
+        run: |
+          args=(
+            /k:santidev21_SplitIt
+            /o:santidev21
+            "/d:sonar.token=$SONAR_TOKEN"
+            "/d:sonar.cs.opencover.reportsPaths=**/coverage.opencover.xml"
+            "/d:sonar.cs.vstest.reportsPaths=**/TestResults/*.trx"
+          )
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            args+=(
+              "/d:sonar.pullrequest.key=$PR_KEY"
+              "/d:sonar.pullrequest.branch=$PR_BRANCH"
+              "/d:sonar.pullrequest.base=$PR_BASE"
+              /d:sonar.qualitygate.wait=true
+            )
+          fi
+          dotnet sonarscanner begin "${args[@]}"
+
+      - name: Build
+        run: dotnet build SplitIt.API/SplitIt.Back.sln --no-restore -c Release
+
+      - name: Run backend tests with coverage
+        run: >
+          dotnet test SplitIt.API/SplitIt.Back.sln
+          --no-build -c Release
+          --logger "trx;LogFileName=backend-results.trx"
+          --collect:"XPlat Code Coverage"
+          --settings coverlet.runsettings
+
+      - name: End analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner end "/d:sonar.token=$SONAR_TOKEN"
