@@ -22,8 +22,11 @@ RUN npm run build -- --configuration production
 # Stage 2: Serve static files with Nginx Alpine
 FROM nginx:1.31-alpine AS final
 
-# Install wget and upgrade Alpine packages to patch base OS vulnerabilities
-RUN apk add --no-cache wget && apk upgrade --no-cache
+# Install wget and upgrade Alpine packages to patch base OS vulnerabilities.
+# pcre2 is listed explicitly because CVE-2026-103111 (fixed in 10.49-r0) is not
+# yet in the published nginx image, and a cached `apk upgrade` layer would keep
+# serving the vulnerable package.
+RUN apk add --no-cache wget 'pcre2>=10.49-r0' && apk upgrade --no-cache
 
 # Copy custom Nginx configuration
 COPY docker/frontend/nginx.conf /etc/nginx/conf.d/default.conf
