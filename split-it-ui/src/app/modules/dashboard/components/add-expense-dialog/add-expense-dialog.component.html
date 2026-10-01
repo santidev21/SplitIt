@@ -55,6 +55,7 @@
         matInput
         [matDatepicker]="picker"
         [value]="selectedDate"
+        [attr.aria-label]="'EXPENSE.SELECT_DATE' | translate"
         (dateChange)="onDateChange($event)"
         readonly
         class="hidden-datepicker-input"
