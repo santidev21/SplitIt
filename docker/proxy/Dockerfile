@@ -5,7 +5,9 @@ FROM nginx:1.31-alpine
 
 # Install openssl for self-signed certificate generation in local/test mode.
 # gettext provides envsubst for rendering the nginx template at runtime.
-RUN apk add --no-cache openssl gettext && apk upgrade --no-cache
+# pcre2 is listed explicitly because CVE-2026-103111 (fixed in 10.49-r0) is not
+# yet in the published nginx image.
+RUN apk add --no-cache openssl gettext 'pcre2>=10.49-r0' && apk upgrade --no-cache
 
 # Create non-root-friendly directories and set ownership.
 # Nginx alpine image provides nginx user (UID 101) / group (GID 101).
