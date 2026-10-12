@@ -1,0 +1,32 @@
+<app-header-bar></app-header-bar>
+
+<div class="profile-container">
+  <mat-card appearance="outlined">
+    <mat-card-content class="profile-card">
+      <h1 class="heading-xl">{{ 'PROFILE.TITLE' | translate }}</h1>
+
+      <div class="profile-field">
+        <span class="field-label">{{ 'PROFILE.NAME_LABEL' | translate }}</span>
+        <span class="field-value">{{ userName }}</span>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <h2 class="section-title">{{ 'PROFILE.DATA_TITLE' | translate }}</h2>
+
+      <div class="profile-action">
+        <span class="action-hint">{{ 'PROFILE.EXPORT_HINT' | translate }}</span>
+        <button mat-stroked-button color="primary" (click)="exportData()" type="button">
+          {{ 'PROFILE.EXPORT_DATA' | translate }}
+        </button>
+      </div>
+
+      <div class="profile-action">
+        <span class="action-hint">{{ 'PROFILE.DELETE_HINT' | translate }}</span>
+        <button mat-stroked-button color="warn" (click)="deleteAccount()" type="button">
+          {{ 'PROFILE.DELETE_ACCOUNT' | translate }}
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

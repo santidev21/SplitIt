@@ -56,29 +56,17 @@
       [attr.aria-label]="'HEADER.LOGOUT' | translate"
       type="button"
     >
-      {{ 'HEADER.LOGOUT' | translate }}
+      <span class="logout-text">{{ 'HEADER.LOGOUT' | translate }}</span>
+      <mat-icon class="logout-icon">logout</mat-icon>
     </button>
-    <div class="account-menu">
-      <button
-        class="account-toggle"
-        (click)="toggleAccount()"
-        [attr.aria-expanded]="accountOpen"
-        [attr.aria-label]="'HEADER.ACCOUNT' | translate"
-        type="button"
-      >
-        <mat-icon>account_circle</mat-icon>
-      </button>
-      @if (accountOpen) {
-        <div class="account-dropdown" role="menu">
-          <button class="account-item" (click)="exportData()" type="button">
-            {{ 'HEADER.EXPORT_DATA' | translate }}
-          </button>
-          <button class="account-item danger" (click)="deleteAccount()" type="button">
-            {{ 'HEADER.DELETE_ACCOUNT' | translate }}
-          </button>
-        </div>
-      }
-    </div>
+    <a
+      class="account-link"
+      routerLink="/dashboard/profile"
+      routerLinkActive="active"
+      [attr.aria-label]="'HEADER.PROFILE' | translate"
+    >
+      <mat-icon>account_circle</mat-icon>
+    </a>
     <button
       class="menu-toggle"
       (click)="menuOpen = !menuOpen"

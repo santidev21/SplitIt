@@ -19,9 +19,7 @@
   "HEADER.HOME_LINK": "SplitIt home",
   "HEADER.MAIN_NAV": "Main navigation",
   "HEADER.LANG_TOGGLE": "Change language to {{lang}}",
-  "HEADER.ACCOUNT": "Account",
-  "HEADER.EXPORT_DATA": "Download my data",
-  "HEADER.DELETE_ACCOUNT": "Delete my account",
+  "HEADER.PROFILE": "Profile",
 
   "DASHBOARD.HI": "Hi, {{name}}!",
   "DASHBOARD.MY_GROUPS": "My Groups",
@@ -286,6 +284,14 @@
   "FRIENDS.REMOVE_TITLE": "Remove friend",
   "FRIENDS.REMOVE_TEXT": "Remove {{name}} from your friends? You will not be removed from shared groups.",
   "FRIENDS.FRIEND_REMOVED": "Friend removed.",
+
+  "PROFILE.TITLE": "My profile",
+  "PROFILE.NAME_LABEL": "Name",
+  "PROFILE.DATA_TITLE": "Data and privacy",
+  "PROFILE.EXPORT_DATA": "Download my data",
+  "PROFILE.EXPORT_HINT": "Download a copy of your personal data in JSON format.",
+  "PROFILE.DELETE_ACCOUNT": "Delete my account",
+  "PROFILE.DELETE_HINT": "Anonymizes your account and keeps your expense history so the balances of the other members stay correct.",
 
   "NOTIFICATIONS.ROLE_UPDATED": "Role updated for {{name}}.",
   "NOTIFICATIONS.USER_ACTIVATED": "{{name}} activated.",

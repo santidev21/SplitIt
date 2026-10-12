@@ -19,9 +19,7 @@
   "HEADER.HOME_LINK": "Inicio de SplitIt",
   "HEADER.MAIN_NAV": "Navegación principal",
   "HEADER.LANG_TOGGLE": "Cambiar idioma a {{lang}}",
-  "HEADER.ACCOUNT": "Cuenta",
-  "HEADER.EXPORT_DATA": "Descargar mis datos",
-  "HEADER.DELETE_ACCOUNT": "Eliminar mi cuenta",
+  "HEADER.PROFILE": "Perfil",
 
   "DASHBOARD.HI": "¡Hola, {{name}}!",
   "DASHBOARD.MY_GROUPS": "Mis Grupos",
@@ -286,6 +284,14 @@
   "FRIENDS.REMOVE_TITLE": "Eliminar amigo",
   "FRIENDS.REMOVE_TEXT": "¿Eliminar a {{name}} de tus amigos? No serás eliminado de los grupos compartidos.",
   "FRIENDS.FRIEND_REMOVED": "Amigo eliminado.",
+
+  "PROFILE.TITLE": "Mi perfil",
+  "PROFILE.NAME_LABEL": "Nombre",
+  "PROFILE.DATA_TITLE": "Datos y privacidad",
+  "PROFILE.EXPORT_DATA": "Descargar mis datos",
+  "PROFILE.EXPORT_HINT": "Descarga una copia de tus datos personales en formato JSON.",
+  "PROFILE.DELETE_ACCOUNT": "Eliminar mi cuenta",
+  "PROFILE.DELETE_HINT": "Anonimiza tu cuenta y conserva tu historial de gastos para que los saldos de los demás miembros sigan correctos.",
 
   "NOTIFICATIONS.ROLE_UPDATED": "Rol actualizado para {{name}}.",
   "NOTIFICATIONS.USER_ACTIVATED": "{{name}} activado.",
