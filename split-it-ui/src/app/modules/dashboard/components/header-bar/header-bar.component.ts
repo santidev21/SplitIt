@@ -1,10 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
-
-import { Router, RouterModule } from '@angular/router';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import Swal from 'sweetalert2';
+import { RouterModule } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../../auth/services/auth.service';
-import { AccountService } from '../../services/account.service';
 import { LanguageService } from '../../../../shared/services/language.service';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -15,16 +12,12 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrls: ['./header-bar.component.scss'],
 })
 export class HeaderBarComponent implements OnInit {
-  private router = inject(Router);
   private authService = inject(AuthService);
-  private accountService = inject(AccountService);
-  private translate = inject(TranslateService);
   languageService = inject(LanguageService);
 
   isAdmin = false;
   isDark = false;
   menuOpen = false;
-  accountOpen = false;
 
   constructor() {
     this.isAdmin = this.authService.isAdminRole();
@@ -44,64 +37,7 @@ export class HeaderBarComponent implements OnInit {
     this.languageService.toggleLanguage();
   }
 
-  toggleAccount(): void {
-    this.accountOpen = !this.accountOpen;
-  }
-
-  exportData(): void {
-    this.accountOpen = false;
-    this.accountService.exportData().subscribe({
-      next: (data) => {
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download = 'splitit-my-data.json';
-        anchor.click();
-        URL.revokeObjectURL(url);
-        Swal.fire({
-          toast: true,
-          position: 'center',
-          icon: 'success',
-          title: this.translate.instant('NOTIFICATIONS.EXPORT_READY'),
-          showConfirmButton: false,
-          timer: 2500,
-        });
-      },
-    });
-  }
-
-  async deleteAccount(): Promise<void> {
-    this.accountOpen = false;
-    const result = await Swal.fire({
-      title: this.translate.instant('NOTIFICATIONS.DELETE_CONFIRM_TITLE'),
-      text: this.translate.instant('NOTIFICATIONS.DELETE_CONFIRM_TEXT'),
-      input: 'password',
-      inputPlaceholder: this.translate.instant('NOTIFICATIONS.DELETE_PASSWORD'),
-      showCancelButton: true,
-      confirmButtonText: this.translate.instant('COMMON.YES_DELETE'),
-      cancelButtonText: this.translate.instant('COMMON.CANCEL'),
-      confirmButtonColor: '#d33',
-      icon: 'warning',
-    });
-    if (!result.isConfirmed || !result.value) return;
-
-    this.accountService.deleteAccount(result.value).subscribe({
-      next: () => {
-        Swal.fire({
-          toast: true,
-          position: 'center',
-          icon: 'success',
-          title: this.translate.instant('NOTIFICATIONS.DELETE_SUCCESS'),
-          showConfirmButton: false,
-          timer: 2500,
-        });
-        this.authService.logout();
-      },
-    });
-  }
-
-  logout() {
+  logout(): void {
     this.authService.logout();
   }
 }
