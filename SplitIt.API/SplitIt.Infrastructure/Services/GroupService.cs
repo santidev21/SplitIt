@@ -199,11 +199,13 @@ namespace SplitIt.Infrastructure.Services
 
             // Data integrity: do not orphan balances. A member with outstanding debt
             // (as debtor or creditor) must be settled before they can be removed.
+            // The payer's own share of an expense is not a debt and is never settled.
             var hasOutstandingBalance = await _context.ExpenseShare.AnyAsync(es =>
                 !es.IsSettled
                 && es.AmountOwed - es.AmountPaid > 0
                 && es.Expense.GroupId == groupId
                 && !es.Expense.IsPayment
+                && es.UserId != es.Expense.PaidById
                 && (es.UserId == targetUserId || es.Expense.PaidById == targetUserId));
             if (hasOutstandingBalance)
                 throw new ArgumentException("This member has an outstanding balance in the group. Settle all debts before removing them.");

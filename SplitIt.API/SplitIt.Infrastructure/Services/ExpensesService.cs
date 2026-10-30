@@ -146,6 +146,7 @@ namespace SplitIt.Infrastructure.Services
                 Date = expense.Date,
                 Note = expense.Note,
                 IsPayment = expense.IsPayment,
+                IsSimplification = expense.IsSimplification,
                 Participants = expense.Shares.Select(share => new ParticipantDto
                 {
                     Name = share.User.Name,
@@ -285,8 +286,6 @@ namespace SplitIt.Infrastructure.Services
 
         public async Task<int> RegisterPayment(int payerUserId, int receiverUserId, int groupId, decimal amount)
         {
-            // Monetary precision: round to 2 decimals away from zero
-            amount = Math.Round(amount, 2, MidpointRounding.AwayFromZero);
             if (amount <= 0 || amount > 1000000)
                 throw new ArgumentException("Invalid payment amount.");
             if (payerUserId == receiverUserId)
@@ -337,36 +336,20 @@ namespace SplitIt.Infrastructure.Services
             };
             expense.Shares.Add(paymentShare);
 
-            // Apply the payment to the payer's outstanding shares.
+            // Apply the payment to the shares between both users.
             // IMPORTANT: AmountOwed is immutable — we only increment AmountPaid, so the
             // expense history always reconciles (sum of shares == expense amount) even
             // after partial payments.
-            var remainingPayment = amount;
-            var shares = await _context.ExpenseShare
-                .Include(es => es.Expense)
-                .Where(es => !es.IsSettled && es.Expense.GroupId == groupId && es.UserId == payerUserId && es.Expense.PaidById == receiverUserId)
-                .OrderBy(es => es.Expense.Date)
-                .ThenBy(es => es.Id)
-                .ToListAsync();
+            // remainingDebt is a net figure (payer->receiver minus receiver->payer), so the
+            // reciprocal debt is first offset on both sides; otherwise a payment of the full
+            // net amount would leave both directions open forever and block member removal.
+            var now = DateTime.UtcNow;
+            var payerShares = await GetOpenSharesAsync(groupId, debtorId: payerUserId, creditorId: receiverUserId);
+            var receiverShares = await GetOpenSharesAsync(groupId, debtorId: receiverUserId, creditorId: payerUserId);
+            var offset = receiverShares.Sum(es => es.AmountOwed - es.AmountPaid);
 
-            foreach (var share in shares)
-            {
-                if (remainingPayment <= 0.009m) break;
-
-                var outstanding = Math.Round(share.AmountOwed - share.AmountPaid, 2, MidpointRounding.AwayFromZero);
-                if (outstanding <= 0.009m) continue;
-
-                var applied = Math.Min(outstanding, remainingPayment);
-                share.AmountPaid = Math.Round(share.AmountPaid + applied, 2, MidpointRounding.AwayFromZero);
-                remainingPayment = Math.Round(remainingPayment - applied, 2, MidpointRounding.AwayFromZero);
-
-                if (share.AmountPaid >= share.AmountOwed - 0.009m)
-                {
-                    share.AmountPaid = share.AmountOwed;
-                    share.IsSettled = true;
-                    share.SettledAt = DateTime.UtcNow;
-                }
-            }
+            ApplyToShares(receiverShares, offset, now);
+            ApplyToShares(payerShares, offset + amount, now);
 
             // Single SaveChanges => EF wraps the payment expense, its share and the
             // AmountPaid updates in one implicit transaction (retry-strategy friendly).
@@ -374,6 +357,159 @@ namespace SplitIt.Infrastructure.Services
             await _context.SaveChangesAsync();
 
             return paymentShare.Id;
+        }
+
+        private Task<List<ExpenseShare>> GetOpenSharesAsync(int groupId, int debtorId, int creditorId) =>
+            _context.ExpenseShare
+                .Include(es => es.Expense)
+                .Where(es => !es.IsSettled && es.Expense.GroupId == groupId && es.UserId == debtorId && es.Expense.PaidById == creditorId)
+                .OrderBy(es => es.Expense.Date)
+                .ThenBy(es => es.Id)
+                .ToListAsync();
+
+        /// <summary>
+        /// Pays <paramref name="amount"/> into the shares oldest-first, settling every share
+        /// that reaches its original <see cref="ExpenseShare.AmountOwed"/>.
+        /// </summary>
+        private static void ApplyToShares(List<ExpenseShare> shares, decimal amount, DateTime now)
+        {
+            var remaining = amount;
+            foreach (var share in shares)
+            {
+                if (remaining <= 0.009m) break;
+
+                var outstanding = Math.Round(share.AmountOwed - share.AmountPaid, 2, MidpointRounding.AwayFromZero);
+                if (outstanding <= 0.009m) continue;
+
+                var applied = Math.Min(outstanding, remaining);
+                share.AmountPaid = Math.Round(share.AmountPaid + applied, 2, MidpointRounding.AwayFromZero);
+                remaining = Math.Round(remaining - applied, 2, MidpointRounding.AwayFromZero);
+
+                if (share.AmountPaid >= share.AmountOwed - 0.009m)
+                {
+                    share.AmountPaid = share.AmountOwed;
+                    share.IsSettled = true;
+                    share.SettledAt = now;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Open shares that carry a debt between two different members (a payer's own share
+        /// of an expense is never a debt).
+        /// </summary>
+        private IQueryable<ExpenseShare> OpenDebtShares(int groupId) =>
+            _context.ExpenseShare.Where(es =>
+                !es.IsSettled
+                && es.Expense.GroupId == groupId
+                && es.UserId != es.Expense.PaidById
+                && es.AmountOwed - es.AmountPaid > 0);
+
+        /// <summary>
+        /// Net balance per member from the open debt shares: positive = the member is owed
+        /// money, negative = the member owes money. Balances always sum to zero.
+        /// </summary>
+        private static Dictionary<int, decimal> NetBalances(IEnumerable<ExpenseShare> shares)
+        {
+            var balances = new Dictionary<int, decimal>();
+            foreach (var share in shares)
+            {
+                var outstanding = share.AmountOwed - share.AmountPaid;
+                balances[share.Expense!.PaidById] = balances.GetValueOrDefault(share.Expense.PaidById) + outstanding;
+                balances[share.UserId] = balances.GetValueOrDefault(share.UserId) - outstanding;
+            }
+            return balances;
+        }
+
+        /// <summary>Number of member pairs with a non-zero net debt, i.e. transfers needed today.</summary>
+        private static int CountPairwiseTransfers(IEnumerable<ExpenseShare> shares) =>
+            shares
+                .GroupBy(es => (Low: Math.Min(es.UserId, es.Expense!.PaidById), High: Math.Max(es.UserId, es.Expense.PaidById)))
+                .Count(pair => pair.Sum(es => (es.UserId == pair.Key.Low ? 1 : -1) * (es.AmountOwed - es.AmountPaid)) != 0);
+
+        private async Task<DebtSimplificationDto> BuildSimplificationAsync(List<ExpenseShare> shares, List<DebtTransfer> plan)
+        {
+            var currentCount = CountPairwiseTransfers(shares);
+            var userIds = plan.SelectMany(t => new[] { t.FromUserId, t.ToUserId }).Distinct().ToList();
+            var names = await _context.Users
+                .Where(u => userIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u.Name);
+
+            return new DebtSimplificationDto
+            {
+                CurrentTransferCount = currentCount,
+                SimplifiedTransferCount = plan.Count,
+                CanSimplify = plan.Count < currentCount,
+                Transfers = plan.Select(t => new SimplifiedTransferDto
+                {
+                    FromUserId = t.FromUserId,
+                    FromUserName = names.GetValueOrDefault(t.FromUserId, string.Empty),
+                    ToUserId = t.ToUserId,
+                    ToUserName = names.GetValueOrDefault(t.ToUserId, string.Empty),
+                    Amount = t.Amount,
+                }).ToList(),
+            };
+        }
+
+        /// <summary>
+        /// Computes the simplified transfer plan for the group without changing anything.
+        /// </summary>
+        public async Task<DebtSimplificationDto> PreviewDebtSimplificationAsync(int groupId)
+        {
+            var shares = await OpenDebtShares(groupId).Include(es => es.Expense).AsNoTracking().ToListAsync();
+            return await BuildSimplificationAsync(shares, DebtSimplifier.Simplify(NetBalances(shares)));
+        }
+
+        /// <summary>
+        /// Replaces the group's open debts with the minimal transfer plan. Every member keeps
+        /// exactly the same net balance: the open debt shares are closed and one consolidated
+        /// debt (an <see cref="Expense.IsSimplification"/> expense paid by the creditor, with a
+        /// single share owed by the debtor) is created per transfer. Partial and full payments
+        /// then work on the consolidated debts as on any other. Nothing is written when the
+        /// plan would not reduce the number of transfers.
+        /// </summary>
+        public async Task<DebtSimplificationDto> SimplifyDebtsAsync(int groupId, int requesterId)
+        {
+            var groupExists = await _context.Groups.AnyAsync(g => g.Id == groupId);
+            if (!groupExists)
+                throw new KeyNotFoundException("Group not found.");
+
+            var shares = await OpenDebtShares(groupId).Include(es => es.Expense).ToListAsync();
+            var plan = DebtSimplifier.Simplify(NetBalances(shares));
+            var result = await BuildSimplificationAsync(shares, plan);
+            if (!result.CanSimplify)
+                return result;
+
+            var now = DateTime.UtcNow;
+            foreach (var share in shares)
+            {
+                share.AmountPaid = share.AmountOwed;
+                share.IsSettled = true;
+                share.SettledAt = now;
+            }
+
+            foreach (var transfer in plan)
+            {
+                var expense = new Expense
+                {
+                    GroupId = groupId,
+                    Title = "Debt simplification",
+                    Amount = transfer.Amount,
+                    Date = now,
+                    CreatedById = requesterId,
+                    PaidById = transfer.ToUserId,
+                    IsSimplification = true,
+                };
+                expense.Shares.Add(new ExpenseShare { UserId = transfer.FromUserId, AmountOwed = transfer.Amount });
+                await _context.Expense.AddAsync(expense);
+            }
+
+            // Single SaveChanges => closing the old shares and creating the consolidated debts
+            // is atomic; RowVersion makes a concurrent payment on any closed share fail with 409.
+            await _context.SaveChangesAsync();
+
+            result.Applied = true;
+            return result;
         }
 
     }

@@ -16,5 +16,7 @@ export interface Expense {
   date: string;
   note: string | null;
   isPayment?: boolean;
+  /** Consolidated debt created by "simplify debts"; paidBy is the creditor, the participant the debtor. */
+  isSimplification?: boolean;
   participants: ExpenseParticipantDetail[];
 }

@@ -3,7 +3,7 @@ import { environment } from '../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Expense, ExpenseParticipant } from '../../../models/expense.model';
-import { FullDebtSummaryDto } from '../../../models/debts-summary';
+import { DebtSimplification, FullDebtSummaryDto } from '../../../models/debts-summary';
 
 @Injectable({
   providedIn: 'root',
@@ -42,5 +42,15 @@ export class ExpenseService {
     amount: number;
   }): Observable<any> {
     return this.http.post(`${this.API_URL}/settle`, body);
+  }
+
+  previewDebtSimplification(groupId: number): Observable<DebtSimplification> {
+    return this.http.get<DebtSimplification>(`${this.API_URL}/simplify-preview`, {
+      params: { groupId },
+    });
+  }
+
+  simplifyDebts(groupId: number): Observable<DebtSimplification> {
+    return this.http.post<DebtSimplification>(`${this.API_URL}/simplify`, { groupId });
   }
 }

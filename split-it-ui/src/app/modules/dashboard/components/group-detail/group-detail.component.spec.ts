@@ -26,6 +26,8 @@ describe('GroupDetailComponent debt state', () => {
       'getGroupExpenses',
       'getFullDebtSummary',
       'settleExpenseWithUser',
+      'previewDebtSimplification',
+      'simplifyDebts',
     ]);
     expenseSpy.getGroupExpenses.and.returnValue(of([]));
     expenseSpy.getFullDebtSummary.and.returnValue(of({ debtsOwedByUser, debtsOwedToUser }));
@@ -117,5 +119,79 @@ describe('GroupDetailComponent debt state', () => {
     expect(component.debtAmountLabel).toBe('40');
     const label = component.debtDetails.find((d) => d.userId === 2)?.amountLabel;
     expect(label).toBe('100');
+  });
+
+  describe('simplify debts', () => {
+    const preview = {
+      currentTransferCount: 2,
+      simplifiedTransferCount: 1,
+      canSimplify: true,
+      applied: false,
+      transfers: [
+        { fromUserId: 1, fromUserName: 'Me', toUserId: 3, toUserName: 'Luisa', amount: 200 },
+      ],
+    };
+
+    function dialogClosingWith(result: boolean) {
+      const dialog = TestBed.inject(MatDialog) as jasmine.SpyObj<MatDialog>;
+      dialog.open.and.returnValue({ afterClosed: () => of(result) } as any);
+      return dialog;
+    }
+
+    it('shows the plan and applies it when confirmed', () => {
+      configure([], []);
+      expenseSpy.previewDebtSimplification.and.returnValue(of(preview));
+      expenseSpy.simplifyDebts.and.returnValue(of({ ...preview, applied: true }));
+      const dialog = dialogClosingWith(true);
+
+      component.onSimplifyDebts();
+
+      expect(dialog.open).toHaveBeenCalled();
+      expect((dialog.open.calls.mostRecent().args[1] as any).data.preview).toEqual(preview);
+      expect(expenseSpy.simplifyDebts).toHaveBeenCalledWith(1);
+      expect(expenseSpy.getFullDebtSummary).toHaveBeenCalledTimes(2); // initial load + refresh
+    });
+
+    it('does nothing when the dialog is cancelled', () => {
+      configure([], []);
+      expenseSpy.previewDebtSimplification.and.returnValue(of(preview));
+      dialogClosingWith(false);
+
+      component.onSimplifyDebts();
+
+      expect(expenseSpy.simplifyDebts).not.toHaveBeenCalled();
+    });
+
+    it('skips the dialog when there is nothing to simplify', () => {
+      configure([], []);
+      expenseSpy.previewDebtSimplification.and.returnValue(
+        of({ ...preview, canSimplify: false, transfers: [] }),
+      );
+      const dialog = TestBed.inject(MatDialog) as jasmine.SpyObj<MatDialog>;
+      const notifications = TestBed.inject(
+        NotificationService,
+      ) as jasmine.SpyObj<NotificationService>;
+
+      component.onSimplifyDebts();
+
+      expect(dialog.open).not.toHaveBeenCalled();
+      expect(notifications.toast).toHaveBeenCalledWith(jasmine.any(String), 'info');
+    });
+
+    it('keeps simplification records out of the expense list and in the history', () => {
+      configure([], []);
+      expenseSpy.getGroupExpenses.and.returnValue(
+        of([
+          { id: 1, title: 'Dinner', amount: 30, isPayment: false },
+          { id: 2, title: 'Debt Payment', amount: 10, isPayment: true },
+          { id: 3, title: 'Debt simplification', amount: 200, isSimplification: true },
+        ] as any),
+      );
+
+      component.getGroupExpenses();
+
+      expect(component.filteredExpenses.map((e) => e.id)).toEqual([1]);
+      expect(component.paymentsHistory.map((e) => e.id)).toEqual([2, 3]);
+    });
   });
 });

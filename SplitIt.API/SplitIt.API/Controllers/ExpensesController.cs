@@ -36,7 +36,17 @@ namespace SplitIt.API.Controllers
             try
             {
                 var expense = await _expensesService.AddExpenseAsync(request, createdById);
-                return CreatedAtAction(nameof(AddExpense), new { id = expense.Id }, expense);
+                // Never serialize the tracked entity: its navigations (Group.Expenses) form a
+                // cycle, which turned a saved expense into a 500 and invited duplicate retries.
+                return CreatedAtAction(nameof(AddExpense), new { id = expense.Id }, new
+                {
+                    expense.Id,
+                    expense.GroupId,
+                    expense.Title,
+                    expense.Amount,
+                    expense.Date,
+                    expense.PaidById,
+                });
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -112,12 +122,9 @@ namespace SplitIt.API.Controllers
                     }
                 }
 
-                // Validate amount not empty and use absolute
-                var amount = Math.Abs(dto.Amount);
-                amount = Math.Round(amount, 2, MidpointRounding.AwayFromZero);
-                if (amount <= 0) return BadRequest(new { message = "Invalid amount." });
-
-                var paymentId = await _expensesService.RegisterPayment(payer, receiver, dto.GroupId, amount);
+                // Amount is range-validated on the DTO; the service rejects excess precision
+                // instead of silently rounding it.
+                var paymentId = await _expensesService.RegisterPayment(payer, receiver, dto.GroupId, dto.Amount);
                 var remainingAfter = await _expensesService.GetRemainingDebtAsync(payer, receiver, dto.GroupId);
                 return Ok(new { PaymentId = paymentId, RemainingDebt = remainingAfter, SettledCount = 1 });
             }
@@ -128,6 +135,48 @@ namespace SplitIt.API.Controllers
             catch (ArgumentException ex)
             {
                 return BadRequest(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("simplify-preview")]
+        [Authorize]
+        public async Task<IActionResult> PreviewDebtSimplification([FromQuery] int groupId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            if (!await _groupService.IsUserMemberAsync(groupId, userId))
+                return Forbid();
+
+            return Ok(await _expensesService.PreviewDebtSimplificationAsync(groupId));
+        }
+
+        /// <summary>
+        /// Replaces the group's open debts with the minimal set of transfers. It changes who
+        /// owes whom for every member, so only the group creator or an admin may apply it.
+        /// </summary>
+        [HttpPost("simplify")]
+        [Authorize]
+        public async Task<IActionResult> SimplifyDebts([FromBody] SimplifyDebtsDto dto)
+        {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            if (!await _groupService.IsUserAdminOrCreatorAsync(dto.GroupId, userId))
+                return Forbid();
+
+            try
+            {
+                return Ok(await _expensesService.SimplifyDebtsAsync(dto.GroupId, userId));
             }
             catch (KeyNotFoundException ex)
             {

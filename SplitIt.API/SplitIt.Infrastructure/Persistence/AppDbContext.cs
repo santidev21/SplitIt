@@ -257,6 +257,7 @@ namespace SplitIt.Infrastructure.Persistence
                 entity.Property(e => e.Note).HasMaxLength(500);
                 entity.Property(e => e.Amount).HasColumnType("decimal(18,2)");
                 entity.Property(e => e.Date).HasColumnType("datetime2");
+                entity.Property(e => e.IsSimplification).IsRequired().HasDefaultValue(false);
                 entity.HasOne(e => e.Group).WithMany(g => g.Expenses).HasForeignKey(e => e.GroupId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(e => e.CreatedBy).WithMany().HasForeignKey(e => e.CreatedById).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(e => e.PaidBy).WithMany().HasForeignKey(e => e.PaidById).OnDelete(DeleteBehavior.Restrict);
