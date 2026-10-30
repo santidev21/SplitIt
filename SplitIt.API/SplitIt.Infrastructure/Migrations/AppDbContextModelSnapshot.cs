@@ -17,7 +17,7 @@ namespace SplitIt.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.3")
+                .HasAnnotation("ProductVersion", "9.0.20")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -175,6 +175,11 @@ namespace SplitIt.Infrastructure.Migrations
 
                     b.Property<bool>("IsPayment")
                         .HasColumnType("bit");
+
+                    b.Property<bool>("IsSimplification")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Note")
                         .HasMaxLength(500)

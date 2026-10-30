@@ -22,3 +22,20 @@ export interface DebtDetails {
   /** Currency-aware, pre-formatted absolute value for display (e.g. "30.40" for USD, "30" for COP). */
   amountLabel?: string;
 }
+
+export interface SimplifiedTransfer {
+  fromUserId: number;
+  fromUserName: string;
+  toUserId: number;
+  toUserName: string;
+  amount: number;
+}
+
+/** Simplified transfer plan for a group (`GET simplify-preview` / `POST simplify`). */
+export interface DebtSimplification {
+  currentTransferCount: number;
+  simplifiedTransferCount: number;
+  canSimplify: boolean;
+  applied: boolean;
+  transfers: SimplifiedTransfer[];
+}

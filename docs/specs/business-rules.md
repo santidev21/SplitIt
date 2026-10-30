@@ -7,15 +7,35 @@ Current behavior, not a report. Derived from the Phase 8 feature work; this is t
 - A payment is an `Expense` with `IsPayment = true` plus a settled `ExpenseShare`.
 - `GetRemainingDebtAsync(payer, receiver, groupId)` = net debt `payer→receiver` minus
   `receiver→payer`, rounded to 2 decimals (`MidpointRounding.AwayFromZero`).
-- `RegisterPayment(payer, receiver, groupId, amount)` validates: `0 < amount <= remaining + 0.01`,
-  `payer != receiver`, both are group members, group exists. Zero/negative and "no debt" are
-  rejected.
-- Distribution: the payment settles the payer's unsettled shares oldest-first (`Expense.Date`); a
-  share is fully settled when `AmountOwed <= remainingPayment`, otherwise reduced by the remainder.
-  Payments accumulate to an exact zero remaining.
+- `RegisterPayment(payer, receiver, groupId, amount)` validates: `0 < amount <= remaining`,
+  `payer != receiver`, both are group members, group exists, and the amount has no more decimals
+  than the group currency allows (excess precision is rejected, never rounded). Zero/negative and
+  "no debt" are rejected.
+- Distribution: `AmountOwed` is immutable; payments only advance `AmountPaid`. Because `remaining`
+  is a net figure, the receiver's open debt to the payer is first offset on both sides, then the
+  payment settles the payer's shares oldest-first (`Expense.Date`). A share is settled when
+  `AmountPaid` reaches `AmountOwed`. Paying the full net amount leaves no open share in either
+  direction.
 - `POST /api/expenses/settle` handles direction swapping (tries `payer→receiver`, then reversed,
   uses `Math.Abs`) and returns `{ PaymentId, RemainingDebt, SettledCount }`.
   `GET /api/expenses/remaining-debt?otherUserId&groupId` feeds the UI.
+
+## Debt simplification
+
+- Goal: settle the group with the fewest transfers while every member keeps exactly the same net
+  balance (e.g. A owes B 200 and B owes C 200 → A pays C 200).
+- Net balance per member = open debt shares owed to them − open debt shares they owe (a payer's own
+  share is never a debt). `DebtSimplifier` turns balances into a transfer plan: exact minimum (bitmask
+  search over zero-sum subgroups) for up to 16 members with a non-zero balance, greedy above that;
+  always at most `N − 1` transfers, computed in integer cents.
+- `GET /api/expenses/simplify-preview?groupId` (any member) returns the plan without writing.
+  `POST /api/expenses/simplify { groupId }` (creator/admin only, it changes who owes whom for
+  everyone) applies it atomically: all open debt shares are closed (`AmountPaid = AmountOwed`) and
+  one `Expense` with `IsSimplification = true` is created per transfer, paid by the creditor with a
+  single share owed by the debtor. Nothing is written when the plan would not reduce the number of
+  transfers (current count = member pairs with a non-zero net debt).
+- Consolidated debts behave like any other debt: partial and full payments, and new expenses stack
+  on top. Simplification records are hidden from the expense list and shown in the payments history.
 
 ## Split methods
 

@@ -17,6 +17,7 @@
 - Automatically split expenses among members (equal, by amount, or by percentage)
 - See how much each member owes or is owed
 - Settle individual or total debts (including partial payments)
+- Simplify group debts: collapse chains (A owes B, B owes C → A pays C) into the fewest transfers
 - Friends system: send/accept/reject friend requests, search users
 - Admin panel: manage users, roles, settings, currencies
 - Group admin: edit group, promote/demote/remove members, invite friends

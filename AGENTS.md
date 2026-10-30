@@ -9,7 +9,7 @@ SplitIt is a shared-expense manager with:
 - SQL Server 2022 persistence via EF Core (DB always in Docker, loopback-only `:1433` locally)
 - Root `package.json` orchestrates local dev (`dev`, `dev:ui/dev:api`, `db:*`, `docker:dev` scripts)
 - JWT authentication (HMAC-SHA256), PBKDF2 password hashing (ASP.NET `PasswordHasher<User>`)
-- Friends system, group admin, admin panel, partial payments
+- Friends system, group admin, admin panel, partial payments, debt simplification
 - Real-time notifications for friend requests
 - Frontend unit tests, backend tests, Playwright e2e
 

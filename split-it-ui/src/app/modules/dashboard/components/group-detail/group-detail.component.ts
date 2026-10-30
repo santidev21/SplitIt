@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { AddExpenseDialogComponent } from '../add-expense-dialog/add-expense-dialog.component';
 import { SettleDebtDialogComponent } from '../settle-debt-dialog/settle-debt-dialog.component';
+import { SimplifyDebtsDialogComponent } from '../simplify-debts-dialog/simplify-debts-dialog.component';
 import { GroupSettingsDialogComponent } from '../group-settings-dialog/group-settings-dialog.component';
 import { Expense } from '../../../../models/expense.model';
 import { ExpenseService } from '../../services/expense.service';
@@ -17,6 +18,7 @@ import {
   DebtDetails,
   DebtOwedByUserDto,
   DebtOwedToUserDto,
+  DebtSimplification,
   FullDebtSummaryDto,
 } from '../../../../models/debts-summary';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -158,8 +160,8 @@ export class GroupDetailComponent implements OnInit {
     this.expenseService.getGroupExpenses(this.groupId, this.showAllExpenses).subscribe((resp) => {
       if (resp && resp.length > 0) {
         this.allExpenses = resp;
-        this.filteredExpenses = resp.filter((e: Expense) => !e.isPayment);
-        this.paymentsHistory = resp.filter((e: Expense) => e.isPayment);
+        this.filteredExpenses = resp.filter((e: Expense) => !e.isPayment && !e.isSimplification);
+        this.paymentsHistory = resp.filter((e: Expense) => e.isPayment || e.isSimplification);
       } else {
         this.allExpenses = [];
         this.filteredExpenses = [];
@@ -248,6 +250,47 @@ export class GroupDetailComponent implements OnInit {
       if (result && result.amount > 0) {
         this.registerPayment(debt, result.amount);
       }
+    });
+  }
+
+  /** Previews the group's simplified transfer plan and applies it once confirmed. */
+  onSimplifyDebts() {
+    this.expenseService.previewDebtSimplification(this.groupId).subscribe({
+      next: (preview: DebtSimplification) => {
+        if (!preview.canSimplify) {
+          this.notifications.toast(this.translate.instant('SIMPLIFY.NOTHING_TO_SIMPLIFY'), 'info');
+          return;
+        }
+        const dialogRef = this.dialog.open(SimplifyDebtsDialogComponent, {
+          width: '460px',
+          data: { preview, currencyDecimals: this.currencyDecimals },
+        });
+        dialogRef.afterClosed().subscribe((confirmed) => {
+          if (confirmed) {
+            this.applyDebtSimplification();
+          }
+        });
+      },
+      error: () => {
+        // Error feedback is handled globally by errorInterceptor
+      },
+    });
+  }
+
+  private applyDebtSimplification() {
+    this.expenseService.simplifyDebts(this.groupId).subscribe({
+      next: (result: DebtSimplification) => {
+        this.refreshPage();
+        this.notifications.toast(
+          result.applied
+            ? this.translate.instant('SIMPLIFY.SUCCESS', { count: result.simplifiedTransferCount })
+            : this.translate.instant('SIMPLIFY.NOTHING_TO_SIMPLIFY'),
+          result.applied ? 'success' : 'info',
+        );
+      },
+      error: () => {
+        // Error feedback is handled globally by errorInterceptor
+      },
     });
   }
 

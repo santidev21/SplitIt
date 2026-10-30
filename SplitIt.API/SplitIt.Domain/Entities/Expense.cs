@@ -31,6 +31,12 @@ namespace SplitIt.Domain.Entities
         public ICollection<ExpenseShare> Shares { get; set; } = new List<ExpenseShare>();
         public bool IsPayment { get; set; } = false;
 
+        /// <summary>
+        /// True for the consolidated debts created by "simplify debts": the open shares they
+        /// replace are closed and the debtor's share of this expense carries the balance.
+        /// </summary>
+        public bool IsSimplification { get; set; } = false;
+
         // Optimistic concurrency: prevents lost updates on concurrent edits.
         public byte[]? RowVersion { get; set; }
     }

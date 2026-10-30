@@ -41,7 +41,7 @@ namespace SplitIt.API.Controllers
                 TotalUsers = await _context.Users.CountAsync(),
                 ActiveUsers = await _context.Users.CountAsync(u => u.IsActive),
                 TotalGroups = await _context.Groups.CountAsync(),
-                TotalExpenses = await _context.Expense.CountAsync(e => !e.IsPayment),
+                TotalExpenses = await _context.Expense.CountAsync(e => !e.IsPayment && !e.IsSimplification),
                 TotalPayments = await _context.Expense.CountAsync(e => e.IsPayment)
             };
             return Ok(stats);

@@ -56,6 +56,7 @@ namespace SplitIt.Application.DTOs
         public DateTime Date { get; set; }
         public string? Note { get; set; }
         public bool IsPayment { get; set; }
+        public bool IsSimplification { get; set; }
         public List<ParticipantDto> Participants { get; set; } = new();
     }
 }

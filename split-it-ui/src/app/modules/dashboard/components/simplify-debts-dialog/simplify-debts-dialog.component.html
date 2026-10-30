@@ -1,0 +1,35 @@
+<h2 mat-dialog-title class="heading-xl text-center">{{ 'SIMPLIFY.TITLE' | translate }}</h2>
+
+<mat-dialog-content>
+  <p class="simplify-description">
+    {{
+      'SIMPLIFY.DESCRIPTION'
+        | translate
+          : {
+              current: data.preview.currentTransferCount,
+              simplified: data.preview.simplifiedTransferCount,
+            }
+    }}
+  </p>
+
+  <ul class="simplify-transfers">
+    @for (t of data.preview.transfers; track t.fromUserId + '-' + t.toUserId) {
+      <li>
+        <mat-icon class="simplify-icon" aria-hidden="true">arrow_forward</mat-icon>
+        {{
+          'SIMPLIFY.TRANSFER'
+            | translate: { from: t.fromUserName, to: t.toUserName, amount: formatMoney(t.amount) }
+        }}
+      </li>
+    }
+  </ul>
+
+  <p class="simplify-note">{{ 'SIMPLIFY.NOTE' | translate }}</p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">{{ 'COMMON.CANCEL' | translate }}</button>
+  <button mat-flat-button color="primary" (click)="confirm()">
+    {{ 'SIMPLIFY.CONFIRM' | translate }}
+  </button>
+</mat-dialog-actions>
