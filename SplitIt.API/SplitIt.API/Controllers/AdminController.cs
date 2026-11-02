@@ -91,7 +91,7 @@ namespace SplitIt.API.Controllers
                 await _usersService.UpdateUserRoleAsync(userId, dto.RoleId, requesterId);
                 return Ok(new { message = "Role updated." });
             }
-            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (UnauthorizedAccessException ex) { return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message }); }
             catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
             catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         }
@@ -107,7 +107,7 @@ namespace SplitIt.API.Controllers
                 await _usersService.UpdateUserRoleAsync(dto.UserId, RoleConstants.Admin, requesterId);
                 return Ok(new { message = "User promoted to Admin." });
             }
-            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (UnauthorizedAccessException ex) { return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message }); }
             catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
             catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         }
