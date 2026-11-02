@@ -35,7 +35,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - name: Restore dependencies
         run: dotnet restore SplitIt.API/SplitIt.Back.sln
@@ -76,7 +76,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           cache-dependency-path: split-it-ui/package-lock.json
 
@@ -115,7 +115,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           cache-dependency-path: split-it-ui/package-lock.json
 
@@ -159,6 +159,35 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: NuGet vulnerable packages (blocking)
+        # `dotnet list package --vulnerable` always exits 0, so fail on its report line.
+        run: |
+          dotnet list SplitIt.API/SplitIt.Back.sln package --vulnerable --include-transitive 2>&1 | tee vulnerable-packages.txt
+          if grep -q "has the following vulnerable packages" vulnerable-packages.txt; then
+            echo "::error::Vulnerable NuGet packages found (see the report above)."
+            exit 1
+          fi
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: npm audit - production dependencies (blocking)
+        working-directory: split-it-ui
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: npm audit - all dependencies (report only)
+        # Dev tooling advisories (Karma, http-server, ...) never ship to users; track, do not block.
+        continue-on-error: true
+        working-directory: split-it-ui
+        run: npm audit --audit-level=high
 
       - name: Check .env is not committed
         run: |

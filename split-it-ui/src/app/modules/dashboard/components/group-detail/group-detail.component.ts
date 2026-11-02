@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { HeaderBarComponent } from '../header-bar/header-bar.component';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -29,6 +29,7 @@ import { TranslateService, TranslatePipe } from '@ngx-translate/core';
   selector: 'app-group-detail',
   imports: [MATERIAL_IMPORTS, HeaderBarComponent, RouterModule, FormsModule, TranslatePipe],
   templateUrl: './group-detail.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./group-detail.component.scss'],
 })
 export class GroupDetailComponent implements OnInit {

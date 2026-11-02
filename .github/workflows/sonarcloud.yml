@@ -56,7 +56,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
@@ -83,7 +83,11 @@ jobs:
             # every TS/JS line as 0%-covered and any frontend PR fails the
             # new-code coverage gate. Generated EF migration scaffolding is
             # excluded too (see coverlet.runsettings); migration Up/Down stays.
-            "/d:sonar.coverage.exclusions=**/*.ts,**/*.js,**/*.mjs,**/*.html,**/*.scss,**/*.css,**/Migrations/*.Designer.cs,**/Migrations/*ModelSnapshot.cs"
+            # Program.cs is the composition root (top-level statements): coverlet
+            # records 0 hits for it even though every WebApplicationFactory test
+            # executes it, so it would always read as uncovered. Its behaviour is
+            # covered at the HTTP level (OpenApiTests, CorsTests, HttpAuthorizationTests).
+            "/d:sonar.coverage.exclusions=**/*.ts,**/*.js,**/*.mjs,**/*.html,**/*.scss,**/*.css,**/Migrations/*.Designer.cs,**/Migrations/*ModelSnapshot.cs,SplitIt.API/SplitIt.API/Program.cs"
           )
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
             args+=(

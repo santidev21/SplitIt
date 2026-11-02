@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -20,6 +20,7 @@ export interface GroupSettingsDialogData {
   selector: 'app-group-settings-dialog',
   imports: [MATERIAL_IMPORTS, MatDialogModule, FormsModule, TranslatePipe],
   templateUrl: './group-settings-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./group-settings-dialog.component.scss'],
 })
 export class GroupSettingsDialogComponent implements OnInit {

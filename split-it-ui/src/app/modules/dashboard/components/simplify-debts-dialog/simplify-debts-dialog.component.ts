@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { TranslatePipe } from '@ngx-translate/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
@@ -18,6 +18,7 @@ export interface SimplifyDebtsDialogData {
   selector: 'app-simplify-debts-dialog',
   imports: [MATERIAL_IMPORTS, MatDialogModule, TranslatePipe],
   templateUrl: './simplify-debts-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./simplify-debts-dialog.component.scss'],
 })
 export class SimplifyDebtsDialogComponent {

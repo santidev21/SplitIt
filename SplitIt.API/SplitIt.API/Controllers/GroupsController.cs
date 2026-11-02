@@ -134,7 +134,7 @@ namespace SplitIt.API.Controllers
                 await _groupService.UpdateMemberRoleAsync(groupId, userId, dto.Role, requesterId);
                 return Ok(new { message = "Role updated." });
             }
-            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (UnauthorizedAccessException ex) { return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message }); }
             catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
             catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         }
@@ -151,7 +151,7 @@ namespace SplitIt.API.Controllers
                 await _groupService.RemoveMemberAsync(groupId, userId, requesterId);
                 return Ok(new { message = "Member removed." });
             }
-            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (UnauthorizedAccessException ex) { return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message }); }
             catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
             catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         }
@@ -171,7 +171,7 @@ namespace SplitIt.API.Controllers
                 await _groupService.AddMemberAsync(groupId, dto.UserId, requesterId);
                 return Ok(new { message = "Member invited." });
             }
-            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (UnauthorizedAccessException ex) { return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message }); }
             catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
             catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         }
@@ -188,7 +188,7 @@ namespace SplitIt.API.Controllers
                 await _groupService.UpdateGroupAsync(groupId, dto.Name, dto.Description, dto.AllowToDeleteExpenses, requesterId);
                 return Ok(new { message = "Group updated." });
             }
-            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (UnauthorizedAccessException ex) { return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message }); }
             catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
             catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         }
@@ -204,7 +204,7 @@ namespace SplitIt.API.Controllers
                 await _groupService.DeleteGroupAsync(groupId, requesterId);
                 return Ok(new { message = "Group deleted." });
             }
-            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (UnauthorizedAccessException ex) { return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message }); }
             catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         }
         // TODO: OpenAPI documentation.

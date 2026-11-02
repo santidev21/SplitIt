@@ -114,7 +114,7 @@
                     'GROUP_DETAIL.SIMPLIFIED_HISTORY'
                       | translate
                         : {
-                            from: payment.participants[0]?.name,
+                            from: $safeNavigationMigration(payment.participants[0]?.name),
                             to: payment.paidBy,
                             amount: formatMoney(payment.amount),
                           }

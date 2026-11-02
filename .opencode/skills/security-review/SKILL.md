@@ -45,7 +45,7 @@ Read-only audit. Report findings with severity and `path:line` evidence. Never l
 
 ## API surface
 - CORS is an explicit allow-list from `Cors:AllowedOrigins`; production fails closed. No `AllowAnyOrigin` with credentials.
-- HTTPS enforced in production; HSTS on. Swagger/health endpoints not verbose in production.
+- HTTPS enforced in production; HSTS on. OpenAPI/Scalar/health endpoints not verbose in production.
 - Security headers present at the proxy (CSP, X-Content-Type-Options, X-Frame-Options/frame-ancestors, Referrer-Policy).
 - Request body size limits and pagination to prevent abuse (`GetUsers`, `GetGroupMembers`).
 

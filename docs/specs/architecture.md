@@ -4,8 +4,8 @@
 ```
 Internet → vps-gateway (:80/:443)
   └── splitit.santidev21.tech
-        ├── /api/*  → splitit-backend (.NET 8)
-        ├── /health → splitit-backend (.NET 8)
+        ├── /api/*  → splitit-backend (.NET 10)
+        ├── /health → splitit-backend (.NET 10)
         └── /*      → splitit-frontend (Angular via nginx)
 ```
 
@@ -15,7 +15,7 @@ Internet → vps-gateway (:80/:443)
 | `splitit-db` | SQL Server 2022 |
 | `splitit-db-init` | Creates least-privilege DB users on first run |
 | `splitit-migrator` | Runs EF Core migrations then exits |
-| `splitit-backend` | .NET 8 API (internal, not exposed publicly) |
+| `splitit-backend` | .NET 10 API (internal, not exposed publicly) |
 | `splitit-frontend` | Angular 19 via nginx (internal, not exposed publicly) |
 
 ## Backend Layers (Clean Architecture)

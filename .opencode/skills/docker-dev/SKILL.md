@@ -20,7 +20,7 @@ docker compose -f docker-compose.yml -f docker-compose.local.yml down
 ```
 
 Local ports:
-- Backend: `http://localhost:8090` (Swagger at `/swagger`; container listens on 8080, host 8090 avoids clash with Bikontrol API)
+- Backend: `http://localhost:8090` (Scalar API reference at `/scalar`; container listens on 8080, host 8090 avoids clash with Bikontrol API)
 - Frontend: `http://localhost:80`
 - SQL Server: `127.0.0.1:1433` (loopback only; same `splitit_sqlserver_data` volume native dev uses)
 

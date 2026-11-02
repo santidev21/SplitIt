@@ -3,7 +3,7 @@ name: backend-test
 description: Build and run the SplitIt .NET backend tests. Use when running backend tests, dotnet build, dotnet test, SplitIt.Tests, or checking backend coverage.
 ---
 
-# Backend tests (.NET 8)
+# Backend tests (.NET 10)
 
 Solution: `SplitIt.API/SplitIt.Back.sln`. The test project lives at the repo root (`SplitIt.Tests/`) and is referenced from the solution.
 

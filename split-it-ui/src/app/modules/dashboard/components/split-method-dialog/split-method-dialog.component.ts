@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
@@ -19,6 +19,7 @@ import { AuthService } from '../../../auth/services/auth.service';
     TranslatePipe,
   ],
   templateUrl: './split-method-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./split-method-dialog.component.scss'],
 })
 export class SplitMethodDialogComponent {

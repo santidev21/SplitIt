@@ -50,7 +50,7 @@ No se persigue 100% artificial. Prioridad: `auth`, `authorization`, `financial c
 
 ### 2.2 Integration (real SQL Server)
 
-- **Fixture:** `Integration/SqlServerFixture.cs:1` — `Testcontainers.MsSql 3.10.0` → `mcr.microsoft.com/mssql/server:2022-latest`, `Password Strong_Passw0rd123!`, `MigrateAsync()`. **No false positives:** `InitializeAsync` timeout 15s; Docker not available → `Build()` throws `ArgumentException: Docker is either not running` → caught → `IsAvailable=false`, `return` and `Skip.IfNot(IsAvailable, "Docker not available - skipping")` → **Skipped** (not Passed). Docker available but `MigrateAsync` fails → `InvalidOperationException` thrown → fixture fails → tests **FAIL** (as desired). Logs: `[SqlServerFixture] Docker not available - integration tests will be SKIPPED locally, but MUST run in CI with Docker`.
+- **Fixture:** `Integration/SqlServerFixture.cs:1` — `Testcontainers.MsSql 4.16.0` → `mcr.microsoft.com/mssql/server:2022-latest`, `Password Strong_Passw0rd123!`, `MigrateAsync()`. **No false positives:** `InitializeAsync` timeout 15s; Docker not available → `Build()` throws `ArgumentException: Docker is either not running` → caught → `IsAvailable=false`, `return` and `Skip.IfNot(IsAvailable, "Docker not available - skipping")` → **Skipped** (not Passed). Docker available but `MigrateAsync` fails → `InvalidOperationException` thrown → fixture fails → tests **FAIL** (as desired). Logs: `[SqlServerFixture] Docker not available - integration tests will be SKIPPED locally, but MUST run in CI with Docker`.
 - **Suites (SkippableFact):**
   - `Integration/ExpenseWorkflowIntegrationTests.cs:1` (2) — `SkippableFact` + `Skip.IfNot(IsAvailable, "Docker not available")` → full workflow real DB.
   - `Integration/AuthorizationIntegrationTests.cs:1` (1) — `SkippableFact` → `UnauthorizedAccessException`.
@@ -336,7 +336,7 @@ A SplitIt.Tests/Integration/SqlServerFixture.cs
 A SplitIt.Tests/Integration/ExpenseWorkflowIntegrationTests.cs
 A SplitIt.Tests/Integration/AuthorizationIntegrationTests.cs
 A SplitIt.Tests/Integration/RateLimitingTests.cs
-M SplitIt.Tests/SplitIt.Tests.csproj (+ Testcontainers.MsSql 3.10.0)
+M SplitIt.Tests/SplitIt.Tests.csproj (+ Testcontainers.MsSql 4.16.0)
 A docs/TESTING.md (this file)
 ```
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
@@ -14,6 +14,7 @@ import { TranslateService, TranslatePipe } from '@ngx-translate/core';
   selector: 'app-create-group',
   imports: [MATERIAL_IMPORTS, RouterModule, FormsModule, TranslatePipe],
   templateUrl: './create-group.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./create-group.component.scss'],
 })
 export class CreateGroupComponent implements OnInit {
