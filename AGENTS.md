@@ -51,7 +51,7 @@ Angular 21 app in `split-it-ui/src/app`. Protected routes via JWT, admin panel b
 ## Ports
 | Context | Backend | Frontend | DB |
 |---|---|---|---|
-| Native dev (`npm run dev`) | `http://localhost:5120` (Swagger at `/swagger`) | `http://localhost:4200` (proxies `/api` → 5120) | `127.0.0.1:1433` (docker, same volume) |
+| Native dev (`npm run dev`) | `http://localhost:5120` (Scalar API reference at `/scalar`, OpenAPI document at `/openapi/v1.json`) | `http://localhost:4200` (proxies `/api` → 5120) | `127.0.0.1:1433` (docker, same volume) |
 | Docker local (`npm run docker:dev`) | `http://localhost:8090` | `http://localhost:80` | internal only |
 
 ## AI Setup

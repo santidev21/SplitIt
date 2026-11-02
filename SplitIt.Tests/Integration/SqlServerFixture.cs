@@ -1,4 +1,3 @@
-using DotNet.Testcontainers.Builders;
 using Microsoft.EntityFrameworkCore;
 using SplitIt.Infrastructure.Persistence;
 using Testcontainers.MsSql;
@@ -20,11 +19,9 @@ public class SqlServerFixture : IAsyncLifetime
         bool dockerNotAvailable = false;
         try
         {
-            _container = new MsSqlBuilder()
-                .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
+            _container = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest")
                 .WithPassword("Strong_Passw0rd123!")
                 .WithPortBinding(1433, true)
-                .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(1433))
                 .Build();
         }
         catch (Exception ex) when (ex.Message.Contains("Docker", StringComparison.OrdinalIgnoreCase))

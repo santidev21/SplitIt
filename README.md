@@ -137,7 +137,7 @@ docker compose -f docker-compose.yml -f docker-compose.local.yml down -v
 ```bash
 npm run dev
 ```
-Starts SQL Server in Docker, applies EF migrations, then runs the API (`http://localhost:5120`, Swagger at `/swagger`) and the frontend (`http://localhost:4200`, proxies `/api` → 5120).
+Starts SQL Server in Docker, applies EF migrations, then runs the API (`http://localhost:5120`, Scalar API reference at `/scalar`, OpenAPI document at `/openapi/v1.json`) and the frontend (`http://localhost:4200`, proxies `/api` → 5120).
 
 Single side:
 ```bash
