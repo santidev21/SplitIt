@@ -1,11 +1,11 @@
 ---
 name: dotnet-best-practices
-description: Ensure .NET 8 / C# code meets SplitIt best practices. Use when writing or reviewing backend code in SplitIt.API/.
+description: Ensure .NET 10 / C# code meets SplitIt best practices. Use when writing or reviewing backend code in SplitIt.API/.
 ---
 
 # .NET/C# best practices (SplitIt)
 
-Applies to `SplitIt.API/` — .NET 8, EF Core 9 (SqlServer), xUnit, SQL Server.
+Applies to `SplitIt.API/` — .NET 10, EF Core 10 (SqlServer), xUnit, SQL Server.
 
 ## Architecture & layering
 - Keep the Clean Architecture layering: thin controllers, business logic in `SplitIt.Infrastructure/Services`, EF Core confined to `Infrastructure/Persistence`.

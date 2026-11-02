@@ -4,8 +4,8 @@ This file is the working context for SplitIt. Keep it updated when architecture,
 
 ## Project Snapshot
 SplitIt is a shared-expense manager with:
-- Angular 21 frontend (Material, SCSS, Bootstrap)
-- .NET 8 backend using Clean Architecture (API, Application, Domain, Infrastructure)
+- Angular 22 frontend (Material, SCSS, Bootstrap)
+- .NET 10 backend using Clean Architecture (API, Application, Domain, Infrastructure)
 - SQL Server 2022 persistence via EF Core (DB always in Docker, loopback-only `:1433` locally)
 - Root `package.json` orchestrates local dev (`dev`, `dev:ui/dev:api`, `db:*`, `docker:dev` scripts)
 - JWT authentication (HMAC-SHA256), PBKDF2 password hashing (ASP.NET `PasswordHasher<User>`)
@@ -35,7 +35,7 @@ SplitIt/
 Clean Architecture layers: `API` (controllers, middleware) → `Application` (DTOs, services) → `Domain` (entities) → `Infrastructure` (EF Core, migrations). Docker adds `splitit-db-init` (least-privilege users) and `splitit-migrator` (runs migrations, then exits).
 
 ## Frontend Architecture
-Angular 21 app in `split-it-ui/src/app`. Protected routes via JWT, admin panel behind SuperAdmin role, Material dialogs for groups/expenses.
+Angular 22 app in `split-it-ui/src/app`. Protected routes via JWT, admin panel behind SuperAdmin role, Material dialogs for groups/expenses.
 
 ## Commands (run from repo root via root scripts unless noted)
 - Both: `npm run dev` (DB in Docker + API + frontend, hot reload) · `npm run build` · `npm run test` (see `/test`)

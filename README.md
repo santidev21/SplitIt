@@ -1,8 +1,8 @@
 # SplitIt
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
-![.NET](https://img.shields.io/badge/.NET-8-purple)
-![Angular](https://img.shields.io/badge/Angular-21-red)
+![.NET](https://img.shields.io/badge/.NET-10-purple)
+![Angular](https://img.shields.io/badge/Angular-22-red)
 
 **SplitIt** is a web application designed to help people manage shared expenses within groups. Whether you're on a trip with friends, splitting rent with roommates, or handling any shared bills, SplitIt simplifies the process of tracking expenses and settling debts fairly.
 
@@ -32,8 +32,8 @@
 ```
 Internet → vps-gateway (:80/:443, private repo)
   └── splitit.santidev21.tech
-        ├── /api/*  → splitit-backend (.NET 8)
-        ├── /health → splitit-backend (.NET 8)
+        ├── /api/*  → splitit-backend (.NET 10)
+        ├── /health → splitit-backend (.NET 10)
         └── /*      → splitit-frontend (Angular)
 ```
 
@@ -43,8 +43,8 @@ Internet → vps-gateway (:80/:443, private repo)
 | `splitit-db` | SQL Server 2022 |
 | `splitit-db-init` | Creates least-privilege DB users on first run |
 | `splitit-migrator` | Runs EF Core migrations then exits |
-| `splitit-backend` | .NET 8 API (internal, not exposed publicly) |
-| `splitit-frontend` | Angular 21 via nginx (internal, not exposed publicly) |
+| `splitit-backend` | .NET 10 API (internal, not exposed publicly) |
+| `splitit-frontend` | Angular 22 via nginx (internal, not exposed publicly) |
 
 **Backend Clean Architecture:**
 - **`SplitIt.API`** → Controllers, Middleware, Program.cs
@@ -59,8 +59,8 @@ Internet → vps-gateway (:80/:443, private repo)
 
 | Layer | Technology |
 |---|---|
-| Frontend | Angular 21, Angular Material, SCSS, Bootstrap |
-| Backend | .NET 8 Web API (C#) |
+| Frontend | Angular 22, Angular Material, SCSS, Bootstrap |
+| Backend | .NET 10 Web API (C#) |
 | Database | SQL Server 2022 (EF Core) |
 | Auth | JWT (HMAC-SHA256) |
 | Gateway | nginx via [vps-gateway](https://github.com/santidev21/vps-gateway) (HTTPS, HSTS, security headers) |
@@ -75,7 +75,7 @@ Internet → vps-gateway (:80/:443, private repo)
 SplitIt/
 ├── SplitIt.API/       # .NET solution (API, Application, Domain, Infrastructure, Shared)
 ├── SplitIt.Tests/     # Backend tests (referenced from the solution)
-├── split-it-ui/       # Angular 21 frontend (src/app, e2e)
+├── split-it-ui/       # Angular 22 frontend (src/app, e2e)
 ├── docker/            # Docker configs (backend, frontend, proxy, sqlserver)
 ├── docs/              # Guides, reports, screenshots, specs (docs/specs/)
 ├── scripts/           # Deploy and helper scripts
@@ -96,8 +96,8 @@ The database (SQL Server 2022) **always runs in Docker** — loopback-only (`127
 - `npm run dev` → DB in Docker, API + frontend native (`dotnet run` / `npm start`) with hot reload, against the **same** DB volume.
 
 ### Prerequisites
-- Node.js 20+
-- .NET 8 SDK
+- Node.js 24+
+- .NET 10 SDK
 - Docker Desktop (with WSL 2)
 
 ### 1. Clone the repo
@@ -241,9 +241,9 @@ Deploys happen automatically on push to `main` via GitHub Actions. For VPS setup
 - [ ] **Group authorization** (global roles removed from group management): application `Admin`/`SuperAdmin` no longer override group permissions. Verify no stored super-admin workflows, UI flows, or support docs depend on the old behavior (see `docs/AUDIT_2026-09.md`).
 - [ ] **Payment retry safety / audit atomicity**: `AppDbContext` writes audit rows in a second save; a failure there can report a committed payment as failed, and `POST /api/expenses/settle` has no idempotency key. Investigate making audit+payment atomic and add a retry-safe idempotency mechanism.
 - [ ] **Reset-flow contract**: `POST /api/auth/reset-password` (no email) and `POST /api/auth/verify-reset-code` (email-bound) enforce different rules on the same 6-digit code. Decide the intended contract, then align routes and tests.
-- [ ] **API authorization regression tests**: add HTTP-level tests (WebApplicationFactory + SQL Server) covering cross-group reads/writes and forbidden group-role actions (current coverage is service-level only).
+- [x] **API authorization regression tests**: `HttpAuthorizationTests` (WebApplicationFactory + SQL Server) covers anonymous, cross-group reads/writes and forbidden group-role actions.
 - [ ] **Balance display precision**: summary and payment amounts now use the group currency's decimals. Verify rendering for USD cents and COP whole units across the dashboard (added component specs).
-- [ ] **Dependency & secret scans in CI**: address dev/test advisory backlog (`npm audit` 18 dev-only, `SSH.NET` transitive in `SplitIt.Tests`), add `npm audit`/`dotnet list package --vulnerable` gates, and replace the grep-based secret check with a maintained scanner.
+- [x] **Dependency & secret scans in CI**: `Security Scan` gates on `dotnet list package --vulnerable` and `npm audit --omit=dev`, reports the full `npm audit`, and runs Gitleaks. Remaining: the dev-tooling `npm audit` backlog (41 advisories, report-only).
 - [ ] **Update remaining docs**: `docs/SECURITY.md` still describes localStorage JWT and no refresh tokens; `docs/specs/auth.md` says BCrypt; `docs/TESTING.md` counts are stale. Align them with current source.
 
 ---

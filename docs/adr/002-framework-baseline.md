@@ -1,6 +1,6 @@
 # ADR-002 — Angular 21 and .NET 8 baseline
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR-005](005-dotnet10-angular22-baseline.md)
 - **Date:** 2026-09-21
 
 ## Context

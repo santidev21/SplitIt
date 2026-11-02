@@ -21,7 +21,7 @@ SplitIt uses a hardened multi-container architecture orchestrated via Docker Com
                        │ (splitit-net)
                        ▼
              ┌───────────────────┐
-             │  splitit-backend  │ (.NET 8 Web API, port 8080 internal)
+             │  splitit-backend  │ (.NET 10 Web API, port 8080 internal)
              └─────────┬─────────┘
                        │ (splitit-internal-net: internal=true)
                        ▼
@@ -42,7 +42,7 @@ To support hosting multiple projects cleanly on the same VPS, networks are expli
    - Declared as `external: true` — the network is **owned by the `vps-gateway`** compose stack.
    - SplitIt attaches to it so the gateway can route traffic to its containers.
 2. **`splitit-internal-net`** (`internal: true`):
-   - Private, isolated internal network connecting `.NET 8 Web API` to `SQL Server`.
+   - Private, isolated internal network connecting `.NET 10 Web API` to `SQL Server`.
    - Outbound and inbound external traffic is blocked by Docker daemon. SQL Server port `1433` is **not** exposed to the host machine.
 
 ---
