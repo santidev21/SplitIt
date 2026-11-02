@@ -1,7 +1,5 @@
-# Multi-stage Dockerfile for SplitIt .NET 8 Web API
-# Build stage using .NET 9 SDK (backwards-compatible with net8.0 targets,
-# and matches EF Core 9.x tooling for proper migration discovery)
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+# Multi-stage Dockerfile for SplitIt .NET 10 Web API
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy solution and project files first to leverage Docker layer caching for restore
@@ -22,7 +20,7 @@ WORKDIR /src/SplitIt.API/SplitIt.API
 RUN dotnet publish SplitIt.API.csproj -c Release -o /app/publish /p:UseAppHost=false
 
 # Runtime stage using minimal ASP.NET image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
 WORKDIR /app
 
 # Install wget and icu-libs for healthcheck and EF Core database migration support
@@ -35,10 +33,10 @@ ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
 # Prepare DataProtection keys directory for non-root persistence (volume mounted at runtime)
 RUN mkdir -p /home/app/.aspnet/DataProtection-Keys && chown -R 1654:1654 /home/app/.aspnet
 
-# Set up non-root execution (app user UID 1654 in .NET 8 images)
+# Set up non-root execution (app user UID 1654 in .NET 8+ images)
 USER $APP_UID
 
-# Expose HTTP port 8080 (standard non-root port for .NET 8)
+# Expose HTTP port 8080 (standard non-root port for .NET 8+)
 EXPOSE 8080
 
 COPY --from=build /app/publish .
