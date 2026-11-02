@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { HeaderBarComponent } from './components/header-bar/header-bar.component';
@@ -16,6 +16,7 @@ import { AuthService } from '../auth/services/auth.service';
   selector: 'app-dashboard',
   imports: [MATERIAL_IMPORTS, HeaderBarComponent, GroupCardComponent, RouterModule, TranslatePipe],
   templateUrl: './dashboard.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit {

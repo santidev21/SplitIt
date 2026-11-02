@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { HeaderBarComponent } from '../header-bar/header-bar.component';
 import { FormsModule } from '@angular/forms';
@@ -16,6 +16,7 @@ import { TranslateService, TranslatePipe } from '@ngx-translate/core';
   selector: 'app-friends-page',
   imports: [MATERIAL_IMPORTS, HeaderBarComponent, FormsModule, TranslatePipe],
   templateUrl: './friends-page.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./friends-page.component.scss'],
 })
 export class FriendsPageComponent implements OnInit {

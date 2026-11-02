@@ -3,7 +3,7 @@ import { GroupDetailComponent } from './group-detail.component';
 import { ActivatedRoute } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -49,7 +49,7 @@ describe('GroupDetailComponent debt state', () => {
     TestBed.configureTestingModule({
       imports: [GroupDetailComponent, NoopAnimationsModule, RouterTestingModule],
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } },
         { provide: MatDialog, useValue: jasmine.createSpyObj('MatDialog', ['open']) },

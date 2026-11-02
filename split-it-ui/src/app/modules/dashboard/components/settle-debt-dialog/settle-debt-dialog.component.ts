@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -18,6 +18,7 @@ export interface SettleDebtDialogData {
   selector: 'app-settle-debt-dialog',
   imports: [MATERIAL_IMPORTS, MatDialogModule, PositiveNumberDirective, TranslatePipe],
   templateUrl: './settle-debt-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./settle-debt-dialog.component.scss'],
 })
 export class SettleDebtDialogComponent {

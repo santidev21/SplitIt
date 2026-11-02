@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import {
   MAT_DIALOG_DATA,
@@ -32,6 +32,7 @@ import { AuthService } from '../../../auth/services/auth.service';
     TranslatePipe,
   ],
   templateUrl: './add-expense-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./add-expense-dialog.component.scss'],
 })
 export class AddExpenseDialogComponent implements OnInit {

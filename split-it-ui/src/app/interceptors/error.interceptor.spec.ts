@@ -4,6 +4,7 @@ import {
   provideHttpClient,
   withInterceptors,
   HttpErrorResponse,
+  withXhr,
 } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import Swal from 'sweetalert2';
@@ -16,7 +17,7 @@ describe('errorInterceptor', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(withInterceptors([errorInterceptor])),
+        provideHttpClient(withXhr(), withInterceptors([errorInterceptor])),
         provideHttpClientTesting(),
       ],
     });

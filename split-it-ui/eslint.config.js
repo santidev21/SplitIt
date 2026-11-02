@@ -46,6 +46,10 @@ module.exports = defineConfig([
       // while we clean it up. Promote these to "error" once the counts are ~0.
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-empty-function': 'warn',
+      // Angular 22 makes OnPush the default; the upgrade migration pinned every existing
+      // component to `ChangeDetectionStrategy.Eager` to keep behaviour identical. Migrate
+      // components to OnPush one by one, then promote this rule back to "error".
+      '@angular-eslint/prefer-on-push-component-change-detection': 'warn',
       // Allow intentionally-unused params/vars/caught-errors prefixed with "_"
       // (fixed callback signatures, deliberately ignored errors).
       '@typescript-eslint/no-unused-vars': [

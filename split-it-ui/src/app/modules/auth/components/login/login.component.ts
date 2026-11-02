@@ -1,4 +1,11 @@
-import { Component, OnInit, AfterViewInit, NgZone, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  NgZone,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -14,6 +21,7 @@ declare let google: any;
   selector: 'app-login',
   imports: [MATERIAL_IMPORTS, RouterModule, LoadingSpinnerComponent, TranslatePipe],
   templateUrl: './login.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent implements OnInit, AfterViewInit {

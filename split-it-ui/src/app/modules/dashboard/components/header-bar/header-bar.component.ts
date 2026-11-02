@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../../auth/services/auth.service';
@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
   selector: 'app-header-bar',
   imports: [RouterModule, MatIconModule, TranslatePipe],
   templateUrl: './header-bar.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./header-bar.component.scss'],
 })
 export class HeaderBarComponent implements OnInit {

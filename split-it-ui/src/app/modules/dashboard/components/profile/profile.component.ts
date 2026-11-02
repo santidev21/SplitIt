@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import Swal from 'sweetalert2';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
@@ -11,6 +11,7 @@ import { NotificationService } from '../../../../shared/services/notification.se
   selector: 'app-profile',
   imports: [MATERIAL_IMPORTS, HeaderBarComponent, TranslatePipe],
   templateUrl: './profile.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./profile.component.scss'],
 })
 export class ProfileComponent implements OnInit {

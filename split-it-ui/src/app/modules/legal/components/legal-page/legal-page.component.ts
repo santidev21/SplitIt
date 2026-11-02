@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -10,6 +10,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
   selector: 'app-legal-page',
   imports: [RouterModule, MatCardModule, TranslatePipe],
   templateUrl: './legal-page.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./legal-page.component.scss'],
 })
 export class LegalPageComponent implements OnInit, OnDestroy {

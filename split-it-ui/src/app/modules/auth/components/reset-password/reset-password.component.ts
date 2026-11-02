@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../../../../shared/material.imports';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -9,6 +9,7 @@ import { TranslatePipe } from '@ngx-translate/core';
   selector: 'app-reset-password',
   imports: [MATERIAL_IMPORTS, RouterModule, ReactiveFormsModule, TranslatePipe],
   templateUrl: './reset-password.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['../../auth.styles.scss'],
 })
 export class ResetPasswordComponent {

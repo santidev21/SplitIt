@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CreateGroupComponent } from './create-group.component';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { MatDialogRef } from '@angular/material/dialog';
 import { Router } from '@angular/router';
@@ -38,7 +38,7 @@ describe('CreateGroupComponent', () => {
     await TestBed.configureTestingModule({
       imports: [CreateGroupComponent, NoopAnimationsModule],
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         { provide: MatDialogRef, useValue: dialogRefSpy },
         { provide: CurrencyService, useValue: currencySpy },

@@ -3,7 +3,7 @@ import { SplitMethodDialogComponent } from './split-method-dialog.component';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { AuthService } from '../../../auth/services/auth.service';
 
@@ -30,7 +30,7 @@ describe('SplitMethodDialogComponent', () => {
         { provide: AuthService, useValue: { getCurrentUserId: () => 1 } },
         provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
         provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
       ],
     }).compileComponents();
