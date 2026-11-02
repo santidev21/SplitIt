@@ -12,6 +12,7 @@ namespace SplitIt.Tests.Integration;
 /// The OpenAPI document and the Scalar UI are Development-only: they must be served
 /// locally (with the Bearer scheme) and must never be exposed in Production.
 /// </summary>
+[Collection(SplitIt.Tests.ProcessEnvironmentCollection.Name)]
 public class OpenApiTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;

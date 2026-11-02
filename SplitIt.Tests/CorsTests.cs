@@ -14,6 +14,7 @@ namespace SplitIt.Tests;
 /// early stage, we set environment variables (JwtSettings__SecretKey, etc.)
 /// which WebApplicationBuilder reads immediately during construction.
 /// </summary>
+[Collection(ProcessEnvironmentCollection.Name)]
 public class CorsTests : IClassFixture<WebApplicationFactory<Program>>, IDisposable
 {
     private readonly WebApplicationFactory<Program> _factory;
