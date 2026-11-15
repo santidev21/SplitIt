@@ -53,6 +53,15 @@ Current behavior, not a report. Derived from the Phase 8 feature work; this is t
   `0.01`–`0.02`. The frontend uses JS numbers but rounds to 2 decimals — the backend is the source
   of truth.
 
+## Deleting expenses
+
+- `DELETE /api/expenses/{id}` removes an expense and its shares (204).
+- Allowed for the expense creator, the group creator/admin, or any member when the group has
+  `AllowToDeleteExpenses` enabled (otherwise 403).
+- Rejected with 409 for payments, debt simplifications, and any expense where a debtor share has
+  `AmountPaid > 0` or is settled, so a delete never changes a balance that was paid against.
+- A `delete-snapshot` audit row stores the expense and its shares before removal.
+
 ## Group roles
 
 - `creator > admin > member`.

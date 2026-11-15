@@ -120,6 +120,66 @@ namespace SplitIt.Infrastructure.Services
             return expense;
         }
 
+        /// <summary>
+        /// Deletes an expense that has no payments applied to it. The requester must be a group
+        /// member and either the expense creator, a group creator/admin, or any member when the
+        /// group has <see cref="Group.AllowToDeleteExpenses"/> enabled. Payments, debt
+        /// simplifications and expenses with any paid or settled debt share are rejected, so
+        /// deleting never changes a balance that someone already paid against. A snapshot of the
+        /// deleted expense and its shares is written to the audit log in the same transaction.
+        /// </summary>
+        public async Task DeleteExpenseAsync(int expenseId, int requesterId)
+        {
+            var expense = await _context.Expense
+                .Include(e => e.Group)
+                .Include(e => e.Shares)
+                .FirstOrDefaultAsync(e => e.Id == expenseId)
+                ?? throw new KeyNotFoundException("Expense not found.");
+
+            var membership = await _context.GroupMembers
+                .FirstOrDefaultAsync(gm => gm.GroupId == expense.GroupId && gm.UserId == requesterId)
+                ?? throw new UnauthorizedAccessException("User is not a member of the group.");
+
+            var isGroupManager = membership.Role == "creator" || membership.Role == "admin";
+            var canDelete = expense.CreatedById == requesterId
+                || isGroupManager
+                || expense.Group?.AllowToDeleteExpenses == true;
+            if (!canDelete)
+                throw new UnauthorizedAccessException("You are not allowed to delete this expense.");
+
+            if (expense.IsPayment || expense.IsSimplification)
+                throw new InvalidOperationException("Payments and debt simplifications cannot be deleted.");
+
+            var hasPayments = expense.Shares.Any(s =>
+                s.UserId != expense.PaidById && (s.AmountPaid > 0 || s.IsSettled));
+            if (hasPayments)
+                throw new InvalidOperationException("Expenses with payments cannot be deleted.");
+
+            _context.AuditLogs.Add(new AuditLog
+            {
+                EntityName = nameof(Expense),
+                EntityId = expense.Id.ToString(),
+                Action = "delete-snapshot",
+                ActorUserId = requesterId,
+                Timestamp = DateTime.UtcNow,
+                Details = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    expense.GroupId,
+                    expense.Title,
+                    expense.Note,
+                    expense.Amount,
+                    expense.Date,
+                    expense.CreatedById,
+                    expense.PaidById,
+                    Shares = expense.Shares.Select(s => new { s.UserId, s.AmountOwed }),
+                }),
+            });
+
+            // Shares are removed by the cascade; single SaveChanges keeps it atomic.
+            _context.Expense.Remove(expense);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<List<ExpenseDetailDto>> GetExpensesByGroupIdAsync(int groupId, int userId, bool showAll)
         {
             var expenses = await _context.Expense
