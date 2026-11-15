@@ -9,7 +9,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { ExpenseService } from '../../services/expense.service';
 import { GroupService } from '../../services/group.service';
 import { CurrencyService } from '../../services/currency.service';
@@ -28,6 +28,7 @@ describe('GroupDetailComponent debt state', () => {
       'settleExpenseWithUser',
       'previewDebtSimplification',
       'simplifyDebts',
+      'deleteExpense',
     ]);
     expenseSpy.getGroupExpenses.and.returnValue(of([]));
     expenseSpy.getFullDebtSummary.and.returnValue(of({ debtsOwedByUser, debtsOwedToUser }));
@@ -192,6 +193,49 @@ describe('GroupDetailComponent debt state', () => {
 
       expect(component.filteredExpenses.map((e) => e.id)).toEqual([1]);
       expect(component.paymentsHistory.map((e) => e.id)).toEqual([2, 3]);
+    });
+  });
+  describe('deleting an expense', () => {
+    const expense = { id: 7, title: 'Recuerdos', amount: 30000 } as any;
+
+    function notificationsSpy() {
+      return TestBed.inject(NotificationService) as jasmine.SpyObj<NotificationService>;
+    }
+
+    it('deletes the expense and refreshes the page after confirmation', async () => {
+      configure([], []);
+      notificationsSpy().confirm.and.returnValue(Promise.resolve({ isConfirmed: true } as any));
+      expenseSpy.deleteExpense.and.returnValue(of(undefined));
+      const refresh = spyOn(component, 'refreshPage');
+
+      component.onDelete(expense);
+      await fixture.whenStable();
+
+      expect(expenseSpy.deleteExpense).toHaveBeenCalledWith(7);
+      expect(refresh).toHaveBeenCalled();
+      expect(notificationsSpy().toast).toHaveBeenCalled();
+    });
+
+    it('does nothing when the confirmation is cancelled', async () => {
+      configure([], []);
+      notificationsSpy().confirm.and.returnValue(Promise.resolve({ isConfirmed: false } as any));
+
+      component.onDelete(expense);
+      await fixture.whenStable();
+
+      expect(expenseSpy.deleteExpense).not.toHaveBeenCalled();
+    });
+
+    it('keeps the list when the API rejects the delete', async () => {
+      configure([], []);
+      notificationsSpy().confirm.and.returnValue(Promise.resolve({ isConfirmed: true } as any));
+      expenseSpy.deleteExpense.and.returnValue(throwError(() => ({ status: 409 })));
+      const refresh = spyOn(component, 'refreshPage');
+
+      component.onDelete(expense);
+      await fixture.whenStable();
+
+      expect(refresh).not.toHaveBeenCalled();
     });
   });
 });

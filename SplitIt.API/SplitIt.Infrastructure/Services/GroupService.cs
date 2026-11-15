@@ -30,6 +30,7 @@ namespace SplitIt.Infrastructure.Services
                 Name = name.Trim(),
                 Description = description.Trim(),
                 CurrencyId = currencyId,
+                AllowToDeleteExpenses = allowToDeleteExpenses,
                 CreatedAt = DateTime.UtcNow,
             };
             _context.Groups.Add(group);
@@ -51,6 +52,7 @@ namespace SplitIt.Infrastructure.Services
                 Name = name.Trim(),
                 Description = description.Trim(),
                 CurrencyId = currencyId,
+                AllowToDeleteExpenses = allowToDeleteExpenses,
                 CreatedAt = DateTime.UtcNow,
             };
 

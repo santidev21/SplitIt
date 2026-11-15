@@ -26,6 +26,10 @@ export class ExpenseService {
     return this.http.post(`${this.API_URL}/add`, body);
   }
 
+  deleteExpense(expenseId: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/${expenseId}`);
+  }
+
   getGroupExpenses(groupId: number, showAll: boolean): Observable<Expense[]> {
     return this.http.get<Expense[]>(`${this.API_URL}/${groupId}/expenses`, {
       params: { showAll },

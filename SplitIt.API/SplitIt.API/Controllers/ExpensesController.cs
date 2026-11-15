@@ -62,6 +62,33 @@ namespace SplitIt.API.Controllers
             }
         }
 
+        [HttpDelete("{expenseId:int}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteExpense(int expenseId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            try
+            {
+                await _expensesService.DeleteExpenseAsync(expenseId, userId);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
+        }
+
         [HttpGet("{groupId}/expenses")]
         [Authorize]
         public async Task<IActionResult> GetGroupExpenses(int groupId, [FromQuery] bool showAll = false)

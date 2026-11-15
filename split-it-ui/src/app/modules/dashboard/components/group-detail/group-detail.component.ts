@@ -79,7 +79,25 @@ export class GroupDetailComponent implements OnInit {
 
   onEdit(_exp: any) {}
 
-  onDelete(_exp: any) {}
+  onDelete(exp: Expense) {
+    this.notifications
+      .confirm(
+        this.translate.instant('GROUP_DETAIL.DELETE_EXPENSE_TITLE'),
+        this.translate.instant('GROUP_DETAIL.DELETE_EXPENSE_TEXT', { title: exp.title }),
+        this.translate.instant('COMMON.YES_DELETE'),
+      )
+      .then((result) => {
+        if (!result.isConfirmed) return;
+        // Errors (e.g. 409 when the expense already has payments) are surfaced by the error interceptor.
+        this.expenseService.deleteExpense(exp.id).subscribe({
+          next: () => {
+            this.notifications.toast(this.translate.instant('GROUP_DETAIL.DELETE_EXPENSE_SUCCESS'));
+            this.refreshPage();
+          },
+          error: () => {},
+        });
+      });
+  }
 
   onAddExpense() {
     const dialogRef = this.dialog.open(AddExpenseDialogComponent, {
