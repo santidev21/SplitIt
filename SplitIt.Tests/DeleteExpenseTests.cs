@@ -73,6 +73,67 @@ public class DeleteExpenseTests
     }
 
     [Fact]
+    public async Task FullySettledExpense_CannotBeDeleted()
+    {
+        var (ctx, svc, aliceId, bobId, _, gId) = await SetupAsync();
+        var expenseId = await AddExpenseAsync(svc, gId, bobId, aliceId, bobId);
+        await svc.SettleExpenseWithUser(aliceId, bobId, gId);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.DeleteExpenseAsync(expenseId, bobId));
+        Assert.True(await ctx.Expense.AnyAsync(e => e.Id == expenseId));
+    }
+
+    [Fact]
+    public async Task ReciprocalExpenseOffsetByPayment_CannotBeDeleted()
+    {
+        // Alice owes Bob 50 and Bob owes Alice 50 on another expense: a payment between
+        // them offsets Bob's debt first, which marks that share as paid.
+        var (_, svc, aliceId, bobId, carolId, gId) = await SetupAsync();
+        await svc.AddExpenseAsync(new CreateExpenseDto
+        {
+            GroupId = gId, Title = "Taxi", Amount = 100, Date = DateTime.UtcNow, PaidById = bobId,
+            Participants = new List<ExpenseParticipantDto> { new() { UserId = aliceId, AmountOwed = 100 } },
+        }, bobId);
+        var reciprocalId = await AddExpenseAsync(svc, gId, aliceId, bobId, aliceId);
+        await svc.RegisterPayment(aliceId, bobId, gId, 10);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.DeleteExpenseAsync(reciprocalId, aliceId));
+    }
+
+    [Fact]
+    public async Task SimplifiedDebts_OriginalExpensesAndSimplificationCannotBeDeleted()
+    {
+        // Alice -> Bob -> Carol chain collapses into Alice -> Carol.
+        var (ctx, svc, aliceId, bobId, carolId, gId) = await SetupAsync();
+        var first = await AddExpenseAsync(svc, gId, bobId, aliceId, bobId);
+        var second = await AddExpenseAsync(svc, gId, carolId, bobId, carolId);
+        var result = await svc.SimplifyDebtsAsync(gId, aliceId);
+        Assert.True(result.Applied);
+        var simplificationId = await ctx.Expense.Where(e => e.IsSimplification).Select(e => e.Id).FirstAsync();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.DeleteExpenseAsync(first, aliceId));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.DeleteExpenseAsync(second, aliceId));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.DeleteExpenseAsync(simplificationId, aliceId));
+    }
+
+    [Fact]
+    public async Task PaymentAppliedToOlderExpense_NewerUnpaidExpenseCanBeDeleted_AndBalanceStaysConsistent()
+    {
+        var (ctx, svc, aliceId, bobId, _, gId) = await SetupAsync();
+        var older = await AddExpenseAsync(svc, gId, bobId, aliceId, bobId);
+        await Task.Delay(5);
+        var newer = await AddExpenseAsync(svc, gId, bobId, aliceId, bobId);
+        await svc.RegisterPayment(aliceId, bobId, gId, 20); // applied oldest-first
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => svc.DeleteExpenseAsync(older, bobId));
+        await svc.DeleteExpenseAsync(newer, bobId);
+
+        // 50 owed on the older expense minus the 20 already paid.
+        Assert.Equal(30, await svc.GetRemainingDebtAsync(aliceId, bobId, gId));
+        Assert.True(await ctx.Expense.AnyAsync(e => e.IsPayment));
+    }
+
+    [Fact]
     public async Task PaymentExpense_CannotBeDeleted()
     {
         var (ctx, svc, aliceId, bobId, _, gId) = await SetupAsync();
