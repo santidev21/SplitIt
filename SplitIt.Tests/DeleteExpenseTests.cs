@@ -91,7 +91,11 @@ public class DeleteExpenseTests
         var (_, svc, aliceId, bobId, carolId, gId) = await SetupAsync();
         await svc.AddExpenseAsync(new CreateExpenseDto
         {
-            GroupId = gId, Title = "Taxi", Amount = 100, Date = DateTime.UtcNow, PaidById = bobId,
+            GroupId = gId,
+            Title = "Taxi",
+            Amount = 100,
+            Date = DateTime.UtcNow,
+            PaidById = bobId,
             Participants = new List<ExpenseParticipantDto> { new() { UserId = aliceId, AmountOwed = 100 } },
         }, bobId);
         var reciprocalId = await AddExpenseAsync(svc, gId, aliceId, bobId, aliceId);
